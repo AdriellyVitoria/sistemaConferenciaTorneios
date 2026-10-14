@@ -101,6 +101,40 @@ Princípio: **tolerante na forma, rígida no conteúdo.** O que não muda o sent
 
 ---
 
+## Site oficial simulado: consulta de partida (etapa 2a), 14/10/2026
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| ID na URL **só com os números**: `GET /partidas/40923`; o servidor acrescenta o `#`. `%2340923` (o `#` codificado) também é aceito | `GET /partidas/#40923` | O navegador trata tudo depois do `#` como fragmento e não envia ao servidor: a consulta chegaria como `/partidas/` |
+| (mesma) | Exigir `%2340923` | Funciona, mas é feio e fácil de errar à mão |
+| Três respostas distintas: **200** com a partida, **404 `{ status: "nao_encontrada" }`** para ID que não existe, **400** para ID que não é número | Responder 404 para tudo | "Não encontrada" é uma resposta válida do site e vira pendência de corrigir o ID (D5); um pedido mal feito é erro do cliente. Misturar os dois esconderia um bug |
+| A configuração do simulador (`falhas_antes_de_responder`) **não aparece na resposta** | Devolver o objeto do arquivo como está | O site real não teria esse campo; a API não deve depender dele |
+| Mesmo ID em dois arquivos de dados: **o simulador não sobe** | Ficar com o último arquivo lido | Escolher em silêncio esconderia um erro nos dados de teste |
+| Dados lidos ao subir, montados **somente leitura** no Docker | Copiar os arquivos para dentro da imagem | Com `:ro`, o simulador não consegue alterar os dados de teste, e mudar os dados não exige reconstruir a imagem |
+
+## Site oficial simulado: demora e falhas (etapa 2b), 14/10/2026
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| Falha por partida = **503 `{ status: "indisponivel" }`**, depois da demora normal | Deixar a conexão pendurada até o tempo esgotar | 503 é o que um site fora do ar costuma devolver e é distinto de 404 (não existe) e 400 (pedido mal feito). A conexão pendurada existe como um dos modos de derrubar o site (2c). Quem tenta consultar de novo é o job de conferência da **etapa 4**, em dois casos: **503** e **site sem resposta (tempo esgotado)**; 404 e 400 não são tentados de novo |
+| A demora vale também para "não encontrada" e para a falha; o 400 (ID inválido) responde na hora | Demorar só nas respostas com a partida | O site real demora para dizer que não achou ou para cair; o 400 é recusado antes de "consultar" |
+| Demora de **2 a 10 s por padrão**, configurável por `SITE_DEMORA_MIN_MS` e `SITE_DEMORA_MAX_MS` | Demora fixa | O padrão imita o site real; a demonstração encurta no `.env` sem mexer no código |
+| O contador de falhas fica **na memória** e zera quando o simulador reinicia | Guardar em arquivo | Reiniciar o simulador para repetir a demonstração é justamente o que se quer; e os arquivos de dados são somente leitura |
+| A espera e o sorteio **entram por parâmetro** no app | Testar com a demora de verdade, ou com relógio falso global | O teste controla quando a resposta sai, sem esperar nem mexer no relógio do processo |
+
+## Site oficial simulado: modo demonstração (etapa 2c), 14/10/2026
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **Dois modos de queda:** com erro (503 na hora) e sem resposta (a conexão fica pendurada) | Só o modo com erro | Os dois são os casos em que a etapa 4 tenta de novo; sem o modo pendurado, o limite de tempo do cliente nunca seria testado |
+| **Só as consultas de partida caem;** `/saude` e `/demo` continuam de pé | Derrubar o serviço inteiro | Com tudo fora, não daria para religar pela página |
+| Ao religar, as conexões penduradas são **encerradas**, sem resposta tardia | Responder às penduradas quando o site voltar | No site real, uma consulta que ficou sem resposta está perdida; responder depois esconderia o problema que o limite de tempo do cliente precisa resolver |
+| Com o site fora, as partidas instáveis **não gastam** as falhas delas | Contar a queda como uma das falhas | Cair e falhar são coisas diferentes; misturar faria a demonstração das partidas instáveis depender de quantas vezes o site foi derrubado antes |
+| Estado da queda **na memória**; o modo demonstração está sempre disponível no simulador | Ligar o modo por variável de ambiente | O simulador só existe para testes e demonstração; reiniciar volta ao estado "no ar" |
+| Página em HTML simples, servida pelo próprio simulador, com um campo para consultar uma partida | Uma tela no front da Maria | O simulador representa um sistema de fora; os controles dele não pertencem ao sistema dela |
+
+---
+
 ## Stack e ferramentas
 
 | Decisão | Alternativa descartada | Por quê |

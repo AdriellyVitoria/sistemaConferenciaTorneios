@@ -265,9 +265,9 @@ premiacao-torneios   (um commit pequeno por passo de cada etapa)
 **Pronto quando:** testes cobrem todos os cenários de `testes/` e batem com `testes/esperado/`, incluindo o centavo de Escama no cenário 01 (R$ 880,96, contra R$ 1.029,76 para os outros Dragões), o de Sabiá em outubro (R$ 74,63), o empate do cenário 04 (R$ 2.500 para cada) e o resultado esperado de setembro, com Tuca em R$ 65,90 (`contexto.md`, seção 14).
 
 ### Etapa 2 — Site oficial simulado ⭐
-- `GET /partidas/:id` devolvendo os dados de `testes/site-oficial.json` e de setembro (D15: Falcões venceu a `#40923` com 62 kills; valores por jogador no `contexto.md`). Gerar também `testes/esperado/torneio-setembro-*.csv`.
-- Demora aleatória de 2 a 10 segundos; "não encontrada" para ID inexistente; falhas configuradas por partida (`falhas_antes_de_responder`).
-- **Modo demonstração:** botões para derrubar e religar o site, e demora curta opcional.
+- `GET /partidas/:id` (ID só com os números, `/partidas/40923`) devolvendo os dados de `testes/site-oficial.json` e de `api/test/fixtures/site-setembro.json` (D15: Falcões venceu a `#40923` com 62 kills). 404 `nao_encontrada` para ID inexistente; 400 para ID inválido. **(2a, feito)**
+- Demora aleatória de 2 a 10 segundos (`SITE_DEMORA_MIN_MS`, `SITE_DEMORA_MAX_MS`); falhas configuradas por partida (`falhas_antes_de_responder`), respondendo 503 `indisponivel` até esgotar. **(2b, feito)**
+- **Modo demonstração:** página `GET /demo` com botões para derrubar (com erro ou sem resposta) e religar; demora curta pelo `.env`. **(2c, feito)**
 
 **Pronto quando:** consigo consultar uma partida, ver a demora, derrubar o site e ver o erro.
 
@@ -283,7 +283,7 @@ premiacao-torneios   (um commit pequeno por passo de cada etapa)
 ### Etapa 4 — Conferência em segundo plano ⭐
 - Job que acorda periodicamente e reserva partidas com `SELECT ... FOR UPDATE SKIP LOCKED`, marcando `em_consulta`.
 - Consulta o site, salva as participações oficiais, compara com a planilha (função da etapa 1) e gera os **itens de pendência**. "Não encontrada" e "times diferentes" marcam a partida e não entram nas novas tentativas: só uma correção de ID consulta de novo (D5, D16).
-- Falha → nova tentativa com intervalo crescente: 1, 2, 5 e depois 10 minutos (D10). Intervalos configuráveis, curtos no modo demonstração.
+- Falha → nova tentativa com intervalo crescente: 1, 2, 5 e depois 10 minutos (D10). Intervalos configuráveis, curtos no modo demonstração. **Conta como falha, e é tentada de novo:** resposta **503** e **site sem resposta** (tempo esgotado, o cliente precisa de um limite de tempo por consulta). 404 (não encontrada) e 400 não são tentados de novo.
 - Botão **"tentar agora"** com espera entre cliques; não cria consulta paralela, só antecipa a próxima tentativa.
 - Tela de progresso: status por partida, "última tentativa às X, próxima às Y" (atualização por polling).
 
@@ -341,7 +341,7 @@ premiacao-torneios   (um commit pequeno por passo de cada etapa)
 
 - [x] Etapa 0 — Esqueleto
 - [x] Etapa 1 — Regras de negócio puras
-- [ ] Etapa 2 — Site oficial simulado
+- [x] Etapa 2 — Site oficial simulado
 - [ ] Etapa 3 — Torneio e importação
 - [ ] Etapa 4 — Conferência em segundo plano
 - [ ] Etapa 5 — Revisão das pendências

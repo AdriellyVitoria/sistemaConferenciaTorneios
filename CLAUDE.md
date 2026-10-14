@@ -33,5 +33,6 @@ Projeto: desafio técnico da PowerRev (Desenvolvedora Full Stack Júnior). Siste
 - Etapa 1, parte 4c (rateio entre jogadores, `api/src/dominio/rateio.ts`): pronta, aguardando aprovação. D21: no modo kills, 0 kills recebe R$ 0; time sem kills é dividido pelos minutos. **Com ela, a etapa 1 está completa.**
 - Forma de trabalho: em cada pedaço, escrever os testes, **rodar e mostrar que falham**, e só depois implementar.
 - Etapas 0 e 1 integradas na `develop` por pull request.
-- Etapa 2, pedaço 2a (consulta de partida, `site-oficial-simulado/src/app.ts`): pronto, aguardando aprovação. `GET /partidas/40923`; dados montados somente leitura no Docker.
-- Próximo passo: **Etapa 2, pedaço 2b**, depois da aprovação da Adrielly.
+- Etapa 2, pedaço 2a (consulta de partida, `site-oficial-simulado/src/app.ts`): concluído. `GET /partidas/40923`; dados montados somente leitura no Docker.
+- Etapa 2, pedaço 2b (demora e falhas): pronto, aguardando aprovação. Demora 2–10 s por `SITE_DEMORA_MIN_MS`/`SITE_DEMORA_MAX_MS`; falha = 503 `indisponivel`.
+- Próximo passo: **Etapa 2, pedaço 2c**, depois da aprovação da Adrielly.

@@ -266,7 +266,7 @@ premiacao-torneios   (um commit pequeno por passo de cada etapa)
 
 ### Etapa 2 — Site oficial simulado ⭐
 - `GET /partidas/:id` (ID só com os números, `/partidas/40923`) devolvendo os dados de `testes/site-oficial.json` e de `api/test/fixtures/site-setembro.json` (D15: Falcões venceu a `#40923` com 62 kills). 404 `nao_encontrada` para ID inexistente; 400 para ID inválido. **(2a, feito)**
-- Demora aleatória de 2 a 10 segundos; "não encontrada" para ID inexistente; falhas configuradas por partida (`falhas_antes_de_responder`).
+- Demora aleatória de 2 a 10 segundos (`SITE_DEMORA_MIN_MS`, `SITE_DEMORA_MAX_MS`); falhas configuradas por partida (`falhas_antes_de_responder`), respondendo 503 `indisponivel` até esgotar. **(2b, feito)**
 - **Modo demonstração:** botões para derrubar e religar o site, e demora curta opcional.
 
 **Pronto quando:** consigo consultar uma partida, ver a demora, derrubar o site e ver o erro.

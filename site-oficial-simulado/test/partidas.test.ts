@@ -55,7 +55,10 @@ describe('GET /partidas/:id', () => {
 
   it('não expõe a configuração do simulador (falhas_antes_de_responder)', async () => {
     const instavel = Object.keys(SITE_OFICIAL).find((id) => 'falhas_antes_de_responder' in SITE_OFICIAL[id])!;
-    const { status, corpo } = await consultar(`/partidas/${instavel.slice(1)}`);
+    // a partida instável falha algumas vezes antes de responder (2b); consulta até responder
+    let resposta = await consultar(`/partidas/${instavel.slice(1)}`);
+    while (resposta.status === 503) resposta = await consultar(`/partidas/${instavel.slice(1)}`);
+    const { status, corpo } = resposta;
     expect(status).toBe(200);
     expect(corpo).not.toHaveProperty('falhas_antes_de_responder');
     expect(corpo.id).toBe(instavel);

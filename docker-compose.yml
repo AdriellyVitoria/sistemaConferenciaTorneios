@@ -46,6 +46,9 @@ services:
     environment:
       SITE_PORTA: 4000
       SITE_ARQUIVOS: /dados/site-oficial.json,/dados/site-setembro.json
+      # demora de cada consulta, como o site real (2 a 10 s); a demonstração pode encurtar no .env
+      SITE_DEMORA_MIN_MS: ${SITE_DEMORA_MIN_MS:-2000}
+      SITE_DEMORA_MAX_MS: ${SITE_DEMORA_MAX_MS:-10000}
     volumes:
       # os dados do site são só lidos (:ro); o simulador não consegue alterá-los
       - ./testes/site-oficial.json:/dados/site-oficial.json:ro

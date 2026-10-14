@@ -2,6 +2,7 @@
  * Rotas do torneio (etapa 3b). Só recebem a requisição, validam a entrada e devolvem a resposta;
  * as regras ficam no serviço e no domínio.
  *
+ *   GET  /torneios                  os torneios, o mais novo primeiro, com quantas partidas cada um tem
  *   POST /torneios                  cria o torneio
  *   GET  /torneios/:id              o torneio, com as partidas e o status de cada uma
  *   PUT  /torneios/:id/planilha     envia (ou reenvia) a planilha: o arquivo vai direto no corpo,
@@ -12,7 +13,7 @@ import express, { Router } from 'express';
 import type { Knex } from 'knex';
 import { z } from 'zod';
 import { assincrono } from './assincrono';
-import { consultarTorneio, criarTorneio, importarPlanilha } from '../servicos/torneios';
+import { consultarTorneio, criarTorneio, importarPlanilha, listarTorneios } from '../servicos/torneios';
 
 const TAMANHO_MAXIMO = '5mb'; // a planilha de setembro tem 9 KB
 
@@ -51,6 +52,10 @@ export function rotasTorneios(bd: Knex): Router {
       return;
     }
     res.status(201).json({ id: resultado.id });
+  }));
+
+  rota.get('/torneios', assincrono(async (_req, res) => {
+    res.json(await listarTorneios(bd));
   }));
 
   rota.get('/torneios/:id', assincrono(async (req, res) => {

@@ -53,6 +53,22 @@ export async function buscarTorneio(bd: Executor, id: number): Promise<Torneio |
   return linha ? paraTorneio(linha) : null;
 }
 
+/** Um torneio na lista da página inicial. */
+export interface ResumoTorneio extends Torneio {
+  quantidadeDePartidas: number;
+}
+
+/** Todos os torneios, o mais novo primeiro, com quantas partidas cada um tem. */
+export async function listarTorneios(bd: Executor): Promise<ResumoTorneio[]> {
+  const linhas: (LinhaTorneio & { quantidade_de_partidas: number | string })[] = await bd('torneios as t')
+    .select('t.*')
+    .select(
+      bd('partidas as p').count('*').where('p.torneio_id', bd.ref('t.id')).as('quantidade_de_partidas'),
+    )
+    .orderBy('t.id', 'desc');
+  return linhas.map((l) => ({ ...paraTorneio(l), quantidadeDePartidas: Number(l.quantidade_de_partidas) }));
+}
+
 /**
  * Busca o torneio TRAVANDO a linha até o fim da transação (SELECT ... FOR UPDATE).
  * Usado pela importação: dois envios ao mesmo tempo esperam um pelo outro, sem misturar planilhas.

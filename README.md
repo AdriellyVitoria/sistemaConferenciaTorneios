@@ -20,7 +20,7 @@ docker compose up --build
 | Modo demonstração do site | http://localhost:4000/demo (derrubar e religar o site) |
 | MySQL | `localhost:3307` (usuário `torneios`, senha `torneios`) |
 
-A página inicial mostra se a API e o banco estão no ar. A API aplica as migrations do banco sozinha ao subir.
+A página inicial lista os torneios. Por ela, a Maria cria um torneio (nome, prêmio, percentuais e forma de divisão) e sobe a planilha; as partidas aparecem aguardando o site oficial. O rodapé mostra se a API e o banco estão no ar. A API aplica as migrations do banco sozinha ao subir.
 
 Para parar: `docker compose down`. Para apagar também os dados do banco: `docker compose down -v`.
 
@@ -30,7 +30,7 @@ Pré-requisito: Node 22.
 
 ```bash
 npm install
-npm test                  # regras de negócio, API e site simulado; não precisa de banco
+npm test                  # regras de negócio, API, site simulado e regras da tela; não precisa de banco
 npm run test:integracao   # repositórios contra o MySQL do Docker (docker compose up -d mysql)
 ```
 
@@ -46,6 +46,9 @@ curl -X POST localhost:3000/torneios -H 'content-type: application/json' \
 # subir a planilha do torneio 1 (o arquivo vai direto no corpo; enviar de novo substitui)
 curl -X PUT localhost:3000/torneios/1/planilha -H 'x-nome-arquivo: torneio-setembro.csv' \
   --data-binary @torneio-setembro.csv
+
+# listar os torneios, o mais novo primeiro
+curl localhost:3000/torneios
 
 # ver o torneio, com as partidas e o status de cada uma (também pelo navegador)
 curl localhost:3000/torneios/1

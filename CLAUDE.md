@@ -38,5 +38,7 @@ Projeto: desafio técnico da PowerRev (Desenvolvedora Full Stack Júnior). Siste
 - Etapa 2, pedaço 2c (modo demonstração, página em `http://localhost:4000/demo`): concluído. Etapa 2 completa e integrada.
 - Etapa 3, pedaço 3a (banco: migrations 002 a 004 e repositórios em `api/src/repositorios/`): concluído. Testes de integração com `npm run test:integracao` (precisa do `docker compose up -d mysql`), num banco `torneios_teste` recriado a cada execução.
 - Quem tenta consultar de novo é o job da **etapa 4**, em dois casos: 503 e site sem resposta (tempo esgotado).
-- Etapa 3, pedaço 3b (API: `POST /torneios`, `GET /torneios/:id`, `PUT /torneios/:id/planilha`): pronto, aguardando aprovação. D22 (reenvio substitui, travado depois do cálculo) e D23 (dois times por partida) decididas. Sem login: limitação registrada no DECISIONS.md.
-- Próximo passo: **Etapa 3, pedaço 3c** (telas de criar torneio e subir planilha, com a confirmação de substituir), depois da aprovação da Adrielly.
+- Etapa 3, pedaço 3b (API: `POST /torneios`, `GET /torneios/:id`, `PUT /torneios/:id/planilha`): concluído. D22 (reenvio substitui, travado depois do cálculo) e D23 (dois times por partida) decididas. Sem login: limitação registrada no DECISIONS.md.
+- Etapa 3, pedaço 3c (telas): pronto, aguardando aprovação. `GET /torneios` (lista); web com vue-router 4, Vitest (regras puras em `web/src/dominio/`, testes em `web/test/`) e fontes IBM Plex locais (`@fontsource`). Páginas: lista, novo torneio (prêmio em reais convertido só com inteiros, percentuais 50/30/20 com soma ao vivo) e torneio (envio da planilha com confirmação de substituir, erros por linha, partidas).
+- Visual: protótipo em `C:\Users\mende\Downloads\prototipo\prototipo` (três HTML de editor de design; usar só o visual, tokens em `web/src/estilos.css`).
+- Próximo passo: **Etapa 4** (conferência em segundo plano), depois da aprovação da Adrielly.

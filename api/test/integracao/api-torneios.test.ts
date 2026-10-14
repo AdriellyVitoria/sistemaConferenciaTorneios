@@ -69,6 +69,26 @@ describe('POST /torneios', () => {
   });
 });
 
+describe('GET /torneios', () => {
+  it('sem torneios: lista vazia', async () => {
+    expect(await pedir('GET', '/torneios')).toEqual({ status: 200, corpo: [] });
+  });
+
+  it('lista o mais novo primeiro, com a quantidade de partidas de cada um', async () => {
+    const setembro = await criarSetembro();
+    await subir(setembro, planilha('torneio-setembro.csv'), 'torneio-setembro.csv');
+    const { corpo: outubro } = await pedir('POST', '/torneios', { ...SETEMBRO, nome: 'Torneio de outubro/2026', modoDivisao: 'kills' });
+
+    const { status, corpo } = await pedir('GET', '/torneios');
+    expect(status).toBe(200);
+    expect(corpo).toEqual([
+      expect.objectContaining({ id: outubro.id, nome: 'Torneio de outubro/2026', modoDivisao: 'kills', status: 'criado', planilhaArquivo: null, quantidadeDePartidas: 0 }),
+      expect.objectContaining({ id: setembro, ...SETEMBRO, status: 'importado', planilhaArquivo: 'torneio-setembro.csv', quantidadeDePartidas: 15 }),
+    ]);
+    expect(corpo[0].criadoEm).toEqual(expect.any(String));
+  });
+});
+
 describe('GET /torneios/:id', () => {
   it('torneio que não existe: 404', async () => {
     expect((await pedir('GET', '/torneios/999999')).status).toBe(404);

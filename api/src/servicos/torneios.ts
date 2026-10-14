@@ -13,8 +13,10 @@ import {
   buscarTorneio,
   buscarTorneioParaAtualizar,
   criarTorneio as inserirTorneio,
+  listarTorneios as buscarTodosOsTorneios,
   registrarImportacao,
   type NovoTorneio,
+  type ResumoTorneio,
   type Torneio,
 } from '../repositorios/torneios';
 
@@ -25,6 +27,10 @@ export async function criarTorneio(bd: Knex, novo: NovoTorneio): Promise<Resulta
   const erro = erroDosPercentuais(novo.percentuais);
   if (erro) return { ok: false, erros: [{ campo: 'percentuais', mensagem: erro }] };
   return { ok: true, id: await inserirTorneio(bd, novo) };
+}
+
+export function listarTorneios(bd: Knex): Promise<ResumoTorneio[]> {
+  return buscarTodosOsTorneios(bd);
 }
 
 export async function consultarTorneio(bd: Knex, id: number): Promise<(Torneio & { partidas: Partida[] }) | null> {

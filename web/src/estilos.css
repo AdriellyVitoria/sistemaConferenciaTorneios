@@ -1,0 +1,329 @@
+/*
+ * Estilo de todas as telas, tirado do protótipo visual: cores, fontes, cartões, selos e tabelas.
+ * As fontes vêm dos pacotes @fontsource, dentro do projeto: a demonstração funciona sem internet.
+ */
+
+:root {
+  --fundo: #f4f5f7;
+  --superficie: #ffffff;
+  --superficie-suave: #f7f8fa;
+  --texto: #14161b;
+  --texto-medio: #444a57;
+  --texto-suave: #5b6170;
+  --borda: #e2e5ea;
+  --borda-forte: #d5d9e0;
+  --borda-campo: #c3c8d2;
+  --linha-tabela: #eef0f3;
+
+  --primaria: #2348c7;
+  --primaria-escura: #16328f;
+  --primaria-clara: #e8edfb;
+
+  --sucesso: #146c3a;
+  --sucesso-fundo: #e3f3e9;
+  --alerta: #8a4b05;
+  --alerta-fundo: #fdf1dc;
+  --neutro: #444a57;
+  --neutro-fundo: #edeff3;
+  --erro: #a32318;
+  --erro-fundo: #fdecea;
+
+  --cabecalho: #14161b;
+  --cabecalho-texto-suave: #c9ceda;
+  --cabecalho-icone: #8fa8ff;
+
+  --fonte: 'IBM Plex Sans', sans-serif;
+  --fonte-mono: 'IBM Plex Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--texto);
+  font-family: var(--fonte);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+a {
+  color: var(--primaria);
+}
+a:hover {
+  color: var(--primaria-escura);
+}
+
+h1 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+p {
+  margin: 0;
+}
+
+.mono {
+  font-family: var(--fonte-mono);
+}
+.texto-medio {
+  color: var(--texto-medio);
+}
+.texto-suave {
+  color: var(--texto-suave);
+  font-size: 14px;
+}
+
+/* página */
+.pagina {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 28px 24px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.pagina.estreita {
+  max-width: 760px;
+}
+.titulo-da-pagina {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.titulo-com-acao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+.trilha {
+  font-size: 13px;
+  color: var(--texto-suave);
+}
+
+/* cartões */
+.cartao {
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.quadro-suave {
+  background: var(--superficie-suave);
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: var(--texto-medio);
+  font-size: 14px;
+}
+
+/* etiquetas em pílula (prêmio, percentuais, modo) */
+.pilulas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 13px;
+}
+.pilula {
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+
+/* selos de situação */
+.selo {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 3px 8px;
+  white-space: nowrap;
+}
+.selo.neutro {
+  background: var(--neutro-fundo);
+  color: var(--neutro);
+}
+.selo.info {
+  background: var(--primaria-clara);
+  color: var(--primaria-escura);
+}
+.selo.sucesso {
+  background: var(--sucesso-fundo);
+  color: var(--sucesso);
+}
+.selo.alerta {
+  background: var(--alerta-fundo);
+  color: var(--alerta);
+}
+
+/* botões */
+.botao {
+  font: inherit;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid var(--primaria);
+  background: var(--primaria);
+  color: #ffffff;
+  cursor: pointer;
+  text-decoration: none;
+}
+.botao:hover {
+  background: var(--primaria-escura);
+  border-color: var(--primaria-escura);
+  color: #ffffff;
+}
+.botao.secundario {
+  background: var(--superficie);
+  color: var(--primaria);
+}
+.botao.secundario:hover {
+  background: var(--primaria-clara);
+  color: var(--primaria-escura);
+}
+.botao.perigo {
+  background: var(--erro);
+  border-color: var(--erro);
+}
+.botao:disabled {
+  background: var(--borda-forte);
+  border-color: var(--borda-forte);
+  color: var(--texto-medio);
+  cursor: not-allowed;
+}
+.botao-texto {
+  font: inherit;
+  font-size: 14px;
+  background: none;
+  border: none;
+  color: var(--primaria);
+  cursor: pointer;
+  padding: 8px;
+  min-height: 44px;
+}
+.botao-texto:disabled {
+  color: var(--texto-suave);
+  cursor: not-allowed;
+}
+.botao:focus-visible,
+.botao-texto:focus-visible,
+.campo:focus-visible {
+  outline: 3px solid var(--primaria-clara);
+  outline-offset: 1px;
+}
+
+/* formulário */
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rotulo {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--texto);
+}
+.ajuda {
+  font-size: 13px;
+  color: var(--texto-suave);
+}
+.campo {
+  font: inherit;
+  border: 1px solid var(--borda-campo);
+  border-radius: 8px;
+  padding: 10px 12px;
+  min-height: 44px;
+  background: var(--superficie);
+  color: var(--texto);
+}
+.campo[aria-invalid='true'] {
+  border-color: var(--erro);
+}
+.mensagem-erro {
+  font-size: 13px;
+  color: var(--erro);
+}
+
+/* avisos em faixa */
+.aviso {
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.aviso.alerta {
+  background: var(--alerta-fundo);
+  color: var(--alerta);
+}
+.aviso.sucesso {
+  background: var(--sucesso-fundo);
+  color: var(--sucesso);
+}
+.aviso.erro {
+  background: var(--erro-fundo);
+  color: var(--erro);
+}
+.aviso.info {
+  background: var(--primaria-clara);
+  color: var(--primaria-escura);
+}
+
+/* tabelas */
+.rolagem {
+  overflow-x: auto;
+}
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+}
+.tabela th {
+  text-align: left;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--texto-suave);
+  border-bottom: 1px solid var(--borda);
+  padding: 10px 8px;
+}
+.tabela td {
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--linha-tabela);
+  vertical-align: top;
+}
+.tabela tr:last-child td {
+  border-bottom: none;
+}
+.tabela .numero {
+  text-align: right;
+}
+.tabela td.numero {
+  font-family: var(--fonte-mono);
+}
+
+.visualmente-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

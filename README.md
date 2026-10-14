@@ -30,8 +30,19 @@ Pré-requisito: Node 22.
 
 ```bash
 npm install
-npm test        # testes da API e do site oficial simulado
+npm test                  # regras de negócio, API e site simulado; não precisa de banco
+npm run test:integracao   # repositórios contra o MySQL do Docker (docker compose up -d mysql)
 ```
+
+Os testes de integração usam um banco só deles, `torneios_teste`, recriado do zero a cada execução: os dados de desenvolvimento não são tocados.
+
+## Ver o banco
+
+```bash
+docker compose exec mysql mysql -utorneios -ptorneios torneios
+```
+
+Dentro do MySQL: `SHOW TABLES;`, `DESCRIBE partidas;`, `SELECT * FROM torneios;`. Qualquer cliente gráfico (DBeaver, MySQL Workbench) também conecta em `localhost:3307`, usuário e senha `torneios`.
 
 ## Desenvolvimento sem Docker (opcional)
 

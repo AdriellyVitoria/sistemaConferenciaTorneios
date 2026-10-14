@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "test": "npm run test --workspaces --if-present",
+    "test:integracao": "npm run test:integracao -w api",
     "build": "npm run build --workspaces --if-present"
   },
   "engines": {

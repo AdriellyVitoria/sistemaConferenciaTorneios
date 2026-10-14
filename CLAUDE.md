@@ -35,6 +35,7 @@ Projeto: desafio técnico da PowerRev (Desenvolvedora Full Stack Júnior). Siste
 - Etapas 0 e 1 integradas na `develop` por pull request.
 - Etapa 2, pedaço 2a (consulta de partida, `site-oficial-simulado/src/app.ts`): concluído. `GET /partidas/40923`; dados montados somente leitura no Docker.
 - Etapa 2, pedaço 2b (demora e falhas): concluído. Demora 2–10 s por `SITE_DEMORA_MIN_MS`/`SITE_DEMORA_MAX_MS`; falha = 503 `indisponivel`.
-- Etapa 2, pedaço 2c (modo demonstração, página em `http://localhost:4000/demo`): pronto, aguardando aprovação. **Com ele, a etapa 2 está completa.**
+- Etapa 2, pedaço 2c (modo demonstração, página em `http://localhost:4000/demo`): concluído. Etapa 2 completa e integrada.
+- Etapa 3, pedaço 3a (banco: migrations 002 a 004 e repositórios em `api/src/repositorios/`): pronto, aguardando aprovação. Testes de integração com `npm run test:integracao` (precisa do `docker compose up -d mysql`), num banco `torneios_teste` recriado a cada execução.
 - Quem tenta consultar de novo é o job da **etapa 4**, em dois casos: 503 e site sem resposta (tempo esgotado).
-- Próximo passo: **Etapa 3 — Torneio e importação**, depois da aprovação da Adrielly.
+- Próximo passo: **Etapa 3, pedaço 3b**, depois da aprovação da Adrielly.

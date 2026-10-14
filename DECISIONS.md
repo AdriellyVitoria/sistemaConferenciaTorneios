@@ -135,6 +135,23 @@ Princípio: **tolerante na forma, rígida no conteúdo.** O que não muda o sent
 
 ---
 
+## Banco de dados da importação (etapa 3a), 14/10/2026
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| Nick, time e ID da partida com collation **`utf8mb4_0900_as_cs`** (diferencia acentos e maiúsculas) | O padrão do MySQL 8, `utf8mb4_0900_ai_ci` | O padrão trata "xxsniperxx" e "xXSniperXx", ou "Falcoes" e "Falcões", como iguais. Num `GROUP BY` ou numa chave única, o banco juntaria em silêncio o que o domínio decide com aviso e "Ciente" (D7, D19) |
+| O torneio foi completado por uma **migration nova (002)** | Editar a 001 | A 001 já rodou nos bancos; uma migration aplicada não muda, senão os bancos ficam diferentes entre si |
+| Status **`criado`**, antes da planilha | Nascer como "importado" | O torneio é criado (nome, prêmio, percentuais, modo) antes de a planilha chegar |
+| `linhas_planilha` ligada a `partidas` por **chave estrangeira** | Ligar pelo texto do ID da partida | A Maria pode corrigir o ID (D16); pela chave, a ligação continua certa. O ID digitado fica guardado na linha |
+| Sem a coluna `situacao` (ok/duplicada) nas linhas | Marcar a duplicata na importação | Duplicata virou pendência da comparação com o site (D19); a linha é guardada exatamente como veio |
+| `partidas` já nasce com os campos da conferência, inclusive **`em_consulta_desde`** e **`ultimo_erro`** | Acrescentar na etapa 4 | Ela é a tabela de tarefas. `em_consulta_desde` permite recuperar uma partida presa se o job cair no meio; `ultimo_erro` é o que a tela mostra |
+| A fonte de migrations registra sempre o nome com **`.js`** | O padrão do Knex (nome com a extensão do arquivo) | No contêiner o arquivo é `.js`, fora dele `.ts`: o Knex acusaria a pasta como corrompida ao alternar entre `npm run dev` e o Docker |
+| DATE volta do banco como **texto `aaaa-mm-dd`** | Objeto `Date` | Uma data sem hora não tem fuso; como `Date`, o 19/09 poderia virar 18/09 na conversão |
+| Testes de integração num banco **`torneios_teste`, recriado do zero** a cada execução, com `npm run test:integracao` | Usar o banco de desenvolvimento, ou rodar junto com `npm test` | Os testes não apagam dados de quem está desenvolvendo, e as próprias migrations são testadas. O `npm test` continua sem precisar de banco |
+| Repositórios recebem o **executor** (conexão ou transação) | Cada repositório usar a conexão global | Quem orquestra (o serviço da importação, no 3b) abre uma transação e passa para todos: se algo falha, nada fica gravado pela metade |
+
+---
+
 ## Stack e ferramentas
 
 | Decisão | Alternativa descartada | Por quê |

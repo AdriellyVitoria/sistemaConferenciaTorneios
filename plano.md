@@ -125,20 +125,26 @@ erDiagram
         int premio_centavos
         json percentuais
         enum modo_divisao "minutos | kills"
-        enum status "importado | conferindo | pronto | calculado"
+        enum status "criado | importado | conferindo | pronto | calculado"
         datetime calculado_em "depois disso o modo trava"
+        varchar planilha_arquivo
+        datetime planilha_importada_em
+        boolean planilha_convertida_windows1252 "D18: a tela avisa"
     }
     linhas_planilha {
         int id PK
         int torneio_id FK
-        int numero_linha
-        varchar id_partida
+        int partida_id FK "pela chave: corrigir o ID não quebra a ligação"
+        int numero_linha "UNIQUE com torneio_id"
+        date data
+        int rodada
+        varchar id_partida "como foi digitado"
+        varchar partida
         varchar time
         varchar nick
         int minutos
         int kills
-        varchar venceu
-        enum situacao "ok | duplicada"
+        boolean venceu "nulo = célula vazia"
     }
     partidas {
         int id PK
@@ -152,8 +158,10 @@ erDiagram
         varchar vencedor "segundo o site"
         enum status_conferencia "aguardando | em_consulta | conferida | nao_encontrada | times_diferentes"
         int tentativas
-        datetime proxima_tentativa_em
+        datetime proxima_tentativa_em "nasce agora"
         datetime ultima_tentativa_em
+        datetime em_consulta_desde "recupera partida presa se o job cair"
+        varchar ultimo_erro
     }
     participacoes {
         int id PK
@@ -210,6 +218,8 @@ erDiagram
 - `linhas_planilha` guarda **o que a Maria digitou**; `participacoes` guarda **o que o site registrou**. A comparação entre as duas gera as `pendencias`.
 - **Uma tabela só para pendências** (antes eram `divergencias` e `pendencias` separadas): cada problema vira **um item**, com o lado a lado planilha × site (D17). A duplicata de Pantera_X é um item `duplicata`, e não também uma divergência de minutos.
 - **Sem tabela de unificação de nicks:** como o cálculo usa o nick do site (D7), não há o que unificar.
+- **Texto digitado à mão (nick, time, ID) com collation `utf8mb4_0900_as_cs`:** o banco diferencia acentos e maiúsculas e nunca junta "xxsniperxx" com "xXSniperXx" em silêncio.
+- **Criadas na etapa 3a:** `torneios`, `partidas` e `linhas_planilha`. As demais (`participacoes`, `pendencias`, prêmios e links) entram nas etapas que as usam.
 - Valores em dinheiro sempre em `int` de centavos.
 
 ---

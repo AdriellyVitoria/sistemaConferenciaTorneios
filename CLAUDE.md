@@ -19,10 +19,11 @@ Projeto: desafio técnico da PowerRev (Desenvolvedora Full Stack Júnior). Siste
 ## Estado atual
 
 - Regras de negócio: decididas (D1 a D17 no `contexto.md`). D3 a D7 e D15 foram revisadas em 14/10/2026; D16 e D17 são novas. Na mesma data: D9 passou ao **maior resto** (regra única de arredondamento, inclusive entre times empatados) e todo item da aba Pendências exige "Ciente" ou correção, inclusive a D13.
-- `testes/gerar_cenarios.py` já usa o maior resto, mas **reescreve as planilhas de `testes/planilhas/` e o `site-oficial.json`** além dos esperados. Não rodar o script como está. Esperados de `testes/esperado/` ainda com a regra antiga, a regenerar.
-- Não há Python instalado na máquina; usar o Docker se for preciso rodar o gerador.
+- `testes/gerar_cenarios.py` usa o maior resto. Sem flag, **reescreve as planilhas de `testes/planilhas/` e o `site-oficial.json`**: para regenerar só os esperados, use `--so-esperado`. Não há Python na máquina: rodar num contêiner `python:3.12-slim`, com `testes/planilhas` montado somente leitura.
+- D18 (leitura da planilha) decidida em 14/10/2026.
 - Stack: Node.js 22 com TypeScript, Vue, MySQL 8 (Docker); conferência em segundo plano por tabela de tarefas no MySQL.
 - Bibliotecas confirmadas: Express, Knex, Zod, Vitest. Monorepo com npm workspaces.
 - Branch de trabalho: `feature/premiacao-torneios` (já existe e é a branch atual), saindo de `develop`.
 - Etapa 0 (esqueleto): concluída em 14/10/2026. `docker compose up --build` sobe MySQL 8.4, API (3000), site simulado (4000) e web (5173); `npm test` roda os testes da API.
-- Próximo passo: **Etapa 1 — Regras de negócio puras**, depois da aprovação da Adrielly.
+- Etapa 1, parte 1 (leitura da planilha, `api/src/dominio/planilha.ts`): pronta, aguardando aprovação.
+- Próximo passo: **Etapa 1, parte 2** (comparação planilha × site), depois da aprovação da Adrielly.

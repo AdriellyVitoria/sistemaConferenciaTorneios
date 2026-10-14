@@ -246,7 +246,7 @@ premiacao-torneios   (um commit pequeno por passo de cada etapa)
 - Raiz do monorepo: `package.json` com npm workspaces (`api`, `web`, `site-oficial-simulado`), `.env.example`.
 - `docker-compose.yml` com `mysql:8`, `api`, `web` e `site-oficial`; a API espera o MySQL ficar saudável (healthcheck).
 - API em Express: `GET /saude` faz `SELECT 1` no MySQL e responde o status da API e do banco. Pastas das camadas já criadas.
-- Knex com a primeira migration (só `torneios`; o esquema completo é da etapa 3).
+- Knex com a primeira migration (só `torneios`; o esquema completo é da etapa 3). A API aplica as migrations ao subir; `npm run migrar -w api` faz o mesmo à mão.
 - Vitest com um teste de exemplo no domínio (`formatarCentavos`).
 - Site simulado: só o esqueleto, com `GET /saude`.
 - Vue 3 + Vite: página inicial que chama `/saude` da API e mostra o status, provando que as três camadas conversam.
@@ -336,7 +336,7 @@ premiacao-torneios   (um commit pequeno por passo de cada etapa)
 
 ## 8. Checklist
 
-- [ ] Etapa 0 — Esqueleto
+- [x] Etapa 0 — Esqueleto
 - [ ] Etapa 1 — Regras de negócio puras
 - [ ] Etapa 2 — Site oficial simulado
 - [ ] Etapa 3 — Torneio e importação

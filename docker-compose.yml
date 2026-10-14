@@ -1,0 +1,63 @@
+# Sobe tudo com: docker compose up --build
+# Valores padrão abaixo; para trocar, crie um .env a partir do .env.example.
+
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-torneios}
+      MYSQL_USER: ${MYSQL_USER:-torneios}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-torneios}
+    ports:
+      - "${MYSQL_PORTA_HOST:-3307}:3306"
+    volumes:
+      - dados-mysql:/var/lib/mysql
+    healthcheck:
+      # por TCP (127.0.0.1): durante a inicialização o MySQL só aceita socket local,
+      # então o ping só passa quando o banco está pronto de verdade
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    environment:
+      API_PORTA: 3000
+      DB_HOST: mysql
+      DB_PORT: 3306
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-torneios}
+      MYSQL_USER: ${MYSQL_USER:-torneios}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-torneios}
+    ports:
+      - "3000:3000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  site-oficial:
+    build:
+      context: .
+      dockerfile: site-oficial-simulado/Dockerfile
+    environment:
+      SITE_PORTA: 4000
+    ports:
+      - "4000:4000"
+
+  web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+    environment:
+      API_URL: http://api:3000
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+
+volumes:
+  dados-mysql:

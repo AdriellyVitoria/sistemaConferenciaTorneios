@@ -24,5 +24,5 @@ Projeto: desafio técnico da PowerRev (Desenvolvedora Full Stack Júnior). Siste
 - Stack: Node.js 22 com TypeScript, Vue, MySQL 8 (Docker); conferência em segundo plano por tabela de tarefas no MySQL.
 - Bibliotecas confirmadas: Express, Knex, Zod, Vitest. Monorepo com npm workspaces.
 - Branch de trabalho: `feature/premiacao-torneios` (já existe e é a branch atual), saindo de `develop`.
-- Pendências antes da etapa 0: resolvidas.
-- Próximo passo: **Etapa 0 — Esqueleto** (plano aprovado).
+- Etapa 0 (esqueleto): concluída em 14/10/2026. `docker compose up --build` sobe MySQL 8.4, API (3000), site simulado (4000) e web (5173); `npm test` roda os testes da API.
+- Próximo passo: **Etapa 1 — Regras de negócio puras**, depois da aprovação da Adrielly.

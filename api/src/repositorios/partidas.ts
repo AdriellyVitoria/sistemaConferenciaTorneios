@@ -74,6 +74,14 @@ export async function inserirPartidas(
   return new Map(criadas.map((c) => [c.id_partida, c.id]));
 }
 
+/**
+ * Apaga as partidas do torneio. As linhas da planilha ligadas a elas saem junto (chave
+ * estrangeira com ON DELETE CASCADE). Usado quando a Maria envia a planilha de novo (D22).
+ */
+export async function apagarPartidasDoTorneio(bd: Executor, torneioId: number): Promise<number> {
+  return bd('partidas').where({ torneio_id: torneioId }).del();
+}
+
 export async function listarPartidas(bd: Executor, torneioId: number): Promise<Partida[]> {
   const linhas: LinhaPartida[] = await bd('partidas').where({ torneio_id: torneioId }).orderBy('id');
   return linhas.map((l) => ({

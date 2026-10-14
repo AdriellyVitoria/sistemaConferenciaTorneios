@@ -286,6 +286,7 @@ premiacao-torneios   (um commit pequeno por passo de cada etapa)
 - Upload da planilha: salva as linhas e cria as partidas como **aguardando o site** (usando a leitura da etapa 1). Os itens de pendência só nascem na conferência, quando já há o lado a lado do site.
 - Tela: criar torneio e subir planilha; mostrar erros de arquivo (cenário 06a) com mensagem clara.
 - Na criação, validar os percentuais com `erroDosPercentuais` (D20: "Os percentuais precisam somar 100").
+- **Confirmação ao subir planilha num torneio que já tem planilha (3c):** avisar que a planilha anterior e a conferência já feita serão substituídas, e pedir confirmação (D22).
 - Ao escolher o modo **kills**, a tela avisa: *"Jogadores sem nenhuma kill não recebem prêmio. Se ninguém do time fizer kills, o prêmio do time é dividido pelos minutos."* (D21)
 
 **Pronto quando:** subo a planilha de setembro e vejo 15 partidas aguardando o site; o cenário 06a é recusado com a coluna que falta.
@@ -295,6 +296,7 @@ premiacao-torneios   (um commit pequeno por passo de cada etapa)
 - Consulta o site, salva as participações oficiais, compara com a planilha (função da etapa 1) e gera os **itens de pendência**. "Não encontrada" e "times diferentes" marcam a partida e não entram nas novas tentativas: só uma correção de ID consulta de novo (D5, D16).
 - Falha → nova tentativa com intervalo crescente: 1, 2, 5 e depois 10 minutos (D10). Intervalos configuráveis, curtos no modo demonstração. **Conta como falha, e é tentada de novo:** resposta **503** e **site sem resposta** (tempo esgotado, o cliente precisa de um limite de tempo por consulta). 404 (não encontrada) e 400 não são tentados de novo.
 - Botão **"tentar agora"** com espera entre cliques; não cria consulta paralela, só antecipa a próxima tentativa.
+- **Reenvio da planilha durante a conferência (D22):** a partida pode ser apagada enquanto o job espera o site. Ao gravar o resultado, o job confere se a partida ainda existe e descarta a resposta se não existir. Testar esse caso.
 - Tela de progresso: status por partida, "última tentativa às X, próxima às Y" (atualização por polling).
 
 **Pronto quando:** com o site derrubado no meio, nada se perde; ao religar, tudo é conferido; duas execuções do job nunca pegam a mesma partida.
@@ -309,6 +311,7 @@ premiacao-torneios   (um commit pequeno por passo de cada etapa)
 
 ### Etapa 6 — Cálculo e resultado ⭐
 - Calcular: aplica as regras da etapa 1 sobre os dados do site; **trava o modo de divisão** (D1).
+- **Confirmação ao calcular:** avisar que, depois do cálculo, o modo de divisão e a planilha ficam travados, e pedir confirmação (D1, D22).
 - Tela da Maria: classificação com a justificativa do desempate, prêmio por time e **prêmio por jogador com filtro por nick**.
 
 **Pronto quando:** setembro mostra o empate triplo com a justificativa e os valores batem com o resultado esperado (`contexto.md`, seção 14): Lobos 1º (R$ 5.000), Corvos 2º por kills (368, R$ 3.000), Tubarões e Falcões empatados em vitórias e kills (310) dividindo o 3º lugar (R$ 1.000 cada).

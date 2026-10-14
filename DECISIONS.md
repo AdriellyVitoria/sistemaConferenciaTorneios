@@ -152,6 +152,24 @@ Princípio: **tolerante na forma, rígida no conteúdo.** O que não muda o sent
 
 ---
 
+## API de torneio e importação (etapa 3b), 14/10/2026
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **Enviar a planilha de novo substitui a anterior inteira**, enquanto o torneio não foi calculado; a tela confirma antes (D22) | Proibir o reenvio (criar outro torneio) | Deixaria torneios abandonados e obrigaria a digitar tudo de novo por um erro de digitação |
+| (mesma) | Substituir só as partidas que mudaram | Economizaria consultas ao site, mas misturar conferência antiga e planilha nova é fácil de errar |
+| Depois do cálculo, reenviar responde **409** | Permitir e recalcular | O resultado já foi visto e divulgado; mudar a base depois é o que a D1 quer evitar |
+| **Partida com um time só ou com mais de dois: o arquivo é recusado**, listando todas as linhas envolvidas (D23) | Aceitar e deixar a comparação com o site apontar | Viraria "times diferentes", e corrigir o ID da partida inteira não separa a linha errada |
+| A importação **trava a linha do torneio** (`SELECT ... FOR UPDATE`) durante a transação | Não travar | Dois envios ao mesmo tempo (dois cliques, duas abas) poderiam misturar as planilhas |
+| `PUT /torneios/:id/planilha`, com o arquivo **direto no corpo** e o nome no cabeçalho `X-Nome-Arquivo` | `POST` com multipart (formulário de upload) | "A" planilha do torneio é um recurso único: enviar de novo substitui. O corpo direto dispensa uma biblioteca de upload; o navegador envia o `File` do mesmo jeito |
+| Prêmio sempre em **centavos inteiros** na API; a tela converte "R$ 10.000,00" | Aceitar texto em reais na API | Um formato só, sem ambiguidade de vírgula e ponto, e sem float |
+
+### Limitação conhecida: o sistema não tem login
+
+As confirmações na tela (substituir a planilha, calcular) evitam um **clique por engano**, mas **não impedem outra pessoa** que chegue à tela da Maria de criar torneios, subir planilhas ou calcular. Os links dos times premiados usam **token** (D11), então só quem recebeu o link vê os valores do time. **Autenticação da Maria fica como evolução:** num torneio amador, com a tela rodando no computador dela, o risco é baixo, e um login bem feito (senhas, sessão, recuperação de acesso) é um projeto à parte.
+
+---
+
 ## Stack e ferramentas
 
 | Decisão | Alternativa descartada | Por quê |

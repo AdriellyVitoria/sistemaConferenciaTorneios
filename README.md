@@ -36,6 +36,21 @@ npm run test:integracao   # repositórios contra o MySQL do Docker (docker compo
 
 Os testes de integração usam um banco só deles, `torneios_teste`, recriado do zero a cada execução: os dados de desenvolvimento não são tocados.
 
+## Usar a API
+
+```bash
+# criar um torneio (prêmio em centavos: R$ 10.000,00 = 1000000)
+curl -X POST localhost:3000/torneios -H 'content-type: application/json' \
+  -d '{"nome":"Setembro/2026","premioCentavos":1000000,"percentuais":[50,30,20],"modoDivisao":"minutos"}'
+
+# subir a planilha do torneio 1 (o arquivo vai direto no corpo; enviar de novo substitui)
+curl -X PUT localhost:3000/torneios/1/planilha -H 'x-nome-arquivo: torneio-setembro.csv' \
+  --data-binary @torneio-setembro.csv
+
+# ver o torneio, com as partidas e o status de cada uma (também pelo navegador)
+curl localhost:3000/torneios/1
+```
+
 ## Ver o banco
 
 ```bash

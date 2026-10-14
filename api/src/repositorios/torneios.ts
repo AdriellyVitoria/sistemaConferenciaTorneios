@@ -53,6 +53,15 @@ export async function buscarTorneio(bd: Executor, id: number): Promise<Torneio |
   return linha ? paraTorneio(linha) : null;
 }
 
+/**
+ * Busca o torneio TRAVANDO a linha até o fim da transação (SELECT ... FOR UPDATE).
+ * Usado pela importação: dois envios ao mesmo tempo esperam um pelo outro, sem misturar planilhas.
+ */
+export async function buscarTorneioParaAtualizar(trx: Executor, id: number): Promise<Torneio | null> {
+  const linha: LinhaTorneio | undefined = await trx('torneios').where({ id }).forUpdate().first();
+  return linha ? paraTorneio(linha) : null;
+}
+
 /** Marca o torneio como importado e guarda de onde veio a planilha. */
 export async function registrarImportacao(
   bd: Executor,

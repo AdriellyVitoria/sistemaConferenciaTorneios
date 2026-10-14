@@ -11,7 +11,9 @@ Regras usadas nos resultados esperados (ver contexto.md, seção 11):
   - colocação por vitórias; desempate por total de kills do time; empate também em kills
     -> soma os prêmios das posições empatadas e divide igual
   - divisão dentro do time proporcional aos minutos
-  - centavos que sobram: um por vez, para quem tem mais minutos; empate -> ordem alfabética do nick
+  - arredondamento (D9), igual entre times empatados e dentro do time: método do maior resto.
+    Cada um recebe a parte inteira em centavos; os centavos que sobram vão, um por vez, para
+    quem tem a maior parte fracionária; empate na fração -> ordem alfabética
 
 Uso: python3 testes/gerar_cenarios.py   (determinístico: sempre gera os mesmos arquivos)
 """
@@ -19,6 +21,7 @@ import csv
 import io
 import json
 import random
+import unicodedata
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -120,6 +123,29 @@ def registrar_no_site(partidas, **extras):
 
 # ---------------------------------------------------------- cálculo esperado
 
+def chave_alfabetica(nome):
+    """Ordem alfabética de dicionário: ignora acentos e maiúsculas ("Águias" vem antes de "Ursos")."""
+    sem_acento = "".join(c for c in unicodedata.normalize("NFD", nome) if not unicodedata.combining(c))
+    return (sem_acento.casefold(), nome)
+
+
+def dividir_maior_resto(total, pesos):
+    """
+    Divide `total` centavos proporcionalmente a `pesos` ({nome: peso}) pelo maior resto.
+    Tudo em inteiros: a parte fracionária de cada um é `total * peso % soma` (mesmo denominador).
+    Retorna ({nome: centavos}, {nomes que receberam centavo de arredondamento}).
+    """
+    soma = sum(pesos.values())
+    valores = {n: total * p // soma for n, p in pesos.items()}
+    resto = {n: total * p % soma for n, p in pesos.items()}
+    sobra = total - sum(valores.values())
+    ordem = sorted(pesos, key=lambda n: (-resto[n], chave_alfabetica(n)))
+    extras = set(ordem[:sobra])
+    for n in extras:
+        valores[n] += 1
+    return valores, extras
+
+
 def calcular(partidas, premio=PREMIO_CENTAVOS):
     """Aplica as regras do contexto.md e devolve (classificação, prêmios por jogador)."""
     vitorias, kills_time, minutos = {}, {}, {}
@@ -146,8 +172,9 @@ def calcular(partidas, premio=PREMIO_CENTAVOS):
     for g in grupos:
         pct = sum(PERCENTUAIS[k - 1] for k in range(posicao, posicao + len(g)) if k <= len(PERCENTUAIS))
         total = premio * pct // 100
-        for idx, t in enumerate(sorted(g)):
-            premio_time[t] = total // len(g) + (1 if idx < total % len(g) else 0)
+        valores, _ = dividir_maior_resto(total, dict.fromkeys(g, 1))
+        for t in g:
+            premio_time[t] = valores[t]
             criterio[t] = "divisão igual (empate em vitórias e kills)" if len(g) > 1 else ""
         posicao += len(g)
 
@@ -165,10 +192,7 @@ def calcular(partidas, premio=PREMIO_CENTAVOS):
             continue
         mins = minutos[t]
         total_min = sum(mins.values())
-        base = {n: valor * m // total_min for n, m in mins.items()}
-        sobra = valor - sum(base.values())
-        for n in sorted(mins, key=lambda n: (-mins[n], n.lower()))[:sobra]:
-            base[n] += 1
+        base, _ = dividir_maior_resto(valor, mins)
         for n in sorted(mins):
             jogadores.append({"time": t, "nick": n, "minutos": mins[n], "minutos_time": total_min,
                               "premio_centavos": base[n]})

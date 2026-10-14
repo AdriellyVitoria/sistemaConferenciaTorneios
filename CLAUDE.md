@@ -18,12 +18,11 @@ Projeto: desafio técnico da PowerRev (Desenvolvedora Full Stack Júnior). Siste
 
 ## Estado atual
 
-- Regras de negócio: decididas (D1 a D15 no `contexto.md`).
-- Stack: Node.js com TypeScript, Vue, MySQL; conferência em segundo plano por tabela de tarefas no MySQL.
-- Branch de trabalho: `feature/premiacao-torneios`, saindo de `develop` (a ser criada pela Adrielly).
-- Próximo passo: **Etapa 0 — Esqueleto**.
-
-## Pendências antes da etapa 0
-
-- Confirmar as bibliotecas propostas: Express, Knex, Zod, Vitest.
-- Definir quantas kills o site simulado registra para Falcões na partida `#40923` (com 63 ou mais, Falcões ultrapassa Tubarões no desempate).
+- Regras de negócio: decididas (D1 a D17 no `contexto.md`). D3 a D7 e D15 foram revisadas em 14/10/2026; D16 e D17 são novas. Na mesma data: D9 passou ao **maior resto** (regra única de arredondamento, inclusive entre times empatados) e todo item da aba Pendências exige "Ciente" ou correção, inclusive a D13.
+- `testes/gerar_cenarios.py` já usa o maior resto, mas **reescreve as planilhas de `testes/planilhas/` e o `site-oficial.json`** além dos esperados. Não rodar o script como está. Esperados de `testes/esperado/` ainda com a regra antiga, a regenerar.
+- Não há Python instalado na máquina; usar o Docker se for preciso rodar o gerador.
+- Stack: Node.js 22 com TypeScript, Vue, MySQL 8 (Docker); conferência em segundo plano por tabela de tarefas no MySQL.
+- Bibliotecas confirmadas: Express, Knex, Zod, Vitest. Monorepo com npm workspaces.
+- Branch de trabalho: `feature/premiacao-torneios` (já existe e é a branch atual), saindo de `develop`.
+- Pendências antes da etapa 0: resolvidas.
+- Próximo passo: **Etapa 0 — Esqueleto** (plano aprovado).

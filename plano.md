@@ -39,7 +39,9 @@ Tudo sobe com `docker compose up`.
 
 ---
 
-## 3. Bibliotecas (proposta, confirmar na etapa 0)
+## 3. Bibliotecas (confirmadas)
+
+Ambiente: Node 22, Docker 28, MySQL 8 via Docker (o `SKIP LOCKED` exige MySQL 8.0 ou superior). Monorepo com **npm workspaces**, sem ferramenta extra.
 
 | Uso | Escolha | Por quê |
 |---|---|---|
@@ -82,7 +84,7 @@ Requisição HTTP
 ### 4.2 Estrutura de pastas
 
 ```
-desafio-powerrev/
+sistemaConferenciaTorneios/
 ├─ api/
 │  ├─ src/
 │  │  ├─ rotas/
@@ -111,12 +113,10 @@ desafio-powerrev/
 erDiagram
     torneios ||--o{ linhas_planilha : "recebe"
     torneios ||--o{ partidas : "tem"
-    torneios ||--o{ pendencias : "gera"
-    torneios ||--o{ nicks : "unifica"
     torneios ||--o{ premios_time : "resulta em"
     torneios ||--o{ links_time : "compartilha"
     partidas ||--o{ participacoes : "registra"
-    partidas ||--o{ divergencias : "aponta"
+    partidas ||--o{ pendencias : "gera"
     premios_time ||--o{ premios_jogador : "divide em"
 
     torneios {
@@ -138,18 +138,19 @@ erDiagram
         int minutos
         int kills
         varchar venceu
-        enum situacao "ok | duplicada | removida | editada"
+        enum situacao "ok | duplicada"
     }
     partidas {
         int id PK
         int torneio_id FK
-        varchar id_partida "UNIQUE com torneio_id"
+        varchar id_partida "UNIQUE com torneio_id; a única coisa editável (D16)"
+        varchar id_partida_planilha "o ID como foi digitado, para histórico"
         int rodada
         date data
         varchar time_a
         varchar time_b
         varchar vencedor "segundo o site"
-        enum status_conferencia "pendente | em_consulta | conferida | nao_encontrada | indisponivel"
+        enum status_conferencia "aguardando | em_consulta | conferida | nao_encontrada | times_diferentes"
         int tentativas
         datetime proxima_tentativa_em
         datetime ultima_tentativa_em
@@ -163,29 +164,17 @@ erDiagram
         int kills
         boolean venceu
     }
-    divergencias {
-        int id PK
-        int partida_id FK
-        varchar nick
-        varchar campo "minutos | kills | venceu | jogador"
-        varchar valor_planilha
-        varchar valor_site
-        boolean resolvida
-    }
     pendencias {
         int id PK
-        int torneio_id FK
-        enum tipo "duplicata | nick_parecido | partida_sem_resultado | jogador_dois_times"
-        boolean bloqueia_calculo
-        enum situacao "aberta | resolvida"
-        json detalhes
-        varchar resolucao
-    }
-    nicks {
-        int id PK
-        int torneio_id FK
-        varchar nick_original
-        varchar nick_oficial
+        int partida_id FK
+        enum tipo "divergencia | duplicata | nick_diferente | jogador_dois_times | nao_encontrada | times_diferentes"
+        varchar nick "quando o item é de um jogador"
+        varchar campo "minutos | kills | vencedor | jogador (para divergencia)"
+        varchar valor_planilha
+        varchar valor_site
+        enum acao "ciente | corrigir_id (nao_encontrada e times_diferentes)"
+        enum situacao "aberta | ciente | resolvida (toda aberta bloqueia o cálculo)"
+        datetime ciente_em
     }
     premios_time {
         int id PK
@@ -217,7 +206,9 @@ erDiagram
 
 **Pontos de destaque:**
 - `partidas` é também a **tabela de tarefas** da conferência: `status_conferencia`, `tentativas` e `proxima_tentativa_em` controlam o job, como na janela de envio.
-- `linhas_planilha` guarda **o que a Maria digitou**; `participacoes` guarda **o que o site registrou**. A comparação entre as duas gera as `divergencias`.
+- `linhas_planilha` guarda **o que a Maria digitou**; `participacoes` guarda **o que o site registrou**. A comparação entre as duas gera as `pendencias`.
+- **Uma tabela só para pendências** (antes eram `divergencias` e `pendencias` separadas): cada problema vira **um item**, com o lado a lado planilha × site (D17). A duplicata de Pantera_X é um item `duplicata`, e não também uma divergência de minutos.
+- **Sem tabela de unificação de nicks:** como o cálculo usa o nick do site (D7), não há o que unificar.
 - Valores em dinheiro sempre em `int` de centavos.
 
 ---
@@ -252,22 +243,28 @@ premiacao-torneios   (um commit pequeno por passo de cada etapa)
 ## 6. Etapas
 
 ### Etapa 0 — Esqueleto ⭐
-- Repositório git, pastas, `docker-compose.yml` com MySQL.
-- API respondendo `GET /saude`; Vue abrindo uma página inicial.
-- Knex com a primeira migration; Vitest rodando um teste de exemplo.
+- Raiz do monorepo: `package.json` com npm workspaces (`api`, `web`, `site-oficial-simulado`), `.env.example`.
+- `docker-compose.yml` com `mysql:8`, `api`, `web` e `site-oficial`; a API espera o MySQL ficar saudável (healthcheck).
+- API em Express: `GET /saude` faz `SELECT 1` no MySQL e responde o status da API e do banco. Pastas das camadas já criadas.
+- Knex com a primeira migration (só `torneios`; o esquema completo é da etapa 3).
+- Vitest com um teste de exemplo no domínio (`formatarCentavos`).
+- Site simulado: só o esqueleto, com `GET /saude`.
+- Vue 3 + Vite: página inicial que chama `/saude` da API e mostra o status, provando que as três camadas conversam.
+- `README.md` com "como rodar".
 
-**Pronto quando:** `docker compose up` sobe tudo e `npm test` passa.
+**Pronto quando:** `docker compose up` sobe tudo, a página mostra API e banco ok, e `npm test` passa.
 
 ### Etapa 1 — Regras de negócio puras ⭐ (a mais importante)
 - **Leitura da planilha:** BOM, CRLF, separador `;` ou `,` (D14), validação de colunas obrigatórias, conversão de data, `sim`/`não`/vazio.
-- **Pendências locais:** linha duplicada (D6), nick com caixa diferente (D7), jogador em dois times (D13), partida sem resultado (D5).
-- **Classificação:** vitórias → kills do time → divisão igual em empate total (D2), com o critério registrado.
-- **Divisão do prêmio:** por minutos ou kills (D1), em centavos, com o centavo que sobra para quem tem mais minutos/kills e depois ordem alfabética (D9). Soma sempre igual ao prêmio.
+- **Comparação planilha × site:** recebe as linhas da planilha e a resposta do site de uma partida e devolve os itens de pendência, **um por problema** (D17): divergência de minutos, kills, vencedor ou jogador presente só de um lado (D4a), times diferentes (D4b), duplicata (D6), nick com caixa diferente (D7), jogador em dois times (D13). Partida zerada na planilha e preenchida pelo site não gera item (D3).
+- **Arredondamento:** **uma função só** de divisão pelo maior resto (D9), em centavos inteiros: a parte fracionária é comparada como resto inteiro (`total × peso mod soma`), sem `float`. Empate na fração: ordem alfabética ignorando acentos e maiúsculas. Devolve também quem recebeu centavo, para o extrato.
+- **Classificação:** vitórias → kills do time → divisão igual em empate total (D2), com o critério registrado; a divisão entre times empatados usa a função do maior resto.
+- **Divisão do prêmio:** por minutos ou kills (D1), com a mesma função do maior resto. Soma sempre igual ao prêmio.
 
-**Pronto quando:** testes cobrem todos os cenários de `testes/` e batem com `testes/esperado/`, incluindo o caso de Brasa.gg (R$ 1.029,77) e Fogaréu (R$ 1.029,76) e o empate do cenário 04 (R$ 2.500 para cada).
+**Pronto quando:** testes cobrem todos os cenários de `testes/` e batem com `testes/esperado/`, incluindo o centavo de Escama no cenário 01 (R$ 880,96, contra R$ 1.029,76 para os outros Dragões), o de Sabiá em outubro (R$ 74,63), o empate do cenário 04 (R$ 2.500 para cada) e o resultado esperado de setembro, com Tuca em R$ 65,90 (`contexto.md`, seção 14).
 
 ### Etapa 2 — Site oficial simulado ⭐
-- `GET /partidas/:id` devolvendo os dados de `testes/site-oficial.json` e de setembro (D15: Falcões venceu a `#40923`).
+- `GET /partidas/:id` devolvendo os dados de `testes/site-oficial.json` e de setembro (D15: Falcões venceu a `#40923` com 62 kills; valores por jogador no `contexto.md`). Gerar também `testes/esperado/torneio-setembro-*.csv`.
 - Demora aleatória de 2 a 10 segundos; "não encontrada" para ID inexistente; falhas configuradas por partida (`falhas_antes_de_responder`).
 - **Modo demonstração:** botões para derrubar e religar o site, e demora curta opcional.
 
@@ -275,14 +272,14 @@ premiacao-torneios   (um commit pequeno por passo de cada etapa)
 
 ### Etapa 3 — Torneio e importação ⭐
 - Criar torneio: nome, prêmio, percentuais e modo de divisão.
-- Upload da planilha: salva as linhas, cria as partidas como **pendentes de conferência** e registra as pendências locais (usando a etapa 1).
+- Upload da planilha: salva as linhas e cria as partidas como **aguardando o site** (usando a leitura da etapa 1). Os itens de pendência só nascem na conferência, quando já há o lado a lado do site.
 - Tela: criar torneio e subir planilha; mostrar erros de arquivo (cenário 06a) com mensagem clara.
 
-**Pronto quando:** subo a planilha de setembro e vejo 15 partidas pendentes, a duplicata de Pantera_X e a dúvida sobre `xxsniperxx`.
+**Pronto quando:** subo a planilha de setembro e vejo 15 partidas aguardando o site; o cenário 06a é recusado com a coluna que falta.
 
 ### Etapa 4 — Conferência em segundo plano ⭐
 - Job que acorda periodicamente e reserva partidas com `SELECT ... FOR UPDATE SKIP LOCKED`, marcando `em_consulta`.
-- Consulta o site, salva as participações oficiais, compara com a planilha e gera **divergências**.
+- Consulta o site, salva as participações oficiais, compara com a planilha (função da etapa 1) e gera os **itens de pendência**. "Não encontrada" e "times diferentes" marcam a partida e não entram nas novas tentativas: só uma correção de ID consulta de novo (D5, D16).
 - Falha → nova tentativa com intervalo crescente: 1, 2, 5 e depois 10 minutos (D10). Intervalos configuráveis, curtos no modo demonstração.
 - Botão **"tentar agora"** com espera entre cliques; não cria consulta paralela, só antecipa a próxima tentativa.
 - Tela de progresso: status por partida, "última tentativa às X, próxima às Y" (atualização por polling).
@@ -290,20 +287,18 @@ premiacao-torneios   (um commit pequeno por passo de cada etapa)
 **Pronto quando:** com o site derrubado no meio, nada se perde; ao religar, tudo é conferido; duas execuções do job nunca pegam a mesma partida.
 
 ### Etapa 5 — Revisão das pendências
-- Duplicata em amarelo, com editar e remover (D6).
-- Nick parecido: "é a mesma pessoa?" (D7).
-- Divergência lado a lado, planilha × site, destacada em cor (D4).
-- Partida sem resultado no site: a Maria informa o que aconteceu (D5).
-- Jogador em dois times: aviso informativo (D13).
-- O botão de calcular só libera quando não há pendência que bloqueia.
+- Tela com três abas (D17): **Conferidas**, **Pendências** e **Aguardando o site**.
+- Divergência de minutos, kills, vencedor ou jogadores, duplicata, nick com caixa diferente e jogador em dois times: lado a lado, planilha × site, destacado em cor, com **"Ciente"** e **"Ciente de todas"** (D4a, D6, D7, D13).
+- ID não encontrado ou de partida de outros times: campo para **corrigir o ID**, que consulta de novo só aquela partida (D4b, D5, D16). Nada mais é editável.
+- Regra única: todo item de Pendências precisa de "Ciente" ou de correção. O botão de calcular só libera com Pendências e Aguardando o site vazias (D17).
 
-**Pronto quando:** consigo resolver todas as pendências de setembro e de novembro pela tela.
+**Pronto quando:** consigo resolver todas as pendências de setembro, de novembro e dos cenários 02 e 03 pela tela.
 
 ### Etapa 6 — Cálculo e resultado ⭐
 - Calcular: aplica as regras da etapa 1 sobre os dados do site; **trava o modo de divisão** (D1).
 - Tela da Maria: classificação com a justificativa do desempate, prêmio por time e **prêmio por jogador com filtro por nick**.
 
-**Pronto quando:** setembro mostra o empate triplo resolvido por kills e os valores conferem com o cálculo manual. Corvos fica em 2º (368 kills). O 3º lugar depende das kills que o site registrar para Falcões na `#40923`: Falcões tem 248 nas outras partidas, então com 63 ou mais ultrapassa Tubarões (310). Esses números são definidos na etapa 2.
+**Pronto quando:** setembro mostra o empate triplo com a justificativa e os valores batem com o resultado esperado (`contexto.md`, seção 14): Lobos 1º (R$ 5.000), Corvos 2º por kills (368, R$ 3.000), Tubarões e Falcões empatados em vitórias e kills (310) dividindo o 3º lugar (R$ 1.000 cada).
 
 ### Etapa 7 — Página pública e links por time premiado
 - Página pública: classificação, regras, desempate e prêmio por time, sem valores individuais (D11).
@@ -335,7 +330,7 @@ premiacao-torneios   (um commit pequeno por passo de cada etapa)
 | 6 | 8 |
 | 7 | 9 e folga para imprevistos |
 
-**Se o tempo apertar:** a etapa 7 vira só a tela da Maria com o filtro por nick, e a etapa 5 aceita resolver tudo com "usar o valor do site". Os cortes vão para o `DECISIONS.md`.
+**Se o tempo apertar:** a etapa 7 vira só a tela da Maria com o filtro por nick, e a etapa 5 fica só com "Ciente de todas" e a correção de ID, numa lista única em vez de três abas. Os cortes vão para o `DECISIONS.md`.
 
 ---
 

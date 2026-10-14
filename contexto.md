@@ -131,6 +131,8 @@ Vitórias contadas pela planilha (sem a partida `#40923`):
 
 **Conclusão:** antes de pagar, é preciso saber o resultado da `#40923` (o site oficial pode responder) e ter uma regra de desempate.
 
+**Como fica (D2, D5, D15):** o site registra vitória de Falcões na `#40923`, com 62 kills. Corvos, Tubarões e Falcões empatam com 3 vitórias; pelas kills, Corvos fica em 2º (368) e Tubarões e Falcões empatam também em kills (310 cada), dividindo o prêmio do 3º lugar. O resultado completo está no caso de teste de setembro (seção 14).
+
 ---
 
 ## 8. Exemplos de cálculo (para entender o impacto das regras)
@@ -149,9 +151,9 @@ Vitórias contadas pela planilha (sem a partida `#40923`):
 
 Repare no nome **Dona.Tank**: em jogos de equipe, o "tank" protege o time e naturalmente faz menos kills. Dividir por kills pune quem joga para o time ganhar, e incentiva jogar para a estatística.
 
-**Corvos, se ficar em 2º (R$ 3.000,00), por minutos:** total de 865 minutos no time. Corvinho, M4theus, Zeca e Nina.exe recebem R$ 600,00 cada; Bia.gg recebe R$ 534,10; Tuca, R$ 65,90.
+**Corvos, se ficar em 2º (R$ 3.000,00), por minutos:** total de 865 minutos no time. Na conta exata, Corvinho, M4theus, Zeca e Nina.exe têm R$ 600,00 cada; Bia.gg, R$ 534,104; Tuca, R$ 65,895. Cortando nos centavos, sobra R$ 0,01. Pela D9 (maior resto), ele vai para quem perdeu mais no corte: Tuca (0,595 centavo) perdeu mais que Bia.gg (0,405). **Corvinho, M4theus, Zeca e Nina.exe recebem R$ 600,00; Bia.gg R$ 534,10; Tuca R$ 65,90.**
 
-**Arredondamento:** a divisão proporcional quase nunca dá centavos exatos. A soma paga precisa fechar exatamente no prêmio, sem sobrar nem faltar centavo.
+**Arredondamento:** a divisão proporcional quase nunca dá centavos exatos. A soma paga precisa fechar exatamente no prêmio, sem sobrar nem faltar centavo. A regra é a mesma no sistema todo (D9).
 
 ---
 
@@ -175,11 +177,12 @@ Consequências:
 | Situação | Resposta |
 |---|---|
 | Partida encontrada | ID, data, os dois times, o vencedor e, para cada jogador: nick, time, minutos e kills |
-| Partida não existe | "Não encontrada" (ex.: ID digitado errado na planilha) |
-| Site fora do ar | Erro ou tempo esgotado. A partida fica "não conferida" e entra nas tentativas |
+| Partida não existe | "Não encontrada": o ID foi digitado errado na planilha. A Maria corrige o ID na tela e o sistema consulta de novo só aquela partida (D5) |
+| Partida de outros times | O ID existe, mas no site é um jogo entre outros times: o ID está errado. Bloqueia até a Maria corrigir o ID (D4) |
+| Site fora do ar | Erro ou tempo esgotado. A partida fica "aguardando o site" e entra nas tentativas (D10) |
 | Comportamento normal | Demora de 2 a 10 segundos por consulta |
 
-**Erros que o site simulado terá para a demonstração:** _a definir_ (sugestão: kills diferentes para algum jogador e um resultado para a `#40923`).
+**Dados de setembro no site simulado:** definidos na D15 (seção 11).
 
 ---
 
@@ -200,20 +203,33 @@ Além disso, eu decido o que construir, o que deixar de fora e como apresentar.
 | # | Tema | Decisão | Por quê |
 |---|---|---|---|
 | D1 | Minutos ou kills | **Configurável por torneio.** A Maria Clara escolhe a forma de divisão **antes** de subir a planilha. Depois do cálculo, **não pode mais mudar** | Mudar depois de ver o resultado permitiria favorecer ou prejudicar jogadores. A regra precisa ser conhecida antes |
-| D2 | Desempate na colocação | 1º critério: **total de kills do time no torneio**. Se empatar também em kills: **somam-se os prêmios das posições empatadas e divide-se igual** entre os times. O empate e o critério usado ficam **visíveis no sistema**, como justificativa do valor | Kills sempre desempata o caso atual (o confronto direto forma um ciclo). A divisão igual é o último recurso justo. Mostrar o critério evita a pergunta "por que recebi isso?" |
-| D3 | Fonte da verdade | **Site oficial** para tudo: vencedor, jogadores, minutos e kills. A planilha define quais partidas e times fazem parte do torneio | O site é o registro oficial do jogo; a planilha é digitada à mão |
-| D4 | Divergência entre planilha e site | **Bloqueia o cálculo** até a Maria Clara revisar. A divergência fica **destacada em cor**, com o valor da planilha e o do site **lado a lado** | Dinheiro pago errado é difícil de recuperar. Ver os dois números juntos deixa a diferença óbvia |
-| D5 | Partida sem resultado (`#40923`) | Primeiro, busca no site. Se o site também não tiver, **a Maria Clara informa o que aconteceu** (ex.: vitória de um dos times, W.O., partida não realizada). O pódio fica bloqueado até isso | Esse resultado muda o pódio. O sistema não deve adivinhar |
-| D6 | Linha duplicada (Pantera_X) | Fica **destacada em amarelo** como possível duplicata. A Maria Clara pode **editar ou remover**. Enquanto não decidir, fica pendente e **bloqueia o cálculo** | Remover sozinho poderia apagar um dado real; ignorar daria minutos a mais |
-| D7 | Nick com maiúsculas diferentes (`xXSniperXx` / `xxsniperxx`) | O sistema **pergunta à Maria Clara se é a mesma pessoa**. Se sim, une os dois | Ela conhece os jogadores; o sistema só aponta a suspeita |
+| D2 | Desempate na colocação | 1º critério: **total de kills do time no torneio**. Se empatar também em kills: **somam-se os prêmios das posições empatadas e divide-se igual** entre os times (centavos que sobram pela D9, com a ordem alfabética do nome do time). O empate e o critério usado ficam **visíveis no sistema**, como justificativa do valor | Kills sempre desempata o caso atual (o confronto direto forma um ciclo). A divisão igual é o último recurso justo. Mostrar o critério evita a pergunta "por que recebi isso?" |
+| D3 | Fonte da verdade | **Site oficial** para tudo: vencedor, jogadores, minutos e kills, **inclusive para preencher o que falta**: se a planilha tem a partida zerada ou vazia e o site tem os dados, vale o site, sem bloquear. A planilha define quais partidas e times fazem parte do torneio | O site é o registro oficial do jogo; a planilha é digitada à mão |
+| D4 | Divergência entre planilha e site | **Dois tipos.** (a) **Minutos, kills ou vencedor diferentes, ou jogador que está no site e não na planilha (ou o contrário):** o sistema usa o valor do site (e os jogadores do site) e mostra planilha × site **lado a lado**, destacado em cor. A Maria clica em **"Ciente"** (ou **"Ciente de todas"**); ela não escolhe valor. Depois do "Ciente", não bloqueia. (b) **Times diferentes** (o ID da planilha corresponde, no site, a uma partida de outros times): **bloqueia o cálculo**, porque o ID está errado. A Maria corrige o ID (D16) | Como o site é a verdade (D3), não há escolha a fazer nos valores; o "Ciente" garante que ela viu a diferença antes de pagar. Times diferentes significam que a partida certa nem foi consultada |
+| D5 | Partida que não está no site | **Toda partida precisa existir no site oficial.** A Maria **nunca informa resultado à mão**. Site fora do ar: continua tentando (D10). Site responde "não encontrada": o ID foi digitado errado; a Maria **corrige o ID na tela** e o sistema consulta de novo só aquela partida (D16). Bloqueia o cálculo até a partida ser conferida | Um erro de digitação da Maria viraria Pix errado e perda de confiança dos jogadores. O resultado tem que vir do registro oficial |
+| D6 | Linha duplicada (Pantera_X) | Vira **aviso com "Ciente"**, sem bloquear. Aparece como **um único item**, já com o lado a lado do site | O cálculo usa os dados do site, onde o jogador aparece uma vez só; a duplicata não muda o dinheiro |
+| D7 | Nick com maiúsculas diferentes (`xXSniperXx` / `xxsniperxx`) | Vira **aviso com "Ciente"**, sem bloquear. Aparece como **um único item**, já com o lado a lado do site | O cálculo usa o nick registrado no site; a diferença de digitação não muda o dinheiro |
 | D8 | Substituição (Tuca) | **Reserva recebe como qualquer jogador**, proporcional aos minutos (ou às kills, se esse for o modo do torneio) | A regra já é proporcional à participação; quem jogou, recebe |
-| D9 | Centavos que sobram | Divide em centavos. O centavo que sobra vai, um por vez, para **quem tem mais minutos ou mais kills**, conforme o modo do torneio (D1). Empate nesse critério: **ordem alfabética do nick**. O extrato do jogador **mostra que recebeu R$ 0,01 de arredondamento e por qual critério** | A soma precisa fechar exatamente no prêmio, a regra precisa dar sempre o mesmo resultado e ser explicável |
-| D10 | Site fora do ar | **Tenta até conseguir, com intervalo crescente**: 1 min, 2 min, 5 min e depois a cada 10 min (*backoff*). A conferência roda em segundo plano, e a tela mostra **"última tentativa às X, próxima às Y"**. Botão **"tentar agora"** com espera de alguns minutos entre cliques; ele **não cria uma consulta paralela**, só antecipa a próxima tentativa do mesmo processo (partida com status "em consulta" ou "conferida" é ignorada). Enquanto isso, a Maria Clara resolve as **pendências locais** (duplicatas, nicks parecidos). Intervalos **configuráveis**, curtos no modo demonstração, que tem botões para derrubar e religar o site simulado | Não obriga a Maria a vigiar o site. O intervalo crescente não sobrecarrega um site que já está com problema. O controle por status evita duas consultas da mesma partida ao mesmo tempo, o mesmo tipo de problema de concorrência que já resolvi no trabalho |
+| D9 | Centavos que sobram | **Método do maior resto, uma regra única no sistema todo** (dentro do time e entre times empatados). Cada um recebe a parte inteira em centavos do seu valor exato; os centavos que sobram vão, um por vez, para **quem tem a maior parte fracionária** (quem mais perdeu no corte). Empate na fração: **ordem alfabética** do nick (ou do nome do time, na divisão entre times), ignorando acentos e maiúsculas. O extrato do jogador **mostra que recebeu R$ 0,01 de arredondamento e por quê** | A soma fecha exatamente no prêmio e o centavo vai para quem o arredondamento mais prejudicou, o que fica próximo do valor exato de cada um. A regra antiga (centavo para quem tem mais minutos) dava a Corvinho, que tinha conta exata, o centavo que faltava a Tuca |
+| D10 | Site fora do ar | **Tenta até conseguir, com intervalo crescente**: 1 min, 2 min, 5 min e depois a cada 10 min (*backoff*). A conferência roda em segundo plano, e a tela mostra **"última tentativa às X, próxima às Y"**. Botão **"tentar agora"** com espera de alguns minutos entre cliques; ele **não cria uma consulta paralela**, só antecipa a próxima tentativa do mesmo processo (partida com status "em consulta" ou "conferida" é ignorada). Enquanto isso, a Maria Clara revisa o que já foi conferido. Intervalos **configuráveis**, curtos no modo demonstração, que tem botões para derrubar e religar o site simulado | Não obriga a Maria a vigiar o site. O intervalo crescente não sobrecarrega um site que já está com problema. O controle por status evita duas consultas da mesma partida ao mesmo tempo, o mesmo tipo de problema de concorrência que já resolvi no trabalho |
 | D11 | "Por que eu recebi só isso?" | **Duas camadas.** Página **pública** do torneio: classificação, regras, critério de desempate e prêmio por time, sem valores individuais. **Link por time premiado** (com token): o extrato de cada jogador do time, com minutos ou kills, a conta e o centavo de arredondamento, e filtro por nick. A Maria Clara envia **um link para cada time premiado** (normalmente 3; pode ser mais em caso de empate com divisão do prêmio). Times sem prêmio veem só a página pública | Resolve a raiz: o jogador vê a própria conta e a dos colegas sem precisar perguntar. Colegas de time já conhecem os minutos uns dos outros; nenhum valor individual fica exposto para outros times |
 | D12 | Pagamento e mensagens | **Fora do escopo:** Pix automático, envio de comprovante e bot do Discord. Ficam como evolução no `DECISIONS.md` | Dinheiro enviado errado não volta; exigiria chave Pix e usuário do Discord de cada jogador; o desafio pede algo menor e bem pensado |
-| D13 | Jogador em dois times diferentes | Recebe **como um reserva, pelos minutos, em cada time em que jogou**: os minutos por um time contam na parte daquele time. O sistema mostra um **aviso informativo**, sem bloquear o cálculo | O site confirma que aconteceu de verdade; a regra proporcional já trata a participação em cada time |
+| D13 | Jogador em dois times diferentes | Recebe **como um reserva, pelos minutos, em cada time em que jogou**: os minutos por um time contam na parte daquele time. O sistema mostra um **aviso**, que precisa de "Ciente" como todo item da aba Pendências (D17) | O site confirma que aconteceu de verdade; a regra proporcional já trata a participação em cada time. O "Ciente" segue o princípio de que nada é pago sem a Maria ter visto |
 | D14 | Separador do arquivo | O sistema **aceita `;` e `,`**, detectando o separador pela primeira linha. As colunas continuam sendo validadas | Exportações de Excel em inglês ou do Google Planilhas usam vírgula. A Maria Clara não é técnica e não deveria precisar reexportar |
-| D15 | Site simulado para setembro | O site repete a planilha, sem a linha duplicada e com o nick `xXSniperXx` correto. Para a partida `#40923` (Falcões x Panteras), o site registra **vitória de Falcões**. Nenhuma outra divergência | Cria o caso mais rico para a demonstração: empate triplo com 3 vitórias (Corvos, Tubarões, Falcões), resolvido por kills, que pode tirar Tubarões do pódio |
+| D15 | Site simulado para setembro | O site repete a planilha, sem a linha duplicada e com o nick `xXSniperXx` correto. Para a partida `#40923` (Falcões x Panteras), o site registra **vitória de Falcões, com 62 kills de Falcões** e 38 minutos para todos (valores por jogador abaixo da tabela). Nenhuma outra divergência | Cria o caso mais rico para a demonstração: empate triplo com 3 vitórias (Corvos, Tubarões, Falcões); as kills põem Corvos em 2º e deixam Tubarões e Falcões empatados também em kills (310), exercitando a divisão igual do 3º lugar (D2) |
+| D16 | O que a Maria pode editar | **Só o ID da partida.** Corrigir o ID dispara uma nova consulta **só daquela partida**. Minutos, kills, vencedor e nicks **não são editáveis** | O site é a verdade (D3); editar valores à mão reabriria a porta para erro de digitação virar dinheiro. O ID é a única coisa que só a planilha sabe |
+| D17 | Tela de revisão | **Três abas:** **"Conferidas"** (partidas que bateram com o site ou já receberam "Ciente"), **"Pendências"** e **"Aguardando o site"** (partidas ainda não consultadas ou com o site fora do ar). Cada problema aparece **uma vez só**, nunca como pendência local e divergência ao mesmo tempo. **Regra única da aba Pendências: todo item precisa de "Ciente" ou de correção antes do cálculo.** Pedem "Ciente": divergências (D4a), duplicata (D6), nick com caixa diferente (D7) e jogador em dois times (D13). Pedem correção do ID: não encontrada (D5) e times diferentes (D4b). Existe o botão **"Ciente de todas"**. O botão de calcular só libera quando **Pendências** e **Aguardando o site** estão vazias | **Nada é pago sem a Maria ter visto.** Ela vê de cara o que falta fazer e o que depende só de esperar. Um item por problema evita resolver a mesma coisa duas vezes |
+
+**Dados da `#40923` no site simulado (D15):** data 19/09/2026, rodada 5, vencedor Falcões, 38 minutos para cada jogador.
+
+| Falcões | Kills | Panteras | Kills |
+|---|---|---|---|
+| Falk | 14 | Sombra | 7 |
+| Kiwi | 11 | Pantera_X | 12 |
+| Dudu.pro | 16 | Mel | 9 |
+| Marreta | 13 | Tchê | 10 |
+| Sol | 8 | Rafa.K | 7 |
+| **Total** | **62** | **Total** | **45** |
 
 ---
 
@@ -221,11 +237,13 @@ Além disso, eu decido o que construir, o que deixar de fora e como apresentar.
 
 1. Cria o torneio: nome, prêmio, percentuais e **forma de divisão** (minutos ou kills, travada depois do cálculo).
 2. Sobe a planilha.
-3. O sistema valida o arquivo e aponta as **pendências locais**: duplicatas (amarelo) e nicks parecidos (pergunta se é a mesma pessoa).
-4. Em segundo plano, confere cada partida no site oficial (3 tentativas a cada 30 minutos se estiver fora do ar).
-5. Mostra as **divergências** lado a lado (planilha × site) e as partidas sem resultado, para ela decidir.
-6. Sem pendências, calcula: classificação, desempate (com justificativa), prêmio por time e por jogador, centavos fechando no total.
-7. Gera a **página pública** com o extrato de cada jogador e filtro por nick.
+3. O sistema valida o arquivo (colunas, separador) e cria as partidas como **aguardando o site**.
+4. Em segundo plano, confere cada partida no site oficial. Se o site estiver fora do ar, **tenta até conseguir**, com intervalos de 1, 2, 5 e depois 10 minutos (D10).
+5. Na tela de revisão (D17), com as abas **Conferidas**, **Pendências** e **Aguardando o site**:
+   - divergências de minutos, kills, vencedor ou jogadores, duplicatas, nicks com caixa diferente e jogador em dois times aparecem lado a lado (planilha × site), e ela clica em **"Ciente"** ou **"Ciente de todas"** (D4, D6, D7, D13);
+   - ID não encontrado ou de uma partida de outros times: ela **corrige o ID** e só aquela partida é consultada de novo (D4, D5, D16).
+6. Com Pendências e Aguardando vazias, calcula: classificação, desempate (com justificativa), prêmio por time e por jogador, centavos fechando no total.
+7. Gera a **página pública** (classificação, regras, desempate e prêmio por time, sem valores individuais) e **um link por time premiado**, com o extrato de cada jogador do time e filtro por nick (D11).
 
 ## 13. Ligação com a PowerRev (para a apresentação)
 
@@ -247,24 +265,40 @@ Todos os arquivos ficam em `testes/` e são gerados por `testes/gerar_cenarios.p
 - `testes/site-oficial.json`: o que o site oficial simulado devolve para cada ID de partida. É a "verdade" do simulador.
 - `testes/esperado/`: classificação e prêmio por jogador esperados, para comparar com o resultado do sistema.
 
-**Premissas dos resultados esperados:** prêmio de R$ 10.000,00 (50/30/20), divisão por **minutos**, desempate por kills do time, empate também em kills divide igual, centavo que sobra para quem tem mais minutos e depois ordem alfabética.
+**Premissas dos resultados esperados:** prêmio de R$ 10.000,00 (50/30/20), divisão por **minutos**, desempate por kills do time, empate também em kills divide igual, centavos que sobram pelo **maior resto** e, no empate da fração, ordem alfabética (D9).
 
 | Cenário | Arquivo | O que tem | O que o sistema deve fazer |
 |---|---|---|---|
-| 01 | `01-limpa.csv` | 6 times, 15 partidas, sem erros. Dois jogadores saíram mais cedo (Escama na rodada 2, Cinzas na rodada 4) | Conferir tudo sem divergência e calcular. Dragões 1º (R$ 5.000), Fênix 2º (R$ 3.000), Leões 3º (R$ 2.000). Dentro dos Dragões, Brasa.gg recebe R$ 1.029,77 e Fogaréu R$ 1.029,76: o centavo foi para Brasa.gg pela ordem alfabética (mesmos minutos). Valores por jogador em `esperado/01-limpa-jogadores.csv` |
-| 02 | `02-id-inexistente.csv` | A partida `#52241` foi digitada como `#52214` (dígitos invertidos) | O site responde "não encontrada" para `#52214`. Mostrar a partida como pendente e **bloquear o cálculo** (D4) |
-| 03 | `03-divergencias.csv` | Três diferenças entre planilha e site: Juba (`#53132`) kills 18 × 8; Plumada (`#53428`) minutos 15 × 27; Harpia (`#53718`) kills 9 × 13 | Listar as 3 divergências **lado a lado** (planilha × site), **bloquear o cálculo** até a revisão e calcular com os valores do site (D3, D4) |
+| 01 | `01-limpa.csv` | 6 times, 15 partidas, sem erros. Dois jogadores saíram mais cedo (Escama na rodada 2, Cinzas na rodada 4) | Conferir tudo sem divergência e calcular. Dragões 1º (R$ 5.000), Fênix 2º (R$ 3.000), Leões 3º (R$ 2.000). Dentro dos Dragões, Escama (saiu mais cedo) recebe R$ 880,96 e Brasa.gg, Fogaréu, Labareda e Rugido R$ 1.029,76: o centavo foi para Escama, que tinha a maior fração (D9). Em Fênix, o centavo vai para Cinzas (R$ 558,32). Valores por jogador em `esperado/01-limpa-jogadores.csv` |
+| 02 | `02-id-inexistente.csv` | A partida `#52241` foi digitada como `#52214` (dígitos invertidos) | O site responde "não encontrada" para `#52214`. Mostrar a partida em Pendências e **bloquear o cálculo** (D5). A Maria corrige o ID para `#52241`, o sistema consulta só essa partida e libera (D16) |
+| 03 | `03-divergencias.csv` | Três diferenças entre planilha e site: Juba (`#53132`) kills 18 × 8; Plumada (`#53428`) minutos 15 × 27; Harpia (`#53718`) kills 9 × 13 | Listar as 3 divergências **lado a lado** (planilha × site) em Pendências; o cálculo só libera depois do **"Ciente"** (um a um ou "Ciente de todas") e usa os valores do site (D3, D4) |
 | 04 | `04-empate-em-kills.csv` | Fênix e Leões com 3 vitórias e **398 kills cada**. Fênix venceu Leões no confronto direto, mas esse critério não é usado | Dividir 30% + 20% igualmente: **R$ 2.500 para cada time**, com a justificativa visível. Lobos-Guará e Ursos também empatam em vitórias (4º e 5º), mas sem prêmio |
 | 05 | `05-oito-times.csv` | 8 times, 7 rodadas, 28 partidas, sem erros | Conferir 28 partidas sem travar a tela. Dragões 1º, Fênix 2º, Leões 3º |
 | 06a | `06a-coluna-faltando.csv` | Sem a coluna `Kills` | **Recusar o arquivo** com mensagem clara dizendo qual coluna falta |
 | 06b | `06b-separador-virgula.csv` | Separador `,` em vez de `;` | Detectar o separador e importar normalmente (D14) |
-| 07 | `07-jogador-em-dois-times.csv` | Na rodada 4, **Garra** joga pelos Leões e também pelos Ursos (no lugar de Pardo). O site confirma: não é erro de digitação | Aviso informativo, sem bloquear. Garra recebe pelos minutos em cada time (D13) |
-| Extra | `torneio-outubro.csv` | Torneio normal. Na rodada 3, Bico (Águias) sai aos 15 minutos e entra o reserva **Sabiá** | Calcular normalmente; Sabiá recebe pelos minutos (D8). Leões 1º, Águias 2º, Dragões 3º |
-| Extra | `torneio-novembro.csv` | Os mesmos problemas de digitação de setembro: `mel.zinho` em minúsculas na rodada 2 e **Rapina duplicado** na rodada 4. Além disso, **duas partidas instáveis no site**: `#62142` falha 2 vezes antes de responder e `#62477` falha 5 vezes | Pendências locais: perguntar se `mel.zinho` é Mel.zinho (D7) e destacar a duplicata (D6). Tentar de novo as partidas instáveis até responderem (D10) |
+| 07 | `07-jogador-em-dois-times.csv` | Na rodada 4, **Garra** joga pelos Leões e também pelos Ursos (no lugar de Pardo). O site confirma: não é erro de digitação | Aviso em Pendências, que libera o cálculo depois do "Ciente" (D13, D17). Garra recebe pelos minutos em cada time |
+| Extra | `torneio-outubro.csv` | Torneio normal. Na rodada 3, Bico (Águias) sai aos 15 minutos e entra o reserva **Sabiá** | Calcular normalmente; Sabiá recebe pelos minutos (D8), R$ 74,63, com o centavo de arredondamento (D9). Leões 1º, Águias 2º, Dragões 3º |
+| Extra | `torneio-novembro.csv` | Os mesmos problemas de digitação de setembro: `mel.zinho` em minúsculas na rodada 2 e **Rapina duplicado** na rodada 4. Além disso, **duas partidas instáveis no site**: `#62142` falha 2 vezes antes de responder e `#62477` falha 5 vezes | Avisos com "Ciente", um item cada, com o lado a lado do site: `mel.zinho` × Mel.zinho (D7) e a duplicata de Rapina (D6). As partidas instáveis ficam em "Aguardando o site" e são tentadas de novo até responderem (D10) |
+| Setembro | `torneio-setembro.csv` (original) | Os problemas da seção 6: duplicata de Pantera_X, `xxsniperxx`, a substituição de Tuca e a `#40923` zerada. O site tem os dados da `#40923` (D15) | Avisos com "Ciente" para a duplicata e o nick (D6, D7); a `#40923` é preenchida pelo site, sem bloquear (D3). Resultado esperado abaixo |
+
+**Resultado esperado de setembro (por minutos), conferido com script sobre a planilha original e os dados da D15:**
+
+| Posição | Time | Vitórias | Kills | Prêmio do time | Por jogador |
+|---|---|---|---|---|---|
+| 1º | Lobos | 5 | 353 | R$ 5.000,00 | 5 × R$ 1.000,00 (211 min cada) |
+| 2º | Corvos | 3 | 368 | R$ 3.000,00 | Corvinho, M4theus, Zeca e Nina.exe R$ 600,00 (173 min); Bia.gg R$ 534,10 (154 min); Tuca R$ 65,90 (19 min, +1 centavo pelo maior resto, D9) |
+| 3º (empate) | Tubarões | 3 | 310 | R$ 1.000,00 | 5 × R$ 200,00 (179 min cada) |
+| 3º (empate) | Falcões | 3 | 310 | R$ 1.000,00 | 5 × R$ 200,00 (180 min cada) |
+| 5º | Panteras | 1 | 269 | — | — |
+| 6º | Serpentes | 0 | 249 | — | — |
+
+Tubarões e Falcões empatam em vitórias e em kills: o prêmio do 3º lugar (R$ 2.000,00) e o do 4º (R$ 0) somam-se e dividem-se igualmente (D2). A justificativa precisa aparecer na página pública. Soma paga: R$ 10.000,00.
 
 **A planilha original da empresa (`torneio-setembro.csv`) fica congelada até o fim do projeto:** ela é usada exatamente como foi enviada, para testar a solução. As planilhas de `testes/` podem ser ajustadas ou ampliadas depois da entrega.
 
-**Ainda não incluído:** os dados de setembro no site simulado (decisão D15). Entram quando o simulador for construído, sem alterar a planilha original.
+**Ainda não incluído:** os dados de setembro em `testes/site-oficial.json` e os arquivos `testes/esperado/torneio-setembro-*.csv`. Os valores já estão definidos (D15 e tabela acima); entram na etapa 2, sem alterar a planilha original.
+
+**Sem cenário ainda:** ID que, no site, corresponde a uma partida de outros times (D4, tipo b). Fica para quando os cenários forem ampliados.
 
 
 ---

@@ -6,6 +6,7 @@ Saídas:
                                   (UTF-8 com BOM, separador ';', quebra de linha CRLF)
   testes/site-oficial.json        "verdade" do site oficial, por ID de partida
   testes/esperado/*.csv           resultados esperados (oráculo para testes automatizados)
+  testes/resumo-geracao.json      resumo do que foi gerado
 
 Regras usadas nos resultados esperados (ver contexto.md, seção 11):
   - colocação por vitórias; desempate por total de kills do time; empate também em kills
@@ -15,12 +16,19 @@ Regras usadas nos resultados esperados (ver contexto.md, seção 11):
     Cada um recebe a parte inteira em centavos; os centavos que sobram vão, um por vez, para
     quem tem a maior parte fracionária; empate na fração -> ordem alfabética
 
-Uso: python3 testes/gerar_cenarios.py   (determinístico: sempre gera os mesmos arquivos)
+Setembro: a planilha da Maria Clara não é gerada aqui, só lida. O esperado de setembro usa os
+dados que o site simulado terá (D15): a planilha sem a linha duplicada, com o nick `xXSniperXx`
+correto e a partida #40923 preenchida.
+
+Uso: python3 testes/gerar_cenarios.py                  (determinístico: sempre gera os mesmos arquivos)
+     python3 testes/gerar_cenarios.py --so-esperado    (só esperado/ e o resumo; não grava planilhas
+                                                        nem o site-oficial.json)
 """
 import csv
 import io
 import json
 import random
+import sys
 import unicodedata
 from datetime import date, timedelta
 from pathlib import Path
@@ -31,6 +39,7 @@ ESPERADO = BASE / "esperado"
 CABECALHO = ["Data", "Rodada", "ID Partida", "Partida", "Time", "Nick", "Minutos", "Kills", "Venceu?"]
 PREMIO_CENTAVOS = 1_000_000  # R$ 10.000,00
 PERCENTUAIS = [50, 30, 20]
+SO_ESPERADO = "--so-esperado" in sys.argv
 
 site_oficial: dict[str, dict] = {}
 
@@ -108,6 +117,8 @@ def para_linhas(partidas):
 
 
 def salvar_csv(nome, linhas, cabecalho=CABECALHO, separador=";"):
+    if SO_ESPERADO:
+        return
     buf = io.StringIO()
     w = csv.DictWriter(buf, fieldnames=cabecalho, delimiter=separador, lineterminator="\r\n",
                        extrasaction="ignore")
@@ -205,8 +216,11 @@ def salvar_esperado(nome, partidas, premio=PREMIO_CENTAVOS):
     with open(ESPERADO / f"{nome}-classificacao.csv", "w", encoding="utf-8", newline="") as f:
         w = csv.writer(f, delimiter=";")
         w.writerow(["Posição", "Time", "Vitórias", "Kills do time", "Prêmio (R$)", "Critério"])
-        for i, c in enumerate(classificacao, 1):
-            w.writerow([i, c["time"], c["vitorias"], c["kills_time"], fmt(c["premio_centavos"]), c["criterio"]])
+        # empatados em vitórias e kills dividem a posição; o próximo pula (1, 2, 3, 3, 5)
+        chave = lambda c: (c["vitorias"], c["kills_time"])
+        for c in classificacao:
+            posicao = 1 + sum(1 for o in classificacao if chave(o) > chave(c))
+            w.writerow([posicao, c["time"], c["vitorias"], c["kills_time"], fmt(c["premio_centavos"]), c["criterio"]])
     with open(ESPERADO / f"{nome}-jogadores.csv", "w", encoding="utf-8", newline="") as f:
         w = csv.writer(f, delimiter=";")
         w.writerow(["Time", "Nick", "Minutos", "Minutos do time", "Prêmio (R$)"])
@@ -220,6 +234,48 @@ def salvar_esperado(nome, partidas, premio=PREMIO_CENTAVOS):
 def vencedor_por_ranking(ranking):
     """O time melhor colocado no ranking sempre vence: classificação sem empates."""
     return lambda a, b: a if ranking.index(a) < ranking.index(b) else b
+
+
+# ----------------------------------------------------------------- setembro
+
+# D15: o que o site registra para a #40923 (Falcões x Panteras), que está zerada na planilha
+SETEMBRO_40923 = {
+    "minutos": 38,
+    "vencedor": "Falcões",
+    "kills": {"Falk": 14, "Kiwi": 11, "Dudu.pro": 16, "Marreta": 13, "Sol": 8,
+              "Sombra": 7, "Pantera_X": 12, "Mel": 9, "Tchê": 10, "Rafa.K": 7},
+}
+SETEMBRO_NICK_CORRETO = {"xxsniperxx": "xXSniperXx"}
+
+
+def partidas_setembro():
+    """Monta as partidas de setembro como o site as registra (D15). Só lê a planilha."""
+    with open(PLANILHAS / "torneio-setembro.csv", encoding="utf-8-sig", newline="") as f:
+        linhas = list(csv.DictReader(f, delimiter=";"))
+    partidas, vistos = {}, set()
+    for l in linhas:
+        nick = SETEMBRO_NICK_CORRETO.get(l["Nick"], l["Nick"])
+        chave = (l["ID Partida"], l["Time"], nick)
+        if chave in vistos:  # linha duplicada (Pantera_X na #46065)
+            continue
+        vistos.add(chave)
+        p = partidas.setdefault(l["ID Partida"], {
+            "id": l["ID Partida"],
+            "data": "-".join(reversed(l["Data"].split("/"))),
+            "rodada": int(l["Rodada"]),
+            "times": l["Partida"].split(" x "),
+            "vencedor": None,
+            "jogadores": [],
+        })
+        if p["id"] == "#40923":
+            minutos, kills = SETEMBRO_40923["minutos"], SETEMBRO_40923["kills"][nick]
+            p["vencedor"] = SETEMBRO_40923["vencedor"]
+        else:
+            minutos, kills = int(l["Minutos"]), int(l["Kills"])
+            if l["Venceu?"] == "sim":
+                p["vencedor"] = l["Time"]
+        p["jogadores"].append({"nick": nick, "time": l["Time"], "minutos": minutos, "kills": kills})
+    return list(partidas.values())
 
 
 # ------------------------------------------------------------------ elencos
@@ -369,8 +425,12 @@ def main():
     salvar_csv("torneio-novembro.csv", linhas_nov)
     resumo["novembro"] = {"instaveis": instaveis}
 
-    (BASE / "site-oficial.json").write_text(
-        json.dumps(site_oficial, ensure_ascii=False, indent=2), encoding="utf-8")
+    # Setembro — a planilha da Maria Clara; só o esperado (os dados do site entram na etapa 2)
+    resumo["setembro"] = salvar_esperado("torneio-setembro", partidas_setembro())
+
+    if not SO_ESPERADO:
+        (BASE / "site-oficial.json").write_text(
+            json.dumps(site_oficial, ensure_ascii=False, indent=2), encoding="utf-8")
     (BASE / "resumo-geracao.json").write_text(
         json.dumps(resumo, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
     print(json.dumps(resumo, ensure_ascii=False, indent=1, default=str))

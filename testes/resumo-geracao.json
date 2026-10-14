@@ -225,5 +225,49 @@
         "falhas_antes_de_responder": 5
       }
     }
-  }
+  },
+  "setembro": [
+    {
+      "time": "Lobos",
+      "vitorias": 5,
+      "kills_time": 353,
+      "premio_centavos": 500000,
+      "criterio": ""
+    },
+    {
+      "time": "Corvos",
+      "vitorias": 3,
+      "kills_time": 368,
+      "premio_centavos": 300000,
+      "criterio": "desempate por kills do time"
+    },
+    {
+      "time": "Falcões",
+      "vitorias": 3,
+      "kills_time": 310,
+      "premio_centavos": 100000,
+      "criterio": "divisão igual (empate em vitórias e kills)"
+    },
+    {
+      "time": "Tubarões",
+      "vitorias": 3,
+      "kills_time": 310,
+      "premio_centavos": 100000,
+      "criterio": "divisão igual (empate em vitórias e kills)"
+    },
+    {
+      "time": "Panteras",
+      "vitorias": 1,
+      "kills_time": 269,
+      "premio_centavos": 0,
+      "criterio": ""
+    },
+    {
+      "time": "Serpentes",
+      "vitorias": 0,
+      "kills_time": 249,
+      "premio_centavos": 0,
+      "criterio": ""
+    }
+  ]
 }

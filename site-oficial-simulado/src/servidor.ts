@@ -23,5 +23,10 @@ const servidor = criarApp(partidas, { demora }).listen(porta, () => {
   );
 });
 
-process.on('SIGTERM', () => servidor.close(() => process.exit(0)));
-process.on('SIGINT', () => servidor.close(() => process.exit(0)));
+// ao desligar, encerra também as consultas penduradas pelo modo "sem resposta"
+const desligar = () => {
+  servidor.close(() => process.exit(0));
+  servidor.closeAllConnections();
+};
+process.on('SIGTERM', desligar);
+process.on('SIGINT', desligar);

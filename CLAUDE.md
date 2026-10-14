@@ -34,5 +34,7 @@ Projeto: desafio técnico da PowerRev (Desenvolvedora Full Stack Júnior). Siste
 - Forma de trabalho: em cada pedaço, escrever os testes, **rodar e mostrar que falham**, e só depois implementar.
 - Etapas 0 e 1 integradas na `develop` por pull request.
 - Etapa 2, pedaço 2a (consulta de partida, `site-oficial-simulado/src/app.ts`): concluído. `GET /partidas/40923`; dados montados somente leitura no Docker.
-- Etapa 2, pedaço 2b (demora e falhas): pronto, aguardando aprovação. Demora 2–10 s por `SITE_DEMORA_MIN_MS`/`SITE_DEMORA_MAX_MS`; falha = 503 `indisponivel`.
-- Próximo passo: **Etapa 2, pedaço 2c**, depois da aprovação da Adrielly.
+- Etapa 2, pedaço 2b (demora e falhas): concluído. Demora 2–10 s por `SITE_DEMORA_MIN_MS`/`SITE_DEMORA_MAX_MS`; falha = 503 `indisponivel`.
+- Etapa 2, pedaço 2c (modo demonstração, página em `http://localhost:4000/demo`): pronto, aguardando aprovação. **Com ele, a etapa 2 está completa.**
+- Quem tenta consultar de novo é o job da **etapa 4**, em dois casos: 503 e site sem resposta (tempo esgotado).
+- Próximo passo: **Etapa 3 — Torneio e importação**, depois da aprovação da Adrielly.

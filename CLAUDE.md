@@ -27,5 +27,7 @@ Projeto: desafio técnico da PowerRev (Desenvolvedora Full Stack Júnior). Siste
 - Etapa 0 (esqueleto): concluída em 14/10/2026. `docker compose up --build` sobe MySQL 8.4, API (3000), site simulado (4000) e web (5173); `npm test` roda os testes da API.
 - Etapa 1, parte 1 (leitura da planilha, `api/src/dominio/planilha.ts`): concluída.
 - Etapa 1, parte 2 (comparação planilha × site, `api/src/dominio/comparacao.ts`, regras na D19): concluída. Dados do site de setembro (D15) em `api/test/fixtures/site-setembro.json`.
-- Etapa 1, parte 3 (classificação, `api/src/dominio/classificacao.ts`): pronta, aguardando aprovação. Critério sem "divisão igual", que é da parte 4.
-- Próximo passo: **Etapa 1, parte 4** (maior resto e divisão do prêmio), depois da aprovação da Adrielly.
+- Etapa 1, parte 3 (classificação, `api/src/dominio/classificacao.ts`): concluída. Critério sem "divisão igual", que é da parte 4.
+- Etapa 1, parte 4a (maior resto, `api/src/dominio/divisao.ts`): pronta, aguardando aprovação. Soma dos pesos zero lança `SomaDosPesosZero`; a regra de negócio desse caso vem no 4c.
+- Forma de trabalho: em cada pedaço, escrever os testes, **rodar e mostrar que falham**, e só depois implementar.
+- Próximo passo: **Etapa 1, parte 4b**, depois da aprovação da Adrielly.

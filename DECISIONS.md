@@ -91,6 +91,16 @@ Princípio: **tolerante na forma, rígida no conteúdo.** O que não muda o sent
 
 ---
 
+## Divisão entre jogadores no modo kills (D21), 14/10/2026
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **Jogador com 0 kills recebe R$ 0** no modo kills. A regra não muda; a tela de criação avisa ao escolher o modo: "Jogadores sem nenhuma kill não recebem prêmio. Se ninguém do time fizer kills, o prêmio do time é dividido pelos minutos." | Dar um mínimo a quem jogou sem fazer kills | Seria uma terceira regra de divisão, que ninguém pediu. É a consequência direta de dividir por kills (o caso do Dona.Tank, seção 8 do `contexto.md`): melhor deixar claro antes da escolha do que remendar depois |
+| Time premiado em que **ninguém fez kills: divide pelos minutos**, e o extrato explica | Dividir igual entre os jogadores do time | O reserva de 19 minutos receberia o mesmo que os titulares |
+| (mesma) | Bloquear o cálculo | Não haveria saída: o modo é escolhido antes da planilha e não muda depois (D1); o prêmio ficaria travado |
+
+---
+
 ## Stack e ferramentas
 
 | Decisão | Alternativa descartada | Por quê |

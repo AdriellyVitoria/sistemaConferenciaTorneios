@@ -29,6 +29,7 @@ Projeto: desafio técnico da PowerRev (Desenvolvedora Full Stack Júnior). Siste
 - Etapa 1, parte 2 (comparação planilha × site, `api/src/dominio/comparacao.ts`, regras na D19): concluída. Dados do site de setembro (D15) em `api/test/fixtures/site-setembro.json`.
 - Etapa 1, parte 3 (classificação, `api/src/dominio/classificacao.ts`): concluída. Critério sem "divisão igual", que é da parte 4.
 - Etapa 1, parte 4a (maior resto, `api/src/dominio/divisao.ts`): concluída. Soma dos pesos zero lança `SomaDosPesosZero`; a regra de negócio desse caso vem no 4c.
-- Etapa 1, parte 4b (prêmio por time, `api/src/dominio/premio.ts`): pronta, aguardando aprovação. D20 decidida: percentuais somam 100 (`erroDosPercentuais`, para a criação do torneio reaproveitar) e o prêmio é dividido entre as posições pelo maior resto, com empate para a melhor colocada.
+- Etapa 1, parte 4b (prêmio por time, `api/src/dominio/premio.ts`): concluída. D20: percentuais somam 100 (`erroDosPercentuais`, para a criação do torneio reaproveitar) e o prêmio é dividido entre as posições pelo maior resto, com empate para a melhor colocada.
+- Etapa 1, parte 4c (rateio entre jogadores, `api/src/dominio/rateio.ts`): pronta, aguardando aprovação. D21: no modo kills, 0 kills recebe R$ 0; time sem kills é dividido pelos minutos. **Com ela, a etapa 1 está completa.**
 - Forma de trabalho: em cada pedaço, escrever os testes, **rodar e mostrar que falham**, e só depois implementar.
-- Próximo passo: **Etapa 1, parte 4c** (divisão entre jogadores), depois da aprovação da Adrielly.
+- Próximo passo: **Etapa 2 — Site oficial simulado**, depois da aprovação da Adrielly.

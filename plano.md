@@ -275,6 +275,8 @@ premiacao-torneios   (um commit pequeno por passo de cada etapa)
 - Criar torneio: nome, prêmio, percentuais e modo de divisão.
 - Upload da planilha: salva as linhas e cria as partidas como **aguardando o site** (usando a leitura da etapa 1). Os itens de pendência só nascem na conferência, quando já há o lado a lado do site.
 - Tela: criar torneio e subir planilha; mostrar erros de arquivo (cenário 06a) com mensagem clara.
+- Na criação, validar os percentuais com `erroDosPercentuais` (D20: "Os percentuais precisam somar 100").
+- Ao escolher o modo **kills**, a tela avisa: *"Jogadores sem nenhuma kill não recebem prêmio. Se ninguém do time fizer kills, o prêmio do time é dividido pelos minutos."* (D21)
 
 **Pronto quando:** subo a planilha de setembro e vejo 15 partidas aguardando o site; o cenário 06a é recusado com a coluna que falta.
 
@@ -338,7 +340,7 @@ premiacao-torneios   (um commit pequeno por passo de cada etapa)
 ## 8. Checklist
 
 - [x] Etapa 0 — Esqueleto
-- [ ] Etapa 1 — Regras de negócio puras
+- [x] Etapa 1 — Regras de negócio puras
 - [ ] Etapa 2 — Site oficial simulado
 - [ ] Etapa 3 — Torneio e importação
 - [ ] Etapa 4 — Conferência em segundo plano

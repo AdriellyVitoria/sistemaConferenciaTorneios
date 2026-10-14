@@ -1,0 +1,9586 @@
+{
+  "#51003": {
+    "id": "#51003",
+    "data": "2026-10-03",
+    "rodada": 1,
+    "times": [
+      "Dragões",
+      "Águias"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 29,
+        "kills": 24
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 29,
+        "kills": 8
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 29,
+        "kills": 14
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 29,
+        "kills": 9
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 29,
+        "kills": 21
+      },
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 29,
+        "kills": 15
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 29,
+        "kills": 16
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 29,
+        "kills": 13
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 29,
+        "kills": 7
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 29,
+        "kills": 4
+      }
+    ]
+  },
+  "#51068": {
+    "id": "#51068",
+    "data": "2026-10-03",
+    "rodada": 1,
+    "times": [
+      "Fênix",
+      "Ursos"
+    ],
+    "vencedor": "Fênix",
+    "jogadores": [
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 18
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 19
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 25
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 6
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 20
+      },
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 25,
+        "kills": 9
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 25,
+        "kills": 8
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 25,
+        "kills": 4
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 25,
+        "kills": 11
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 25,
+        "kills": 1
+      }
+    ]
+  },
+  "#51073": {
+    "id": "#51073",
+    "data": "2026-10-03",
+    "rodada": 1,
+    "times": [
+      "Leões",
+      "Lobos-Guará"
+    ],
+    "vencedor": "Leões",
+    "jogadores": [
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 25,
+        "kills": 26
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 25,
+        "kills": 23
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 25,
+        "kills": 6
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 25,
+        "kills": 18
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 25,
+        "kills": 12
+      },
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 14
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 1
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 17
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 8
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 15
+      }
+    ]
+  },
+  "#51139": {
+    "id": "#51139",
+    "data": "2026-10-04",
+    "rodada": 2,
+    "times": [
+      "Dragões",
+      "Ursos"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 42,
+        "kills": 13
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 17,
+        "kills": 17
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 42,
+        "kills": 13
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 42,
+        "kills": 13
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 42,
+        "kills": 20
+      },
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 42,
+        "kills": 10
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 42,
+        "kills": 1
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 42,
+        "kills": 14
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 42,
+        "kills": 18
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 42,
+        "kills": 4
+      }
+    ]
+  },
+  "#51165": {
+    "id": "#51165",
+    "data": "2026-10-04",
+    "rodada": 2,
+    "times": [
+      "Águias",
+      "Lobos-Guará"
+    ],
+    "vencedor": "Lobos-Guará",
+    "jogadores": [
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 45,
+        "kills": 10
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 45,
+        "kills": 4
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 45,
+        "kills": 11
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 45,
+        "kills": 17
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 45,
+        "kills": 14
+      },
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 45,
+        "kills": 22
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 45,
+        "kills": 12
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 45,
+        "kills": 15
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 45,
+        "kills": 15
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 45,
+        "kills": 24
+      }
+    ]
+  },
+  "#51231": {
+    "id": "#51231",
+    "data": "2026-10-04",
+    "rodada": 2,
+    "times": [
+      "Fênix",
+      "Leões"
+    ],
+    "vencedor": "Fênix",
+    "jogadores": [
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 41,
+        "kills": 18
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 41,
+        "kills": 24
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 41,
+        "kills": 7
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 41,
+        "kills": 21
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 41,
+        "kills": 13
+      },
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 41,
+        "kills": 13
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 41,
+        "kills": 14
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 41,
+        "kills": 6
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 41,
+        "kills": 12
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 41,
+        "kills": 18
+      }
+    ]
+  },
+  "#51323": {
+    "id": "#51323",
+    "data": "2026-10-10",
+    "rodada": 3,
+    "times": [
+      "Dragões",
+      "Lobos-Guará"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 36,
+        "kills": 8
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 36,
+        "kills": 20
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 36,
+        "kills": 22
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 36,
+        "kills": 9
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 36,
+        "kills": 11
+      },
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 36,
+        "kills": 17
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 36,
+        "kills": 13
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 36,
+        "kills": 12
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 36,
+        "kills": 16
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 36,
+        "kills": 1
+      }
+    ]
+  },
+  "#51386": {
+    "id": "#51386",
+    "data": "2026-10-10",
+    "rodada": 3,
+    "times": [
+      "Ursos",
+      "Leões"
+    ],
+    "vencedor": "Leões",
+    "jogadores": [
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 26,
+        "kills": 10
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 26,
+        "kills": 13
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 26,
+        "kills": 6
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 26,
+        "kills": 6
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 26,
+        "kills": 17
+      },
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 26,
+        "kills": 13
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 26,
+        "kills": 6
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 26,
+        "kills": 12
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 26,
+        "kills": 23
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 26,
+        "kills": 23
+      }
+    ]
+  },
+  "#51418": {
+    "id": "#51418",
+    "data": "2026-10-10",
+    "rodada": 3,
+    "times": [
+      "Águias",
+      "Fênix"
+    ],
+    "vencedor": "Fênix",
+    "jogadores": [
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 37,
+        "kills": 17
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 37,
+        "kills": 12
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 37,
+        "kills": 12
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 37,
+        "kills": 15
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 37,
+        "kills": 9
+      },
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 37,
+        "kills": 23
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 37,
+        "kills": 25
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 37,
+        "kills": 6
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 37,
+        "kills": 18
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 37,
+        "kills": 22
+      }
+    ]
+  },
+  "#51437": {
+    "id": "#51437",
+    "data": "2026-10-11",
+    "rodada": 4,
+    "times": [
+      "Dragões",
+      "Leões"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 41,
+        "kills": 23
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 41,
+        "kills": 12
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 41,
+        "kills": 19
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 41,
+        "kills": 7
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 41,
+        "kills": 21
+      },
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 41,
+        "kills": 12
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 41,
+        "kills": 18
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 41,
+        "kills": 7
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 41,
+        "kills": 17
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 41,
+        "kills": 14
+      }
+    ]
+  },
+  "#51502": {
+    "id": "#51502",
+    "data": "2026-10-11",
+    "rodada": 4,
+    "times": [
+      "Lobos-Guará",
+      "Fênix"
+    ],
+    "vencedor": "Fênix",
+    "jogadores": [
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 36,
+        "kills": 14
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 36,
+        "kills": 12
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 36,
+        "kills": 1
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 36,
+        "kills": 18
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 36,
+        "kills": 18
+      },
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 22,
+        "kills": 25
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 36,
+        "kills": 25
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 36,
+        "kills": 16
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 36,
+        "kills": 20
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 36,
+        "kills": 25
+      }
+    ]
+  },
+  "#51508": {
+    "id": "#51508",
+    "data": "2026-10-11",
+    "rodada": 4,
+    "times": [
+      "Ursos",
+      "Águias"
+    ],
+    "vencedor": "Ursos",
+    "jogadores": [
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 32,
+        "kills": 26
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 32,
+        "kills": 11
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 32,
+        "kills": 23
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 32,
+        "kills": 24
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 32,
+        "kills": 11
+      },
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 32,
+        "kills": 3
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 32,
+        "kills": 18
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 32,
+        "kills": 9
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 32,
+        "kills": 2
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 32,
+        "kills": 3
+      }
+    ]
+  },
+  "#51521": {
+    "id": "#51521",
+    "data": "2026-10-17",
+    "rodada": 5,
+    "times": [
+      "Dragões",
+      "Fênix"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 25,
+        "kills": 20
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 25,
+        "kills": 6
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 25,
+        "kills": 14
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 25,
+        "kills": 13
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 25,
+        "kills": 14
+      },
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 4
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 6
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 12
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 10
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 3
+      }
+    ]
+  },
+  "#51545": {
+    "id": "#51545",
+    "data": "2026-10-17",
+    "rodada": 5,
+    "times": [
+      "Leões",
+      "Águias"
+    ],
+    "vencedor": "Leões",
+    "jogadores": [
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 30,
+        "kills": 14
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 30,
+        "kills": 22
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 30,
+        "kills": 11
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 30,
+        "kills": 14
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 30,
+        "kills": 26
+      },
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 30,
+        "kills": 10
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 30,
+        "kills": 15
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 30,
+        "kills": 11
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 30,
+        "kills": 16
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 30,
+        "kills": 16
+      }
+    ]
+  },
+  "#51562": {
+    "id": "#51562",
+    "data": "2026-10-17",
+    "rodada": 5,
+    "times": [
+      "Lobos-Guará",
+      "Ursos"
+    ],
+    "vencedor": "Lobos-Guará",
+    "jogadores": [
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 15
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 18
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 16
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 19
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 12
+      },
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 25,
+        "kills": 9
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 25,
+        "kills": 4
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 25,
+        "kills": 9
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 25,
+        "kills": 17
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 25,
+        "kills": 7
+      }
+    ]
+  },
+  "#52011": {
+    "id": "#52011",
+    "data": "2026-10-03",
+    "rodada": 1,
+    "times": [
+      "Dragões",
+      "Águias"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 26,
+        "kills": 8
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 26,
+        "kills": 8
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 26,
+        "kills": 17
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 26,
+        "kills": 11
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 26,
+        "kills": 15
+      },
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 26,
+        "kills": 9
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 26,
+        "kills": 7
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 26,
+        "kills": 2
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 26,
+        "kills": 6
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 26,
+        "kills": 14
+      }
+    ]
+  },
+  "#52095": {
+    "id": "#52095",
+    "data": "2026-10-03",
+    "rodada": 1,
+    "times": [
+      "Fênix",
+      "Ursos"
+    ],
+    "vencedor": "Fênix",
+    "jogadores": [
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 37,
+        "kills": 22
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 37,
+        "kills": 17
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 37,
+        "kills": 23
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 37,
+        "kills": 20
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 37,
+        "kills": 22
+      },
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 37,
+        "kills": 9
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 37,
+        "kills": 2
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 37,
+        "kills": 1
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 37,
+        "kills": 12
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 37,
+        "kills": 15
+      }
+    ]
+  },
+  "#52138": {
+    "id": "#52138",
+    "data": "2026-10-03",
+    "rodada": 1,
+    "times": [
+      "Leões",
+      "Lobos-Guará"
+    ],
+    "vencedor": "Leões",
+    "jogadores": [
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 37,
+        "kills": 19
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 37,
+        "kills": 22
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 37,
+        "kills": 11
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 37,
+        "kills": 23
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 37,
+        "kills": 11
+      },
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 37,
+        "kills": 8
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 37,
+        "kills": 8
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 37,
+        "kills": 1
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 37,
+        "kills": 6
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 37,
+        "kills": 11
+      }
+    ]
+  },
+  "#52163": {
+    "id": "#52163",
+    "data": "2026-10-04",
+    "rodada": 2,
+    "times": [
+      "Dragões",
+      "Ursos"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 29,
+        "kills": 22
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 29,
+        "kills": 22
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 29,
+        "kills": 17
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 29,
+        "kills": 22
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 29,
+        "kills": 23
+      },
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 29,
+        "kills": 6
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 29,
+        "kills": 15
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 29,
+        "kills": 14
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 29,
+        "kills": 17
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 29,
+        "kills": 12
+      }
+    ]
+  },
+  "#52241": {
+    "id": "#52241",
+    "data": "2026-10-04",
+    "rodada": 2,
+    "times": [
+      "Águias",
+      "Lobos-Guará"
+    ],
+    "vencedor": "Lobos-Guará",
+    "jogadores": [
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 36,
+        "kills": 12
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 36,
+        "kills": 15
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 36,
+        "kills": 6
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 36,
+        "kills": 13
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 36,
+        "kills": 15
+      },
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 36,
+        "kills": 26
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 36,
+        "kills": 22
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 36,
+        "kills": 13
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 36,
+        "kills": 21
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 36,
+        "kills": 14
+      }
+    ]
+  },
+  "#52307": {
+    "id": "#52307",
+    "data": "2026-10-04",
+    "rodada": 2,
+    "times": [
+      "Fênix",
+      "Leões"
+    ],
+    "vencedor": "Fênix",
+    "jogadores": [
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 41,
+        "kills": 22
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 41,
+        "kills": 17
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 41,
+        "kills": 20
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 41,
+        "kills": 20
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 41,
+        "kills": 17
+      },
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 41,
+        "kills": 18
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 41,
+        "kills": 15
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 41,
+        "kills": 16
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 41,
+        "kills": 8
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 41,
+        "kills": 11
+      }
+    ]
+  },
+  "#52399": {
+    "id": "#52399",
+    "data": "2026-10-10",
+    "rodada": 3,
+    "times": [
+      "Dragões",
+      "Lobos-Guará"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 30,
+        "kills": 25
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 30,
+        "kills": 14
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 30,
+        "kills": 21
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 30,
+        "kills": 15
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 30,
+        "kills": 15
+      },
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 30,
+        "kills": 17
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 30,
+        "kills": 18
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 30,
+        "kills": 17
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 30,
+        "kills": 17
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 30,
+        "kills": 14
+      }
+    ]
+  },
+  "#52441": {
+    "id": "#52441",
+    "data": "2026-10-10",
+    "rodada": 3,
+    "times": [
+      "Ursos",
+      "Leões"
+    ],
+    "vencedor": "Leões",
+    "jogadores": [
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 31,
+        "kills": 16
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 31,
+        "kills": 17
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 31,
+        "kills": 12
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 31,
+        "kills": 3
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 31,
+        "kills": 11
+      },
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 31,
+        "kills": 6
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 31,
+        "kills": 12
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 31,
+        "kills": 9
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 31,
+        "kills": 7
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 31,
+        "kills": 24
+      }
+    ]
+  },
+  "#52527": {
+    "id": "#52527",
+    "data": "2026-10-10",
+    "rodada": 3,
+    "times": [
+      "Águias",
+      "Fênix"
+    ],
+    "vencedor": "Fênix",
+    "jogadores": [
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 26,
+        "kills": 9
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 26,
+        "kills": 8
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 26,
+        "kills": 4
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 26,
+        "kills": 17
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 26,
+        "kills": 5
+      },
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 14
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 13
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 12
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 7
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 19
+      }
+    ]
+  },
+  "#52621": {
+    "id": "#52621",
+    "data": "2026-10-11",
+    "rodada": 4,
+    "times": [
+      "Dragões",
+      "Leões"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 26,
+        "kills": 7
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 26,
+        "kills": 17
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 26,
+        "kills": 17
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 26,
+        "kills": 11
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 26,
+        "kills": 13
+      },
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 26,
+        "kills": 1
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 26,
+        "kills": 3
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 26,
+        "kills": 4
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 26,
+        "kills": 3
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 26,
+        "kills": 1
+      }
+    ]
+  },
+  "#52629": {
+    "id": "#52629",
+    "data": "2026-10-11",
+    "rodada": 4,
+    "times": [
+      "Lobos-Guará",
+      "Fênix"
+    ],
+    "vencedor": "Fênix",
+    "jogadores": [
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 12
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 9
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 5
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 6
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 6
+      },
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 22
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 6
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 18
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 24
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 7
+      }
+    ]
+  },
+  "#52663": {
+    "id": "#52663",
+    "data": "2026-10-11",
+    "rodada": 4,
+    "times": [
+      "Ursos",
+      "Águias"
+    ],
+    "vencedor": "Ursos",
+    "jogadores": [
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 29,
+        "kills": 7
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 29,
+        "kills": 6
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 29,
+        "kills": 17
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 29,
+        "kills": 25
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 29,
+        "kills": 26
+      },
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 29,
+        "kills": 4
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 29,
+        "kills": 10
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 29,
+        "kills": 11
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 29,
+        "kills": 16
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 29,
+        "kills": 1
+      }
+    ]
+  },
+  "#52705": {
+    "id": "#52705",
+    "data": "2026-10-17",
+    "rodada": 5,
+    "times": [
+      "Dragões",
+      "Fênix"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 39,
+        "kills": 23
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 39,
+        "kills": 25
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 39,
+        "kills": 7
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 39,
+        "kills": 14
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 39,
+        "kills": 18
+      },
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 39,
+        "kills": 5
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 39,
+        "kills": 16
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 39,
+        "kills": 8
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 39,
+        "kills": 3
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 39,
+        "kills": 11
+      }
+    ]
+  },
+  "#52721": {
+    "id": "#52721",
+    "data": "2026-10-17",
+    "rodada": 5,
+    "times": [
+      "Leões",
+      "Águias"
+    ],
+    "vencedor": "Leões",
+    "jogadores": [
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 25,
+        "kills": 20
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 25,
+        "kills": 10
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 25,
+        "kills": 22
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 25,
+        "kills": 24
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 25,
+        "kills": 18
+      },
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 25,
+        "kills": 16
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 25,
+        "kills": 17
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 25,
+        "kills": 11
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 25,
+        "kills": 5
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 25,
+        "kills": 11
+      }
+    ]
+  },
+  "#52757": {
+    "id": "#52757",
+    "data": "2026-10-17",
+    "rodada": 5,
+    "times": [
+      "Lobos-Guará",
+      "Ursos"
+    ],
+    "vencedor": "Lobos-Guará",
+    "jogadores": [
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 33,
+        "kills": 25
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 33,
+        "kills": 19
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 33,
+        "kills": 26
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 33,
+        "kills": 6
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 33,
+        "kills": 23
+      },
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 33,
+        "kills": 5
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 33,
+        "kills": 2
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 33,
+        "kills": 9
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 33,
+        "kills": 2
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 33,
+        "kills": 5
+      }
+    ]
+  },
+  "#53007": {
+    "id": "#53007",
+    "data": "2026-10-03",
+    "rodada": 1,
+    "times": [
+      "Dragões",
+      "Águias"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 32,
+        "kills": 24
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 32,
+        "kills": 23
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 32,
+        "kills": 10
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 32,
+        "kills": 17
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 32,
+        "kills": 25
+      },
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 32,
+        "kills": 16
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 32,
+        "kills": 3
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 32,
+        "kills": 1
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 32,
+        "kills": 16
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 32,
+        "kills": 9
+      }
+    ]
+  },
+  "#53080": {
+    "id": "#53080",
+    "data": "2026-10-03",
+    "rodada": 1,
+    "times": [
+      "Fênix",
+      "Ursos"
+    ],
+    "vencedor": "Fênix",
+    "jogadores": [
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 32,
+        "kills": 12
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 32,
+        "kills": 21
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 32,
+        "kills": 23
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 32,
+        "kills": 23
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 32,
+        "kills": 21
+      },
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 32,
+        "kills": 13
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 32,
+        "kills": 5
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 32,
+        "kills": 8
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 32,
+        "kills": 5
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 32,
+        "kills": 17
+      }
+    ]
+  },
+  "#53132": {
+    "id": "#53132",
+    "data": "2026-10-03",
+    "rodada": 1,
+    "times": [
+      "Leões",
+      "Lobos-Guará"
+    ],
+    "vencedor": "Leões",
+    "jogadores": [
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 25,
+        "kills": 8
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 25,
+        "kills": 11
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 25,
+        "kills": 24
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 25,
+        "kills": 7
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 25,
+        "kills": 15
+      },
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 1
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 9
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 16
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 13
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 14
+      }
+    ]
+  },
+  "#53185": {
+    "id": "#53185",
+    "data": "2026-10-04",
+    "rodada": 2,
+    "times": [
+      "Dragões",
+      "Ursos"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 43,
+        "kills": 20
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 43,
+        "kills": 10
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 43,
+        "kills": 17
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 43,
+        "kills": 9
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 43,
+        "kills": 7
+      },
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 43,
+        "kills": 5
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 43,
+        "kills": 16
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 43,
+        "kills": 7
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 43,
+        "kills": 9
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 43,
+        "kills": 14
+      }
+    ]
+  },
+  "#53268": {
+    "id": "#53268",
+    "data": "2026-10-04",
+    "rodada": 2,
+    "times": [
+      "Águias",
+      "Lobos-Guará"
+    ],
+    "vencedor": "Lobos-Guará",
+    "jogadores": [
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 34,
+        "kills": 14
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 34,
+        "kills": 17
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 34,
+        "kills": 13
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 34,
+        "kills": 12
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 34,
+        "kills": 18
+      },
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 34,
+        "kills": 24
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 34,
+        "kills": 19
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 34,
+        "kills": 24
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 34,
+        "kills": 13
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 34,
+        "kills": 16
+      }
+    ]
+  },
+  "#53358": {
+    "id": "#53358",
+    "data": "2026-10-04",
+    "rodada": 2,
+    "times": [
+      "Fênix",
+      "Leões"
+    ],
+    "vencedor": "Fênix",
+    "jogadores": [
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 14
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 25
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 11
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 16
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 23
+      },
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 25,
+        "kills": 4
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 25,
+        "kills": 7
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 25,
+        "kills": 9
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 25,
+        "kills": 10
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 25,
+        "kills": 4
+      }
+    ]
+  },
+  "#53369": {
+    "id": "#53369",
+    "data": "2026-10-10",
+    "rodada": 3,
+    "times": [
+      "Dragões",
+      "Lobos-Guará"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 40,
+        "kills": 26
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 40,
+        "kills": 21
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 40,
+        "kills": 8
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 40,
+        "kills": 17
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 40,
+        "kills": 8
+      },
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 40,
+        "kills": 14
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 40,
+        "kills": 5
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 40,
+        "kills": 1
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 40,
+        "kills": 10
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 40,
+        "kills": 14
+      }
+    ]
+  },
+  "#53425": {
+    "id": "#53425",
+    "data": "2026-10-10",
+    "rodada": 3,
+    "times": [
+      "Ursos",
+      "Leões"
+    ],
+    "vencedor": "Leões",
+    "jogadores": [
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 28,
+        "kills": 2
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 28,
+        "kills": 2
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 28,
+        "kills": 13
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 28,
+        "kills": 11
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 28,
+        "kills": 18
+      },
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 28,
+        "kills": 14
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 28,
+        "kills": 22
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 28,
+        "kills": 13
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 28,
+        "kills": 7
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 28,
+        "kills": 15
+      }
+    ]
+  },
+  "#53428": {
+    "id": "#53428",
+    "data": "2026-10-10",
+    "rodada": 3,
+    "times": [
+      "Águias",
+      "Fênix"
+    ],
+    "vencedor": "Fênix",
+    "jogadores": [
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 27,
+        "kills": 4
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 27,
+        "kills": 18
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 27,
+        "kills": 2
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 27,
+        "kills": 7
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 27,
+        "kills": 14
+      },
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 27,
+        "kills": 15
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 27,
+        "kills": 25
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 27,
+        "kills": 14
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 27,
+        "kills": 10
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 27,
+        "kills": 7
+      }
+    ]
+  },
+  "#53474": {
+    "id": "#53474",
+    "data": "2026-10-11",
+    "rodada": 4,
+    "times": [
+      "Dragões",
+      "Leões"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 35,
+        "kills": 17
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 35,
+        "kills": 10
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 35,
+        "kills": 18
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 35,
+        "kills": 18
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 35,
+        "kills": 20
+      },
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 35,
+        "kills": 17
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 35,
+        "kills": 13
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 35,
+        "kills": 18
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 35,
+        "kills": 4
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 35,
+        "kills": 17
+      }
+    ]
+  },
+  "#53511": {
+    "id": "#53511",
+    "data": "2026-10-11",
+    "rodada": 4,
+    "times": [
+      "Lobos-Guará",
+      "Fênix"
+    ],
+    "vencedor": "Fênix",
+    "jogadores": [
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 38,
+        "kills": 8
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 38,
+        "kills": 10
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 38,
+        "kills": 14
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 38,
+        "kills": 9
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 38,
+        "kills": 17
+      },
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 38,
+        "kills": 15
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 38,
+        "kills": 23
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 38,
+        "kills": 16
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 38,
+        "kills": 6
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 38,
+        "kills": 19
+      }
+    ]
+  },
+  "#53588": {
+    "id": "#53588",
+    "data": "2026-10-11",
+    "rodada": 4,
+    "times": [
+      "Ursos",
+      "Águias"
+    ],
+    "vencedor": "Ursos",
+    "jogadores": [
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 35,
+        "kills": 6
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 35,
+        "kills": 18
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 35,
+        "kills": 25
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 35,
+        "kills": 24
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 35,
+        "kills": 26
+      },
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 35,
+        "kills": 5
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 35,
+        "kills": 2
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 35,
+        "kills": 11
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 35,
+        "kills": 15
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 35,
+        "kills": 12
+      }
+    ]
+  },
+  "#53677": {
+    "id": "#53677",
+    "data": "2026-10-17",
+    "rodada": 5,
+    "times": [
+      "Dragões",
+      "Fênix"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 36,
+        "kills": 25
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 36,
+        "kills": 14
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 36,
+        "kills": 21
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 36,
+        "kills": 6
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 36,
+        "kills": 24
+      },
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 36,
+        "kills": 2
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 36,
+        "kills": 1
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 36,
+        "kills": 12
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 36,
+        "kills": 9
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 36,
+        "kills": 15
+      }
+    ]
+  },
+  "#53718": {
+    "id": "#53718",
+    "data": "2026-10-17",
+    "rodada": 5,
+    "times": [
+      "Leões",
+      "Águias"
+    ],
+    "vencedor": "Leões",
+    "jogadores": [
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 43,
+        "kills": 25
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 43,
+        "kills": 16
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 43,
+        "kills": 11
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 43,
+        "kills": 17
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 43,
+        "kills": 11
+      },
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 43,
+        "kills": 11
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 43,
+        "kills": 12
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 43,
+        "kills": 9
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 43,
+        "kills": 10
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 43,
+        "kills": 13
+      }
+    ]
+  },
+  "#53734": {
+    "id": "#53734",
+    "data": "2026-10-17",
+    "rodada": 5,
+    "times": [
+      "Lobos-Guará",
+      "Ursos"
+    ],
+    "vencedor": "Lobos-Guará",
+    "jogadores": [
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 24
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 10
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 15
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 22
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 13
+      },
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 25,
+        "kills": 9
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 25,
+        "kills": 8
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 25,
+        "kills": 11
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 25,
+        "kills": 6
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 25,
+        "kills": 14
+      }
+    ]
+  },
+  "#54019": {
+    "id": "#54019",
+    "data": "2026-10-03",
+    "rodada": 1,
+    "times": [
+      "Dragões",
+      "Águias"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 32,
+        "kills": 15
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 32,
+        "kills": 9
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 32,
+        "kills": 18
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 32,
+        "kills": 21
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 32,
+        "kills": 10
+      },
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 32,
+        "kills": 3
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 32,
+        "kills": 3
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 32,
+        "kills": 1
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 32,
+        "kills": 13
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 32,
+        "kills": 18
+      }
+    ]
+  },
+  "#54059": {
+    "id": "#54059",
+    "data": "2026-10-03",
+    "rodada": 1,
+    "times": [
+      "Fênix",
+      "Ursos"
+    ],
+    "vencedor": "Ursos",
+    "jogadores": [
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 8
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 17
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 18
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 12
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 9
+      },
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 26,
+        "kills": 11
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 26,
+        "kills": 9
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 26,
+        "kills": 14
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 26,
+        "kills": 12
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 26,
+        "kills": 6
+      }
+    ]
+  },
+  "#54144": {
+    "id": "#54144",
+    "data": "2026-10-03",
+    "rodada": 1,
+    "times": [
+      "Leões",
+      "Lobos-Guará"
+    ],
+    "vencedor": "Leões",
+    "jogadores": [
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 33,
+        "kills": 111
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 33,
+        "kills": 12
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 33,
+        "kills": 11
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 33,
+        "kills": 15
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 33,
+        "kills": 15
+      },
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 33,
+        "kills": 12
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 33,
+        "kills": 3
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 33,
+        "kills": 11
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 33,
+        "kills": 13
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 33,
+        "kills": 17
+      }
+    ]
+  },
+  "#54178": {
+    "id": "#54178",
+    "data": "2026-10-04",
+    "rodada": 2,
+    "times": [
+      "Dragões",
+      "Ursos"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 30,
+        "kills": 13
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 30,
+        "kills": 21
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 30,
+        "kills": 14
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 30,
+        "kills": 8
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 30,
+        "kills": 23
+      },
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 30,
+        "kills": 10
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 30,
+        "kills": 1
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 30,
+        "kills": 10
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 30,
+        "kills": 10
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 30,
+        "kills": 17
+      }
+    ]
+  },
+  "#54205": {
+    "id": "#54205",
+    "data": "2026-10-04",
+    "rodada": 2,
+    "times": [
+      "Águias",
+      "Lobos-Guará"
+    ],
+    "vencedor": "Lobos-Guará",
+    "jogadores": [
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 38,
+        "kills": 14
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 38,
+        "kills": 10
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 38,
+        "kills": 14
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 38,
+        "kills": 15
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 38,
+        "kills": 6
+      },
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 38,
+        "kills": 13
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 38,
+        "kills": 15
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 38,
+        "kills": 14
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 38,
+        "kills": 7
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 38,
+        "kills": 8
+      }
+    ]
+  },
+  "#54213": {
+    "id": "#54213",
+    "data": "2026-10-04",
+    "rodada": 2,
+    "times": [
+      "Fênix",
+      "Leões"
+    ],
+    "vencedor": "Fênix",
+    "jogadores": [
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 39,
+        "kills": 26
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 39,
+        "kills": 14
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 39,
+        "kills": 22
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 39,
+        "kills": 23
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 39,
+        "kills": 26
+      },
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 39,
+        "kills": 16
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 39,
+        "kills": 11
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 39,
+        "kills": 5
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 39,
+        "kills": 7
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 39,
+        "kills": 3
+      }
+    ]
+  },
+  "#54268": {
+    "id": "#54268",
+    "data": "2026-10-10",
+    "rodada": 3,
+    "times": [
+      "Dragões",
+      "Lobos-Guará"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 31,
+        "kills": 26
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 31,
+        "kills": 26
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 31,
+        "kills": 20
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 31,
+        "kills": 14
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 31,
+        "kills": 11
+      },
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 31,
+        "kills": 12
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 31,
+        "kills": 14
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 31,
+        "kills": 11
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 31,
+        "kills": 18
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 31,
+        "kills": 7
+      }
+    ]
+  },
+  "#54312": {
+    "id": "#54312",
+    "data": "2026-10-10",
+    "rodada": 3,
+    "times": [
+      "Ursos",
+      "Leões"
+    ],
+    "vencedor": "Leões",
+    "jogadores": [
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 28,
+        "kills": 2
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 28,
+        "kills": 8
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 28,
+        "kills": 9
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 28,
+        "kills": 8
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 28,
+        "kills": 4
+      },
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 28,
+        "kills": 16
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 28,
+        "kills": 11
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 28,
+        "kills": 15
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 28,
+        "kills": 20
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 28,
+        "kills": 6
+      }
+    ]
+  },
+  "#54320": {
+    "id": "#54320",
+    "data": "2026-10-10",
+    "rodada": 3,
+    "times": [
+      "Águias",
+      "Fênix"
+    ],
+    "vencedor": "Fênix",
+    "jogadores": [
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 36,
+        "kills": 3
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 36,
+        "kills": 10
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 36,
+        "kills": 11
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 36,
+        "kills": 1
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 36,
+        "kills": 11
+      },
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 36,
+        "kills": 15
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 36,
+        "kills": 16
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 36,
+        "kills": 10
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 36,
+        "kills": 26
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 36,
+        "kills": 19
+      }
+    ]
+  },
+  "#54402": {
+    "id": "#54402",
+    "data": "2026-10-11",
+    "rodada": 4,
+    "times": [
+      "Dragões",
+      "Leões"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 27,
+        "kills": 15
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 27,
+        "kills": 25
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 27,
+        "kills": 12
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 27,
+        "kills": 20
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 27,
+        "kills": 15
+      },
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 27,
+        "kills": 5
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 27,
+        "kills": 9
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 27,
+        "kills": 13
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 27,
+        "kills": 6
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 27,
+        "kills": 11
+      }
+    ]
+  },
+  "#54478": {
+    "id": "#54478",
+    "data": "2026-10-11",
+    "rodada": 4,
+    "times": [
+      "Lobos-Guará",
+      "Fênix"
+    ],
+    "vencedor": "Fênix",
+    "jogadores": [
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 12
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 2
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 15
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 6
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 12
+      },
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 17
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 15
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 24
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 9
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 20
+      }
+    ]
+  },
+  "#54507": {
+    "id": "#54507",
+    "data": "2026-10-11",
+    "rodada": 4,
+    "times": [
+      "Ursos",
+      "Águias"
+    ],
+    "vencedor": "Ursos",
+    "jogadores": [
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 38,
+        "kills": 12
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 38,
+        "kills": 9
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 38,
+        "kills": 7
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 38,
+        "kills": 7
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 38,
+        "kills": 7
+      },
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 38,
+        "kills": 6
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 38,
+        "kills": 5
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 38,
+        "kills": 2
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 38,
+        "kills": 18
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 38,
+        "kills": 16
+      }
+    ]
+  },
+  "#54584": {
+    "id": "#54584",
+    "data": "2026-10-17",
+    "rodada": 5,
+    "times": [
+      "Dragões",
+      "Fênix"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 32,
+        "kills": 16
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 32,
+        "kills": 7
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 32,
+        "kills": 9
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 32,
+        "kills": 22
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 32,
+        "kills": 15
+      },
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 32,
+        "kills": 14
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 32,
+        "kills": 7
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 32,
+        "kills": 16
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 32,
+        "kills": 7
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 32,
+        "kills": 8
+      }
+    ]
+  },
+  "#54643": {
+    "id": "#54643",
+    "data": "2026-10-17",
+    "rodada": 5,
+    "times": [
+      "Leões",
+      "Águias"
+    ],
+    "vencedor": "Leões",
+    "jogadores": [
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 38,
+        "kills": 21
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 38,
+        "kills": 7
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 38,
+        "kills": 13
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 38,
+        "kills": 19
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 38,
+        "kills": 20
+      },
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 38,
+        "kills": 8
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 38,
+        "kills": 14
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 38,
+        "kills": 7
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 38,
+        "kills": 16
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 38,
+        "kills": 7
+      }
+    ]
+  },
+  "#54650": {
+    "id": "#54650",
+    "data": "2026-10-17",
+    "rodada": 5,
+    "times": [
+      "Lobos-Guará",
+      "Ursos"
+    ],
+    "vencedor": "Lobos-Guará",
+    "jogadores": [
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 26,
+        "kills": 14
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 26,
+        "kills": 14
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 26,
+        "kills": 13
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 26,
+        "kills": 22
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 26,
+        "kills": 12
+      },
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 26,
+        "kills": 8
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 26,
+        "kills": 14
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 26,
+        "kills": 9
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 26,
+        "kills": 5
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 26,
+        "kills": 11
+      }
+    ]
+  },
+  "#55023": {
+    "id": "#55023",
+    "data": "2026-10-03",
+    "rodada": 1,
+    "times": [
+      "Dragões",
+      "Gaviões"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 44,
+        "kills": 14
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 44,
+        "kills": 17
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 44,
+        "kills": 26
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 44,
+        "kills": 22
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 44,
+        "kills": 6
+      },
+      {
+        "nick": "Gavião",
+        "time": "Gaviões",
+        "minutos": 44,
+        "kills": 15
+      },
+      {
+        "nick": "Rasante",
+        "time": "Gaviões",
+        "minutos": 44,
+        "kills": 8
+      },
+      {
+        "nick": "Penas",
+        "time": "Gaviões",
+        "minutos": 44,
+        "kills": 2
+      },
+      {
+        "nick": "Alto.Voo",
+        "time": "Gaviões",
+        "minutos": 44,
+        "kills": 6
+      },
+      {
+        "nick": "Caçador",
+        "time": "Gaviões",
+        "minutos": 44,
+        "kills": 4
+      }
+    ]
+  },
+  "#55073": {
+    "id": "#55073",
+    "data": "2026-10-03",
+    "rodada": 1,
+    "times": [
+      "Fênix",
+      "Jaguares"
+    ],
+    "vencedor": "Fênix",
+    "jogadores": [
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 40,
+        "kills": 13
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 40,
+        "kills": 18
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 40,
+        "kills": 23
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 40,
+        "kills": 9
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 40,
+        "kills": 24
+      },
+      {
+        "nick": "Pintado",
+        "time": "Jaguares",
+        "minutos": 40,
+        "kills": 8
+      },
+      {
+        "nick": "Onça",
+        "time": "Jaguares",
+        "minutos": 40,
+        "kills": 1
+      },
+      {
+        "nick": "Jaguar.br",
+        "time": "Jaguares",
+        "minutos": 40,
+        "kills": 7
+      },
+      {
+        "nick": "Mata",
+        "time": "Jaguares",
+        "minutos": 40,
+        "kills": 14
+      },
+      {
+        "nick": "Felino",
+        "time": "Jaguares",
+        "minutos": 40,
+        "kills": 9
+      }
+    ]
+  },
+  "#55099": {
+    "id": "#55099",
+    "data": "2026-10-03",
+    "rodada": 1,
+    "times": [
+      "Leões",
+      "Águias"
+    ],
+    "vencedor": "Leões",
+    "jogadores": [
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 37,
+        "kills": 11
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 37,
+        "kills": 8
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 37,
+        "kills": 10
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 37,
+        "kills": 25
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 37,
+        "kills": 25
+      },
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 37,
+        "kills": 15
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 37,
+        "kills": 5
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 37,
+        "kills": 5
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 37,
+        "kills": 1
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 37,
+        "kills": 1
+      }
+    ]
+  },
+  "#55128": {
+    "id": "#55128",
+    "data": "2026-10-03",
+    "rodada": 1,
+    "times": [
+      "Lobos-Guará",
+      "Ursos"
+    ],
+    "vencedor": "Lobos-Guará",
+    "jogadores": [
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 31,
+        "kills": 11
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 31,
+        "kills": 11
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 31,
+        "kills": 15
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 31,
+        "kills": 16
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 31,
+        "kills": 12
+      },
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 31,
+        "kills": 18
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 31,
+        "kills": 7
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 31,
+        "kills": 6
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 31,
+        "kills": 7
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 31,
+        "kills": 13
+      }
+    ]
+  },
+  "#55169": {
+    "id": "#55169",
+    "data": "2026-10-04",
+    "rodada": 2,
+    "times": [
+      "Dragões",
+      "Jaguares"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 25,
+        "kills": 17
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 25,
+        "kills": 19
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 25,
+        "kills": 11
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 25,
+        "kills": 10
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 25,
+        "kills": 14
+      },
+      {
+        "nick": "Pintado",
+        "time": "Jaguares",
+        "minutos": 25,
+        "kills": 3
+      },
+      {
+        "nick": "Onça",
+        "time": "Jaguares",
+        "minutos": 25,
+        "kills": 11
+      },
+      {
+        "nick": "Jaguar.br",
+        "time": "Jaguares",
+        "minutos": 25,
+        "kills": 10
+      },
+      {
+        "nick": "Mata",
+        "time": "Jaguares",
+        "minutos": 25,
+        "kills": 1
+      },
+      {
+        "nick": "Felino",
+        "time": "Jaguares",
+        "minutos": 25,
+        "kills": 11
+      }
+    ]
+  },
+  "#55180": {
+    "id": "#55180",
+    "data": "2026-10-04",
+    "rodada": 2,
+    "times": [
+      "Gaviões",
+      "Águias"
+    ],
+    "vencedor": "Águias",
+    "jogadores": [
+      {
+        "nick": "Gavião",
+        "time": "Gaviões",
+        "minutos": 34,
+        "kills": 12
+      },
+      {
+        "nick": "Rasante",
+        "time": "Gaviões",
+        "minutos": 34,
+        "kills": 10
+      },
+      {
+        "nick": "Penas",
+        "time": "Gaviões",
+        "minutos": 34,
+        "kills": 16
+      },
+      {
+        "nick": "Alto.Voo",
+        "time": "Gaviões",
+        "minutos": 34,
+        "kills": 11
+      },
+      {
+        "nick": "Caçador",
+        "time": "Gaviões",
+        "minutos": 34,
+        "kills": 6
+      },
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 34,
+        "kills": 21
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 34,
+        "kills": 21
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 34,
+        "kills": 11
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 34,
+        "kills": 7
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 34,
+        "kills": 14
+      }
+    ]
+  },
+  "#55185": {
+    "id": "#55185",
+    "data": "2026-10-04",
+    "rodada": 2,
+    "times": [
+      "Fênix",
+      "Ursos"
+    ],
+    "vencedor": "Fênix",
+    "jogadores": [
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 36,
+        "kills": 18
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 36,
+        "kills": 6
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 36,
+        "kills": 23
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 36,
+        "kills": 19
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 36,
+        "kills": 17
+      },
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 36,
+        "kills": 13
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 36,
+        "kills": 1
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 36,
+        "kills": 15
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 36,
+        "kills": 2
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 36,
+        "kills": 6
+      }
+    ]
+  },
+  "#55267": {
+    "id": "#55267",
+    "data": "2026-10-04",
+    "rodada": 2,
+    "times": [
+      "Leões",
+      "Lobos-Guará"
+    ],
+    "vencedor": "Leões",
+    "jogadores": [
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 31,
+        "kills": 9
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 31,
+        "kills": 13
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 31,
+        "kills": 20
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 31,
+        "kills": 17
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 31,
+        "kills": 22
+      },
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 31,
+        "kills": 12
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 31,
+        "kills": 17
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 31,
+        "kills": 9
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 31,
+        "kills": 15
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 31,
+        "kills": 4
+      }
+    ]
+  },
+  "#55345": {
+    "id": "#55345",
+    "data": "2026-10-10",
+    "rodada": 3,
+    "times": [
+      "Dragões",
+      "Águias"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 36,
+        "kills": 15
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 36,
+        "kills": 7
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 36,
+        "kills": 19
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 36,
+        "kills": 8
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 36,
+        "kills": 12
+      },
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 36,
+        "kills": 11
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 36,
+        "kills": 17
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 36,
+        "kills": 12
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 36,
+        "kills": 5
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 36,
+        "kills": 11
+      }
+    ]
+  },
+  "#55383": {
+    "id": "#55383",
+    "data": "2026-10-10",
+    "rodada": 3,
+    "times": [
+      "Jaguares",
+      "Ursos"
+    ],
+    "vencedor": "Ursos",
+    "jogadores": [
+      {
+        "nick": "Pintado",
+        "time": "Jaguares",
+        "minutos": 42,
+        "kills": 3
+      },
+      {
+        "nick": "Onça",
+        "time": "Jaguares",
+        "minutos": 42,
+        "kills": 10
+      },
+      {
+        "nick": "Jaguar.br",
+        "time": "Jaguares",
+        "minutos": 42,
+        "kills": 11
+      },
+      {
+        "nick": "Mata",
+        "time": "Jaguares",
+        "minutos": 42,
+        "kills": 10
+      },
+      {
+        "nick": "Felino",
+        "time": "Jaguares",
+        "minutos": 42,
+        "kills": 6
+      },
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 42,
+        "kills": 8
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 42,
+        "kills": 26
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 42,
+        "kills": 10
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 42,
+        "kills": 15
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 42,
+        "kills": 21
+      }
+    ]
+  },
+  "#55406": {
+    "id": "#55406",
+    "data": "2026-10-10",
+    "rodada": 3,
+    "times": [
+      "Gaviões",
+      "Lobos-Guará"
+    ],
+    "vencedor": "Lobos-Guará",
+    "jogadores": [
+      {
+        "nick": "Gavião",
+        "time": "Gaviões",
+        "minutos": 26,
+        "kills": 3
+      },
+      {
+        "nick": "Rasante",
+        "time": "Gaviões",
+        "minutos": 26,
+        "kills": 18
+      },
+      {
+        "nick": "Penas",
+        "time": "Gaviões",
+        "minutos": 26,
+        "kills": 13
+      },
+      {
+        "nick": "Alto.Voo",
+        "time": "Gaviões",
+        "minutos": 26,
+        "kills": 2
+      },
+      {
+        "nick": "Caçador",
+        "time": "Gaviões",
+        "minutos": 26,
+        "kills": 8
+      },
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 26,
+        "kills": 25
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 26,
+        "kills": 17
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 26,
+        "kills": 14
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 26,
+        "kills": 20
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 26,
+        "kills": 26
+      }
+    ]
+  },
+  "#55462": {
+    "id": "#55462",
+    "data": "2026-10-10",
+    "rodada": 3,
+    "times": [
+      "Fênix",
+      "Leões"
+    ],
+    "vencedor": "Fênix",
+    "jogadores": [
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 29,
+        "kills": 7
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 29,
+        "kills": 26
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 29,
+        "kills": 7
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 29,
+        "kills": 21
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 29,
+        "kills": 16
+      },
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 29,
+        "kills": 7
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 29,
+        "kills": 5
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 29,
+        "kills": 5
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 29,
+        "kills": 14
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 29,
+        "kills": 4
+      }
+    ]
+  },
+  "#55486": {
+    "id": "#55486",
+    "data": "2026-10-11",
+    "rodada": 4,
+    "times": [
+      "Dragões",
+      "Ursos"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 38,
+        "kills": 17
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 38,
+        "kills": 10
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 38,
+        "kills": 7
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 38,
+        "kills": 19
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 38,
+        "kills": 15
+      },
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 38,
+        "kills": 5
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 38,
+        "kills": 15
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 38,
+        "kills": 6
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 38,
+        "kills": 17
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 38,
+        "kills": 15
+      }
+    ]
+  },
+  "#55551": {
+    "id": "#55551",
+    "data": "2026-10-11",
+    "rodada": 4,
+    "times": [
+      "Águias",
+      "Lobos-Guará"
+    ],
+    "vencedor": "Lobos-Guará",
+    "jogadores": [
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 35,
+        "kills": 16
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 35,
+        "kills": 9
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 35,
+        "kills": 10
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 35,
+        "kills": 16
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 35,
+        "kills": 13
+      },
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 35,
+        "kills": 10
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 35,
+        "kills": 9
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 35,
+        "kills": 18
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 35,
+        "kills": 23
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 35,
+        "kills": 11
+      }
+    ]
+  },
+  "#55634": {
+    "id": "#55634",
+    "data": "2026-10-11",
+    "rodada": 4,
+    "times": [
+      "Jaguares",
+      "Leões"
+    ],
+    "vencedor": "Leões",
+    "jogadores": [
+      {
+        "nick": "Pintado",
+        "time": "Jaguares",
+        "minutos": 40,
+        "kills": 11
+      },
+      {
+        "nick": "Onça",
+        "time": "Jaguares",
+        "minutos": 40,
+        "kills": 6
+      },
+      {
+        "nick": "Jaguar.br",
+        "time": "Jaguares",
+        "minutos": 40,
+        "kills": 3
+      },
+      {
+        "nick": "Mata",
+        "time": "Jaguares",
+        "minutos": 40,
+        "kills": 16
+      },
+      {
+        "nick": "Felino",
+        "time": "Jaguares",
+        "minutos": 40,
+        "kills": 9
+      },
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 40,
+        "kills": 22
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 40,
+        "kills": 23
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 40,
+        "kills": 22
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 40,
+        "kills": 17
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 40,
+        "kills": 8
+      }
+    ]
+  },
+  "#55682": {
+    "id": "#55682",
+    "data": "2026-10-11",
+    "rodada": 4,
+    "times": [
+      "Gaviões",
+      "Fênix"
+    ],
+    "vencedor": "Fênix",
+    "jogadores": [
+      {
+        "nick": "Gavião",
+        "time": "Gaviões",
+        "minutos": 43,
+        "kills": 2
+      },
+      {
+        "nick": "Rasante",
+        "time": "Gaviões",
+        "minutos": 43,
+        "kills": 10
+      },
+      {
+        "nick": "Penas",
+        "time": "Gaviões",
+        "minutos": 43,
+        "kills": 12
+      },
+      {
+        "nick": "Alto.Voo",
+        "time": "Gaviões",
+        "minutos": 43,
+        "kills": 18
+      },
+      {
+        "nick": "Caçador",
+        "time": "Gaviões",
+        "minutos": 43,
+        "kills": 9
+      },
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 43,
+        "kills": 21
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 43,
+        "kills": 14
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 43,
+        "kills": 15
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 43,
+        "kills": 16
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 43,
+        "kills": 26
+      }
+    ]
+  },
+  "#55707": {
+    "id": "#55707",
+    "data": "2026-10-17",
+    "rodada": 5,
+    "times": [
+      "Dragões",
+      "Lobos-Guará"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 43,
+        "kills": 6
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 43,
+        "kills": 21
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 43,
+        "kills": 23
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 43,
+        "kills": 14
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 43,
+        "kills": 16
+      },
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 43,
+        "kills": 9
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 43,
+        "kills": 15
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 43,
+        "kills": 10
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 43,
+        "kills": 17
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 43,
+        "kills": 12
+      }
+    ]
+  },
+  "#55754": {
+    "id": "#55754",
+    "data": "2026-10-17",
+    "rodada": 5,
+    "times": [
+      "Ursos",
+      "Leões"
+    ],
+    "vencedor": "Leões",
+    "jogadores": [
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 33,
+        "kills": 12
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 33,
+        "kills": 14
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 33,
+        "kills": 12
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 33,
+        "kills": 6
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 33,
+        "kills": 15
+      },
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 33,
+        "kills": 17
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 33,
+        "kills": 16
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 33,
+        "kills": 22
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 33,
+        "kills": 10
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 33,
+        "kills": 22
+      }
+    ]
+  },
+  "#55778": {
+    "id": "#55778",
+    "data": "2026-10-17",
+    "rodada": 5,
+    "times": [
+      "Águias",
+      "Fênix"
+    ],
+    "vencedor": "Fênix",
+    "jogadores": [
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 31,
+        "kills": 12
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 31,
+        "kills": 16
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 31,
+        "kills": 10
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 31,
+        "kills": 3
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 31,
+        "kills": 14
+      },
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 31,
+        "kills": 11
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 31,
+        "kills": 25
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 31,
+        "kills": 24
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 31,
+        "kills": 22
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 31,
+        "kills": 19
+      }
+    ]
+  },
+  "#55819": {
+    "id": "#55819",
+    "data": "2026-10-17",
+    "rodada": 5,
+    "times": [
+      "Jaguares",
+      "Gaviões"
+    ],
+    "vencedor": "Jaguares",
+    "jogadores": [
+      {
+        "nick": "Pintado",
+        "time": "Jaguares",
+        "minutos": 44,
+        "kills": 23
+      },
+      {
+        "nick": "Onça",
+        "time": "Jaguares",
+        "minutos": 44,
+        "kills": 26
+      },
+      {
+        "nick": "Jaguar.br",
+        "time": "Jaguares",
+        "minutos": 44,
+        "kills": 14
+      },
+      {
+        "nick": "Mata",
+        "time": "Jaguares",
+        "minutos": 44,
+        "kills": 6
+      },
+      {
+        "nick": "Felino",
+        "time": "Jaguares",
+        "minutos": 44,
+        "kills": 12
+      },
+      {
+        "nick": "Gavião",
+        "time": "Gaviões",
+        "minutos": 44,
+        "kills": 6
+      },
+      {
+        "nick": "Rasante",
+        "time": "Gaviões",
+        "minutos": 44,
+        "kills": 15
+      },
+      {
+        "nick": "Penas",
+        "time": "Gaviões",
+        "minutos": 44,
+        "kills": 6
+      },
+      {
+        "nick": "Alto.Voo",
+        "time": "Gaviões",
+        "minutos": 44,
+        "kills": 8
+      },
+      {
+        "nick": "Caçador",
+        "time": "Gaviões",
+        "minutos": 44,
+        "kills": 6
+      }
+    ]
+  },
+  "#55902": {
+    "id": "#55902",
+    "data": "2026-10-18",
+    "rodada": 6,
+    "times": [
+      "Dragões",
+      "Leões"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 26,
+        "kills": 21
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 26,
+        "kills": 13
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 26,
+        "kills": 11
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 26,
+        "kills": 7
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 26,
+        "kills": 10
+      },
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 26,
+        "kills": 4
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 26,
+        "kills": 11
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 26,
+        "kills": 6
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 26,
+        "kills": 16
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 26,
+        "kills": 7
+      }
+    ]
+  },
+  "#55975": {
+    "id": "#55975",
+    "data": "2026-10-18",
+    "rodada": 6,
+    "times": [
+      "Lobos-Guará",
+      "Fênix"
+    ],
+    "vencedor": "Fênix",
+    "jogadores": [
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 26,
+        "kills": 14
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 26,
+        "kills": 15
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 26,
+        "kills": 12
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 26,
+        "kills": 13
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 26,
+        "kills": 3
+      },
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 24
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 12
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 13
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 17
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 6
+      }
+    ]
+  },
+  "#56022": {
+    "id": "#56022",
+    "data": "2026-10-18",
+    "rodada": 6,
+    "times": [
+      "Ursos",
+      "Gaviões"
+    ],
+    "vencedor": "Ursos",
+    "jogadores": [
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 37,
+        "kills": 14
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 37,
+        "kills": 19
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 37,
+        "kills": 9
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 37,
+        "kills": 23
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 37,
+        "kills": 17
+      },
+      {
+        "nick": "Gavião",
+        "time": "Gaviões",
+        "minutos": 37,
+        "kills": 2
+      },
+      {
+        "nick": "Rasante",
+        "time": "Gaviões",
+        "minutos": 37,
+        "kills": 18
+      },
+      {
+        "nick": "Penas",
+        "time": "Gaviões",
+        "minutos": 37,
+        "kills": 10
+      },
+      {
+        "nick": "Alto.Voo",
+        "time": "Gaviões",
+        "minutos": 37,
+        "kills": 4
+      },
+      {
+        "nick": "Caçador",
+        "time": "Gaviões",
+        "minutos": 37,
+        "kills": 10
+      }
+    ]
+  },
+  "#56094": {
+    "id": "#56094",
+    "data": "2026-10-18",
+    "rodada": 6,
+    "times": [
+      "Águias",
+      "Jaguares"
+    ],
+    "vencedor": "Águias",
+    "jogadores": [
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 41,
+        "kills": 16
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 41,
+        "kills": 24
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 41,
+        "kills": 15
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 41,
+        "kills": 17
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 41,
+        "kills": 10
+      },
+      {
+        "nick": "Pintado",
+        "time": "Jaguares",
+        "minutos": 41,
+        "kills": 14
+      },
+      {
+        "nick": "Onça",
+        "time": "Jaguares",
+        "minutos": 41,
+        "kills": 14
+      },
+      {
+        "nick": "Jaguar.br",
+        "time": "Jaguares",
+        "minutos": 41,
+        "kills": 18
+      },
+      {
+        "nick": "Mata",
+        "time": "Jaguares",
+        "minutos": 41,
+        "kills": 12
+      },
+      {
+        "nick": "Felino",
+        "time": "Jaguares",
+        "minutos": 41,
+        "kills": 15
+      }
+    ]
+  },
+  "#56115": {
+    "id": "#56115",
+    "data": "2026-10-24",
+    "rodada": 7,
+    "times": [
+      "Dragões",
+      "Fênix"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 30,
+        "kills": 25
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 30,
+        "kills": 18
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 30,
+        "kills": 24
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 30,
+        "kills": 21
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 30,
+        "kills": 12
+      },
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 30,
+        "kills": 5
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 30,
+        "kills": 3
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 30,
+        "kills": 12
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 30,
+        "kills": 1
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 30,
+        "kills": 13
+      }
+    ]
+  },
+  "#56131": {
+    "id": "#56131",
+    "data": "2026-10-24",
+    "rodada": 7,
+    "times": [
+      "Leões",
+      "Gaviões"
+    ],
+    "vencedor": "Leões",
+    "jogadores": [
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 35,
+        "kills": 24
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 35,
+        "kills": 25
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 35,
+        "kills": 23
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 35,
+        "kills": 10
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 35,
+        "kills": 16
+      },
+      {
+        "nick": "Gavião",
+        "time": "Gaviões",
+        "minutos": 35,
+        "kills": 13
+      },
+      {
+        "nick": "Rasante",
+        "time": "Gaviões",
+        "minutos": 35,
+        "kills": 14
+      },
+      {
+        "nick": "Penas",
+        "time": "Gaviões",
+        "minutos": 35,
+        "kills": 14
+      },
+      {
+        "nick": "Alto.Voo",
+        "time": "Gaviões",
+        "minutos": 35,
+        "kills": 8
+      },
+      {
+        "nick": "Caçador",
+        "time": "Gaviões",
+        "minutos": 35,
+        "kills": 16
+      }
+    ]
+  },
+  "#56171": {
+    "id": "#56171",
+    "data": "2026-10-24",
+    "rodada": 7,
+    "times": [
+      "Lobos-Guará",
+      "Jaguares"
+    ],
+    "vencedor": "Lobos-Guará",
+    "jogadores": [
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 40,
+        "kills": 18
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 40,
+        "kills": 18
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 40,
+        "kills": 11
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 40,
+        "kills": 25
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 40,
+        "kills": 25
+      },
+      {
+        "nick": "Pintado",
+        "time": "Jaguares",
+        "minutos": 40,
+        "kills": 9
+      },
+      {
+        "nick": "Onça",
+        "time": "Jaguares",
+        "minutos": 40,
+        "kills": 10
+      },
+      {
+        "nick": "Jaguar.br",
+        "time": "Jaguares",
+        "minutos": 40,
+        "kills": 16
+      },
+      {
+        "nick": "Mata",
+        "time": "Jaguares",
+        "minutos": 40,
+        "kills": 9
+      },
+      {
+        "nick": "Felino",
+        "time": "Jaguares",
+        "minutos": 40,
+        "kills": 14
+      }
+    ]
+  },
+  "#56176": {
+    "id": "#56176",
+    "data": "2026-10-24",
+    "rodada": 7,
+    "times": [
+      "Ursos",
+      "Águias"
+    ],
+    "vencedor": "Ursos",
+    "jogadores": [
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 35,
+        "kills": 15
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 35,
+        "kills": 21
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 35,
+        "kills": 15
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 35,
+        "kills": 10
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 35,
+        "kills": 21
+      },
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 35,
+        "kills": 1
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 35,
+        "kills": 4
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 35,
+        "kills": 15
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 35,
+        "kills": 8
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 35,
+        "kills": 10
+      }
+    ]
+  },
+  "#57031": {
+    "id": "#57031",
+    "data": "2026-10-03",
+    "rodada": 1,
+    "times": [
+      "Dragões",
+      "Águias"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 35,
+        "kills": 10
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 35,
+        "kills": 18
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 35,
+        "kills": 26
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 35,
+        "kills": 7
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 35,
+        "kills": 8
+      },
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 35,
+        "kills": 18
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 35,
+        "kills": 4
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 35,
+        "kills": 12
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 35,
+        "kills": 2
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 35,
+        "kills": 17
+      }
+    ]
+  },
+  "#57061": {
+    "id": "#57061",
+    "data": "2026-10-03",
+    "rodada": 1,
+    "times": [
+      "Fênix",
+      "Ursos"
+    ],
+    "vencedor": "Fênix",
+    "jogadores": [
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 8
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 19
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 19
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 8
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 13
+      },
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 26,
+        "kills": 3
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 26,
+        "kills": 18
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 26,
+        "kills": 14
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 26,
+        "kills": 2
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 26,
+        "kills": 4
+      }
+    ]
+  },
+  "#57092": {
+    "id": "#57092",
+    "data": "2026-10-03",
+    "rodada": 1,
+    "times": [
+      "Leões",
+      "Lobos-Guará"
+    ],
+    "vencedor": "Leões",
+    "jogadores": [
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 45,
+        "kills": 26
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 45,
+        "kills": 24
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 45,
+        "kills": 7
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 45,
+        "kills": 24
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 45,
+        "kills": 24
+      },
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 45,
+        "kills": 13
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 45,
+        "kills": 2
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 45,
+        "kills": 8
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 45,
+        "kills": 2
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 45,
+        "kills": 18
+      }
+    ]
+  },
+  "#57112": {
+    "id": "#57112",
+    "data": "2026-10-04",
+    "rodada": 2,
+    "times": [
+      "Dragões",
+      "Ursos"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 34,
+        "kills": 19
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 34,
+        "kills": 10
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 34,
+        "kills": 23
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 34,
+        "kills": 9
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 34,
+        "kills": 24
+      },
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 34,
+        "kills": 10
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 34,
+        "kills": 18
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 34,
+        "kills": 6
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 34,
+        "kills": 4
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 34,
+        "kills": 7
+      }
+    ]
+  },
+  "#57162": {
+    "id": "#57162",
+    "data": "2026-10-04",
+    "rodada": 2,
+    "times": [
+      "Águias",
+      "Lobos-Guará"
+    ],
+    "vencedor": "Lobos-Guará",
+    "jogadores": [
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 28,
+        "kills": 18
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 28,
+        "kills": 3
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 28,
+        "kills": 2
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 28,
+        "kills": 7
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 28,
+        "kills": 16
+      },
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 28,
+        "kills": 23
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 28,
+        "kills": 19
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 28,
+        "kills": 16
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 28,
+        "kills": 20
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 28,
+        "kills": 24
+      }
+    ]
+  },
+  "#57223": {
+    "id": "#57223",
+    "data": "2026-10-04",
+    "rodada": 2,
+    "times": [
+      "Fênix",
+      "Leões"
+    ],
+    "vencedor": "Fênix",
+    "jogadores": [
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 36,
+        "kills": 15
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 36,
+        "kills": 13
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 36,
+        "kills": 11
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 36,
+        "kills": 13
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 36,
+        "kills": 8
+      },
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 36,
+        "kills": 10
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 36,
+        "kills": 17
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 36,
+        "kills": 16
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 36,
+        "kills": 11
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 36,
+        "kills": 15
+      }
+    ]
+  },
+  "#57262": {
+    "id": "#57262",
+    "data": "2026-10-10",
+    "rodada": 3,
+    "times": [
+      "Dragões",
+      "Lobos-Guará"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 44,
+        "kills": 8
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 44,
+        "kills": 9
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 44,
+        "kills": 22
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 44,
+        "kills": 19
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 44,
+        "kills": 11
+      },
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 44,
+        "kills": 11
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 44,
+        "kills": 5
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 44,
+        "kills": 16
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 44,
+        "kills": 14
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 44,
+        "kills": 2
+      }
+    ]
+  },
+  "#57350": {
+    "id": "#57350",
+    "data": "2026-10-10",
+    "rodada": 3,
+    "times": [
+      "Ursos",
+      "Leões"
+    ],
+    "vencedor": "Leões",
+    "jogadores": [
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 27,
+        "kills": 18
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 27,
+        "kills": 11
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 27,
+        "kills": 11
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 27,
+        "kills": 12
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 27,
+        "kills": 16
+      },
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 27,
+        "kills": 24
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 27,
+        "kills": 20
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 27,
+        "kills": 8
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 27,
+        "kills": 8
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 27,
+        "kills": 14
+      }
+    ]
+  },
+  "#57413": {
+    "id": "#57413",
+    "data": "2026-10-10",
+    "rodada": 3,
+    "times": [
+      "Águias",
+      "Fênix"
+    ],
+    "vencedor": "Fênix",
+    "jogadores": [
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 27,
+        "kills": 2
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 27,
+        "kills": 10
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 27,
+        "kills": 15
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 27,
+        "kills": 10
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 27,
+        "kills": 13
+      },
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 27,
+        "kills": 17
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 27,
+        "kills": 6
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 27,
+        "kills": 20
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 27,
+        "kills": 17
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 27,
+        "kills": 11
+      }
+    ]
+  },
+  "#57494": {
+    "id": "#57494",
+    "data": "2026-10-11",
+    "rodada": 4,
+    "times": [
+      "Dragões",
+      "Leões"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 28,
+        "kills": 21
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 28,
+        "kills": 7
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 28,
+        "kills": 12
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 28,
+        "kills": 15
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 28,
+        "kills": 10
+      },
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 28,
+        "kills": 8
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 28,
+        "kills": 13
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 28,
+        "kills": 13
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 28,
+        "kills": 16
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 28,
+        "kills": 3
+      }
+    ]
+  },
+  "#57518": {
+    "id": "#57518",
+    "data": "2026-10-11",
+    "rodada": 4,
+    "times": [
+      "Lobos-Guará",
+      "Fênix"
+    ],
+    "vencedor": "Fênix",
+    "jogadores": [
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 39,
+        "kills": 13
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 39,
+        "kills": 18
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 39,
+        "kills": 9
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 39,
+        "kills": 5
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 39,
+        "kills": 14
+      },
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 39,
+        "kills": 23
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 39,
+        "kills": 14
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 39,
+        "kills": 19
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 39,
+        "kills": 17
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 39,
+        "kills": 18
+      }
+    ]
+  },
+  "#57550": {
+    "id": "#57550",
+    "data": "2026-10-11",
+    "rodada": 4,
+    "times": [
+      "Ursos",
+      "Águias"
+    ],
+    "vencedor": "Ursos",
+    "jogadores": [
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 29,
+        "kills": 8
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 29,
+        "kills": 11
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 29,
+        "kills": 10
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 29,
+        "kills": 13
+      },
+      {
+        "nick": "Garra",
+        "time": "Ursos",
+        "minutos": 29,
+        "kills": 13
+      },
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 29,
+        "kills": 1
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 29,
+        "kills": 16
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 29,
+        "kills": 6
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 29,
+        "kills": 9
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 29,
+        "kills": 10
+      }
+    ]
+  },
+  "#57553": {
+    "id": "#57553",
+    "data": "2026-10-17",
+    "rodada": 5,
+    "times": [
+      "Dragões",
+      "Fênix"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 29,
+        "kills": 19
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 29,
+        "kills": 23
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 29,
+        "kills": 17
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 29,
+        "kills": 25
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 29,
+        "kills": 24
+      },
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 29,
+        "kills": 11
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 29,
+        "kills": 5
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 29,
+        "kills": 17
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 29,
+        "kills": 2
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 29,
+        "kills": 15
+      }
+    ]
+  },
+  "#57643": {
+    "id": "#57643",
+    "data": "2026-10-17",
+    "rodada": 5,
+    "times": [
+      "Leões",
+      "Águias"
+    ],
+    "vencedor": "Leões",
+    "jogadores": [
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 42,
+        "kills": 18
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 42,
+        "kills": 18
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 42,
+        "kills": 18
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 42,
+        "kills": 18
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 42,
+        "kills": 9
+      },
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 42,
+        "kills": 16
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 42,
+        "kills": 13
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 42,
+        "kills": 2
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 42,
+        "kills": 7
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 42,
+        "kills": 3
+      }
+    ]
+  },
+  "#57672": {
+    "id": "#57672",
+    "data": "2026-10-17",
+    "rodada": 5,
+    "times": [
+      "Lobos-Guará",
+      "Ursos"
+    ],
+    "vencedor": "Lobos-Guará",
+    "jogadores": [
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 39,
+        "kills": 11
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 39,
+        "kills": 9
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 39,
+        "kills": 16
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 39,
+        "kills": 25
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 39,
+        "kills": 7
+      },
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 39,
+        "kills": 4
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 39,
+        "kills": 1
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 39,
+        "kills": 5
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 39,
+        "kills": 18
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 39,
+        "kills": 4
+      }
+    ]
+  },
+  "#61037": {
+    "id": "#61037",
+    "data": "2026-10-10",
+    "rodada": 1,
+    "times": [
+      "Dragões",
+      "Águias"
+    ],
+    "vencedor": "Águias",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 43,
+        "kills": 2
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 43,
+        "kills": 14
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 43,
+        "kills": 16
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 43,
+        "kills": 1
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 43,
+        "kills": 7
+      },
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 43,
+        "kills": 20
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 43,
+        "kills": 21
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 43,
+        "kills": 14
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 43,
+        "kills": 26
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 43,
+        "kills": 11
+      }
+    ]
+  },
+  "#61044": {
+    "id": "#61044",
+    "data": "2026-10-10",
+    "rodada": 1,
+    "times": [
+      "Fênix",
+      "Ursos"
+    ],
+    "vencedor": "Ursos",
+    "jogadores": [
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 41,
+        "kills": 16
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 41,
+        "kills": 11
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 41,
+        "kills": 3
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 41,
+        "kills": 8
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 41,
+        "kills": 12
+      },
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 41,
+        "kills": 7
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 41,
+        "kills": 19
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 41,
+        "kills": 10
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 41,
+        "kills": 25
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 41,
+        "kills": 17
+      }
+    ]
+  },
+  "#61095": {
+    "id": "#61095",
+    "data": "2026-10-10",
+    "rodada": 1,
+    "times": [
+      "Leões",
+      "Lobos-Guará"
+    ],
+    "vencedor": "Leões",
+    "jogadores": [
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 38,
+        "kills": 15
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 38,
+        "kills": 14
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 38,
+        "kills": 20
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 38,
+        "kills": 11
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 38,
+        "kills": 15
+      },
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 38,
+        "kills": 12
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 38,
+        "kills": 5
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 38,
+        "kills": 15
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 38,
+        "kills": 8
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 38,
+        "kills": 15
+      }
+    ]
+  },
+  "#61176": {
+    "id": "#61176",
+    "data": "2026-10-11",
+    "rodada": 2,
+    "times": [
+      "Dragões",
+      "Ursos"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 37,
+        "kills": 7
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 37,
+        "kills": 24
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 37,
+        "kills": 6
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 37,
+        "kills": 13
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 37,
+        "kills": 10
+      },
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 37,
+        "kills": 7
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 37,
+        "kills": 10
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 37,
+        "kills": 18
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 37,
+        "kills": 12
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 37,
+        "kills": 8
+      }
+    ]
+  },
+  "#61219": {
+    "id": "#61219",
+    "data": "2026-10-11",
+    "rodada": 2,
+    "times": [
+      "Águias",
+      "Lobos-Guará"
+    ],
+    "vencedor": "Águias",
+    "jogadores": [
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 42,
+        "kills": 20
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 42,
+        "kills": 19
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 42,
+        "kills": 21
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 42,
+        "kills": 8
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 42,
+        "kills": 26
+      },
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 42,
+        "kills": 11
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 42,
+        "kills": 17
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 42,
+        "kills": 6
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 42,
+        "kills": 8
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 42,
+        "kills": 14
+      }
+    ]
+  },
+  "#61252": {
+    "id": "#61252",
+    "data": "2026-10-11",
+    "rodada": 2,
+    "times": [
+      "Fênix",
+      "Leões"
+    ],
+    "vencedor": "Leões",
+    "jogadores": [
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 2
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 16
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 10
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 3
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 18
+      },
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 26,
+        "kills": 8
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 26,
+        "kills": 10
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 26,
+        "kills": 18
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 26,
+        "kills": 24
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 26,
+        "kills": 17
+      }
+    ]
+  },
+  "#61331": {
+    "id": "#61331",
+    "data": "2026-10-17",
+    "rodada": 3,
+    "times": [
+      "Dragões",
+      "Lobos-Guará"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 29,
+        "kills": 9
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 29,
+        "kills": 9
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 29,
+        "kills": 20
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 29,
+        "kills": 11
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 29,
+        "kills": 12
+      },
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 29,
+        "kills": 12
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 29,
+        "kills": 14
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 29,
+        "kills": 14
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 29,
+        "kills": 15
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 29,
+        "kills": 8
+      }
+    ]
+  },
+  "#61421": {
+    "id": "#61421",
+    "data": "2026-10-17",
+    "rodada": 3,
+    "times": [
+      "Ursos",
+      "Leões"
+    ],
+    "vencedor": "Leões",
+    "jogadores": [
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 33,
+        "kills": 5
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 33,
+        "kills": 17
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 33,
+        "kills": 6
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 33,
+        "kills": 4
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 33,
+        "kills": 9
+      },
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 33,
+        "kills": 20
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 33,
+        "kills": 15
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 33,
+        "kills": 11
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 33,
+        "kills": 26
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 33,
+        "kills": 11
+      }
+    ]
+  },
+  "#61446": {
+    "id": "#61446",
+    "data": "2026-10-17",
+    "rodada": 3,
+    "times": [
+      "Águias",
+      "Fênix"
+    ],
+    "vencedor": "Águias",
+    "jogadores": [
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 15,
+        "kills": 17
+      },
+      {
+        "nick": "Sabiá",
+        "time": "Águias",
+        "minutos": 25,
+        "kills": 3
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 40,
+        "kills": 16
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 40,
+        "kills": 19
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 40,
+        "kills": 13
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 40,
+        "kills": 6
+      },
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 40,
+        "kills": 18
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 40,
+        "kills": 2
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 40,
+        "kills": 11
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 40,
+        "kills": 11
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 40,
+        "kills": 8
+      }
+    ]
+  },
+  "#61459": {
+    "id": "#61459",
+    "data": "2026-10-18",
+    "rodada": 4,
+    "times": [
+      "Dragões",
+      "Leões"
+    ],
+    "vencedor": "Leões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 33,
+        "kills": 15
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 33,
+        "kills": 13
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 33,
+        "kills": 6
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 33,
+        "kills": 13
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 33,
+        "kills": 16
+      },
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 33,
+        "kills": 13
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 33,
+        "kills": 22
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 33,
+        "kills": 14
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 33,
+        "kills": 22
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 33,
+        "kills": 21
+      }
+    ]
+  },
+  "#61539": {
+    "id": "#61539",
+    "data": "2026-10-18",
+    "rodada": 4,
+    "times": [
+      "Lobos-Guará",
+      "Fênix"
+    ],
+    "vencedor": "Fênix",
+    "jogadores": [
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 40,
+        "kills": 3
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 40,
+        "kills": 6
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 40,
+        "kills": 16
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 40,
+        "kills": 15
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 40,
+        "kills": 13
+      },
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 40,
+        "kills": 10
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 40,
+        "kills": 19
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 40,
+        "kills": 23
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 40,
+        "kills": 24
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 40,
+        "kills": 17
+      }
+    ]
+  },
+  "#61610": {
+    "id": "#61610",
+    "data": "2026-10-18",
+    "rodada": 4,
+    "times": [
+      "Ursos",
+      "Águias"
+    ],
+    "vencedor": "Águias",
+    "jogadores": [
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 37,
+        "kills": 16
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 37,
+        "kills": 6
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 37,
+        "kills": 18
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 37,
+        "kills": 15
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 37,
+        "kills": 4
+      },
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 37,
+        "kills": 19
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 37,
+        "kills": 7
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 37,
+        "kills": 6
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 37,
+        "kills": 20
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 37,
+        "kills": 23
+      }
+    ]
+  },
+  "#61621": {
+    "id": "#61621",
+    "data": "2026-10-24",
+    "rodada": 5,
+    "times": [
+      "Dragões",
+      "Fênix"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 26,
+        "kills": 17
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 26,
+        "kills": 8
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 26,
+        "kills": 10
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 26,
+        "kills": 9
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 26,
+        "kills": 25
+      },
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 15
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 16
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 5
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 15
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 26,
+        "kills": 14
+      }
+    ]
+  },
+  "#61688": {
+    "id": "#61688",
+    "data": "2026-10-24",
+    "rodada": 5,
+    "times": [
+      "Leões",
+      "Águias"
+    ],
+    "vencedor": "Leões",
+    "jogadores": [
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 39,
+        "kills": 16
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 39,
+        "kills": 14
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 39,
+        "kills": 20
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 39,
+        "kills": 19
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 39,
+        "kills": 16
+      },
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 39,
+        "kills": 17
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 39,
+        "kills": 17
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 39,
+        "kills": 5
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 39,
+        "kills": 8
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 39,
+        "kills": 11
+      }
+    ]
+  },
+  "#61770": {
+    "id": "#61770",
+    "data": "2026-10-24",
+    "rodada": 5,
+    "times": [
+      "Lobos-Guará",
+      "Ursos"
+    ],
+    "vencedor": "Ursos",
+    "jogadores": [
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 26,
+        "kills": 7
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 26,
+        "kills": 16
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 26,
+        "kills": 1
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 26,
+        "kills": 4
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 26,
+        "kills": 10
+      },
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 26,
+        "kills": 19
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 26,
+        "kills": 13
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 26,
+        "kills": 15
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 26,
+        "kills": 8
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 26,
+        "kills": 7
+      }
+    ]
+  },
+  "#62041": {
+    "id": "#62041",
+    "data": "2026-11-07",
+    "rodada": 1,
+    "times": [
+      "Dragões",
+      "Águias"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 39,
+        "kills": 23
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 39,
+        "kills": 20
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 39,
+        "kills": 20
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 39,
+        "kills": 22
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 39,
+        "kills": 24
+      },
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 39,
+        "kills": 7
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 39,
+        "kills": 6
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 39,
+        "kills": 17
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 39,
+        "kills": 16
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 39,
+        "kills": 6
+      }
+    ]
+  },
+  "#62056": {
+    "id": "#62056",
+    "data": "2026-11-07",
+    "rodada": 1,
+    "times": [
+      "Fênix",
+      "Ursos"
+    ],
+    "vencedor": "Ursos",
+    "jogadores": [
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 39,
+        "kills": 10
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 39,
+        "kills": 5
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 39,
+        "kills": 3
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 39,
+        "kills": 18
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 39,
+        "kills": 2
+      },
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 39,
+        "kills": 25
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 39,
+        "kills": 18
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 39,
+        "kills": 20
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 39,
+        "kills": 26
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 39,
+        "kills": 25
+      }
+    ]
+  },
+  "#62142": {
+    "id": "#62142",
+    "data": "2026-11-07",
+    "rodada": 1,
+    "times": [
+      "Leões",
+      "Lobos-Guará"
+    ],
+    "vencedor": "Leões",
+    "jogadores": [
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 30,
+        "kills": 25
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 30,
+        "kills": 6
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 30,
+        "kills": 22
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 30,
+        "kills": 8
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 30,
+        "kills": 7
+      },
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 30,
+        "kills": 2
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 30,
+        "kills": 7
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 30,
+        "kills": 8
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 30,
+        "kills": 1
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 30,
+        "kills": 15
+      }
+    ],
+    "falhas_antes_de_responder": 2
+  },
+  "#62186": {
+    "id": "#62186",
+    "data": "2026-11-08",
+    "rodada": 2,
+    "times": [
+      "Dragões",
+      "Ursos"
+    ],
+    "vencedor": "Ursos",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 39,
+        "kills": 7
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 39,
+        "kills": 17
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 39,
+        "kills": 8
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 39,
+        "kills": 10
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 39,
+        "kills": 16
+      },
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 39,
+        "kills": 6
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 39,
+        "kills": 8
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 39,
+        "kills": 20
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 39,
+        "kills": 26
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 39,
+        "kills": 14
+      }
+    ]
+  },
+  "#62241": {
+    "id": "#62241",
+    "data": "2026-11-08",
+    "rodada": 2,
+    "times": [
+      "Águias",
+      "Lobos-Guará"
+    ],
+    "vencedor": "Águias",
+    "jogadores": [
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 42,
+        "kills": 8
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 42,
+        "kills": 14
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 42,
+        "kills": 16
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 42,
+        "kills": 13
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 42,
+        "kills": 22
+      },
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 42,
+        "kills": 10
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 42,
+        "kills": 1
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 42,
+        "kills": 3
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 42,
+        "kills": 4
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 42,
+        "kills": 13
+      }
+    ]
+  },
+  "#62257": {
+    "id": "#62257",
+    "data": "2026-11-08",
+    "rodada": 2,
+    "times": [
+      "Fênix",
+      "Leões"
+    ],
+    "vencedor": "Leões",
+    "jogadores": [
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 34,
+        "kills": 13
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 34,
+        "kills": 3
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 34,
+        "kills": 1
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 34,
+        "kills": 1
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 34,
+        "kills": 7
+      },
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 34,
+        "kills": 12
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 34,
+        "kills": 7
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 34,
+        "kills": 21
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 34,
+        "kills": 18
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 34,
+        "kills": 18
+      }
+    ]
+  },
+  "#62313": {
+    "id": "#62313",
+    "data": "2026-11-14",
+    "rodada": 3,
+    "times": [
+      "Dragões",
+      "Lobos-Guará"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 27,
+        "kills": 24
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 27,
+        "kills": 26
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 27,
+        "kills": 12
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 27,
+        "kills": 14
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 27,
+        "kills": 16
+      },
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 27,
+        "kills": 3
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 27,
+        "kills": 10
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 27,
+        "kills": 11
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 27,
+        "kills": 1
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 27,
+        "kills": 14
+      }
+    ]
+  },
+  "#62331": {
+    "id": "#62331",
+    "data": "2026-11-14",
+    "rodada": 3,
+    "times": [
+      "Ursos",
+      "Leões"
+    ],
+    "vencedor": "Ursos",
+    "jogadores": [
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 29,
+        "kills": 13
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 29,
+        "kills": 9
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 29,
+        "kills": 6
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 29,
+        "kills": 7
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 29,
+        "kills": 20
+      },
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 29,
+        "kills": 16
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 29,
+        "kills": 6
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 29,
+        "kills": 18
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 29,
+        "kills": 7
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 29,
+        "kills": 15
+      }
+    ]
+  },
+  "#62399": {
+    "id": "#62399",
+    "data": "2026-11-14",
+    "rodada": 3,
+    "times": [
+      "Águias",
+      "Fênix"
+    ],
+    "vencedor": "Águias",
+    "jogadores": [
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 31,
+        "kills": 10
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 31,
+        "kills": 19
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 31,
+        "kills": 26
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 31,
+        "kills": 18
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 31,
+        "kills": 9
+      },
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 31,
+        "kills": 13
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 31,
+        "kills": 14
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 31,
+        "kills": 7
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 31,
+        "kills": 1
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 31,
+        "kills": 9
+      }
+    ]
+  },
+  "#62477": {
+    "id": "#62477",
+    "data": "2026-11-15",
+    "rodada": 4,
+    "times": [
+      "Dragões",
+      "Leões"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 34,
+        "kills": 6
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 34,
+        "kills": 12
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 34,
+        "kills": 11
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 34,
+        "kills": 18
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 34,
+        "kills": 25
+      },
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 34,
+        "kills": 4
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 34,
+        "kills": 2
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 34,
+        "kills": 5
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 34,
+        "kills": 7
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 34,
+        "kills": 15
+      }
+    ],
+    "falhas_antes_de_responder": 5
+  },
+  "#62513": {
+    "id": "#62513",
+    "data": "2026-11-15",
+    "rodada": 4,
+    "times": [
+      "Lobos-Guará",
+      "Fênix"
+    ],
+    "vencedor": "Lobos-Guará",
+    "jogadores": [
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 25
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 16
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 15
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 18
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 25,
+        "kills": 8
+      },
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 3
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 3
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 7
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 8
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 25,
+        "kills": 1
+      }
+    ]
+  },
+  "#62592": {
+    "id": "#62592",
+    "data": "2026-11-15",
+    "rodada": 4,
+    "times": [
+      "Ursos",
+      "Águias"
+    ],
+    "vencedor": "Ursos",
+    "jogadores": [
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 36,
+        "kills": 17
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 36,
+        "kills": 25
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 36,
+        "kills": 20
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 36,
+        "kills": 10
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 36,
+        "kills": 24
+      },
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 36,
+        "kills": 16
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 36,
+        "kills": 5
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 36,
+        "kills": 13
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 36,
+        "kills": 6
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 36,
+        "kills": 5
+      }
+    ]
+  },
+  "#62634": {
+    "id": "#62634",
+    "data": "2026-11-21",
+    "rodada": 5,
+    "times": [
+      "Dragões",
+      "Fênix"
+    ],
+    "vencedor": "Dragões",
+    "jogadores": [
+      {
+        "nick": "Fogaréu",
+        "time": "Dragões",
+        "minutos": 32,
+        "kills": 25
+      },
+      {
+        "nick": "Escama",
+        "time": "Dragões",
+        "minutos": 32,
+        "kills": 13
+      },
+      {
+        "nick": "Brasa.gg",
+        "time": "Dragões",
+        "minutos": 32,
+        "kills": 12
+      },
+      {
+        "nick": "Rugido",
+        "time": "Dragões",
+        "minutos": 32,
+        "kills": 11
+      },
+      {
+        "nick": "Labareda",
+        "time": "Dragões",
+        "minutos": 32,
+        "kills": 26
+      },
+      {
+        "nick": "Cinzas",
+        "time": "Fênix",
+        "minutos": 32,
+        "kills": 18
+      },
+      {
+        "nick": "Phoenix_BR",
+        "time": "Fênix",
+        "minutos": 32,
+        "kills": 7
+      },
+      {
+        "nick": "Plumada",
+        "time": "Fênix",
+        "minutos": 32,
+        "kills": 13
+      },
+      {
+        "nick": "Renasce",
+        "time": "Fênix",
+        "minutos": 32,
+        "kills": 16
+      },
+      {
+        "nick": "Chama.exe",
+        "time": "Fênix",
+        "minutos": 32,
+        "kills": 3
+      }
+    ]
+  },
+  "#62690": {
+    "id": "#62690",
+    "data": "2026-11-21",
+    "rodada": 5,
+    "times": [
+      "Leões",
+      "Águias"
+    ],
+    "vencedor": "Leões",
+    "jogadores": [
+      {
+        "nick": "Juba",
+        "time": "Leões",
+        "minutos": 26,
+        "kills": 9
+      },
+      {
+        "nick": "Rei_Leao",
+        "time": "Leões",
+        "minutos": 26,
+        "kills": 9
+      },
+      {
+        "nick": "Garra",
+        "time": "Leões",
+        "minutos": 26,
+        "kills": 7
+      },
+      {
+        "nick": "Savana",
+        "time": "Leões",
+        "minutos": 26,
+        "kills": 22
+      },
+      {
+        "nick": "Rugir99",
+        "time": "Leões",
+        "minutos": 26,
+        "kills": 14
+      },
+      {
+        "nick": "Bico",
+        "time": "Águias",
+        "minutos": 26,
+        "kills": 8
+      },
+      {
+        "nick": "Asa.Alta",
+        "time": "Águias",
+        "minutos": 26,
+        "kills": 13
+      },
+      {
+        "nick": "Rapina",
+        "time": "Águias",
+        "minutos": 26,
+        "kills": 9
+      },
+      {
+        "nick": "Voo_Livre",
+        "time": "Águias",
+        "minutos": 26,
+        "kills": 14
+      },
+      {
+        "nick": "Harpia",
+        "time": "Águias",
+        "minutos": 26,
+        "kills": 16
+      }
+    ]
+  },
+  "#62730": {
+    "id": "#62730",
+    "data": "2026-11-21",
+    "rodada": 5,
+    "times": [
+      "Lobos-Guará",
+      "Ursos"
+    ],
+    "vencedor": "Ursos",
+    "jogadores": [
+      {
+        "nick": "Guará",
+        "time": "Lobos-Guará",
+        "minutos": 41,
+        "kills": 6
+      },
+      {
+        "nick": "Cerrado",
+        "time": "Lobos-Guará",
+        "minutos": 41,
+        "kills": 3
+      },
+      {
+        "nick": "Uivo",
+        "time": "Lobos-Guará",
+        "minutos": 41,
+        "kills": 5
+      },
+      {
+        "nick": "Pata.Leve",
+        "time": "Lobos-Guará",
+        "minutos": 41,
+        "kills": 8
+      },
+      {
+        "nick": "Ruivo",
+        "time": "Lobos-Guará",
+        "minutos": 41,
+        "kills": 16
+      },
+      {
+        "nick": "Panda",
+        "time": "Ursos",
+        "minutos": 41,
+        "kills": 23
+      },
+      {
+        "nick": "Hibernar",
+        "time": "Ursos",
+        "minutos": 41,
+        "kills": 26
+      },
+      {
+        "nick": "Mel.zinho",
+        "time": "Ursos",
+        "minutos": 41,
+        "kills": 25
+      },
+      {
+        "nick": "Urso_Polar",
+        "time": "Ursos",
+        "minutos": 41,
+        "kills": 25
+      },
+      {
+        "nick": "Pardo",
+        "time": "Ursos",
+        "minutos": 41,
+        "kills": 8
+      }
+    ]
+  }
+}

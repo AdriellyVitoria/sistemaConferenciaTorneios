@@ -1,0 +1,229 @@
+{
+  "01": [
+    {
+      "time": "Dragões",
+      "vitorias": 5,
+      "kills_time": 371,
+      "premio_centavos": 500000,
+      "criterio": ""
+    },
+    {
+      "time": "Fênix",
+      "vitorias": 4,
+      "kills_time": 411,
+      "premio_centavos": 300000,
+      "criterio": ""
+    },
+    {
+      "time": "Leões",
+      "vitorias": 3,
+      "kills_time": 380,
+      "premio_centavos": 200000,
+      "criterio": ""
+    },
+    {
+      "time": "Lobos-Guará",
+      "vitorias": 2,
+      "kills_time": 345,
+      "premio_centavos": 0,
+      "criterio": ""
+    },
+    {
+      "time": "Ursos",
+      "vitorias": 1,
+      "kills_time": 273,
+      "premio_centavos": 0,
+      "criterio": ""
+    },
+    {
+      "time": "Águias",
+      "vitorias": 0,
+      "kills_time": 279,
+      "premio_centavos": 0,
+      "criterio": ""
+    }
+  ],
+  "02": {
+    "id_real": "#52241",
+    "id_errado": "#52214"
+  },
+  "03": [
+    {
+      "partida": "#53132",
+      "nick": "Juba",
+      "campo": "Kills",
+      "planilha": "18",
+      "site": "8"
+    },
+    {
+      "partida": "#53428",
+      "nick": "Plumada",
+      "campo": "Minutos",
+      "planilha": "15",
+      "site": "27"
+    },
+    {
+      "partida": "#53718",
+      "nick": "Harpia",
+      "campo": "Kills",
+      "planilha": "9",
+      "site": "13"
+    }
+  ],
+  "04": [
+    {
+      "time": "Dragões",
+      "vitorias": 5,
+      "kills_time": 405,
+      "premio_centavos": 500000,
+      "criterio": ""
+    },
+    {
+      "time": "Fênix",
+      "vitorias": 3,
+      "kills_time": 398,
+      "premio_centavos": 250000,
+      "criterio": "divisão igual (empate em vitórias e kills)"
+    },
+    {
+      "time": "Leões",
+      "vitorias": 3,
+      "kills_time": 398,
+      "premio_centavos": 250000,
+      "criterio": "divisão igual (empate em vitórias e kills)"
+    },
+    {
+      "time": "Lobos-Guará",
+      "vitorias": 2,
+      "kills_time": 297,
+      "premio_centavos": 0,
+      "criterio": "desempate por kills do time"
+    },
+    {
+      "time": "Ursos",
+      "vitorias": 2,
+      "kills_time": 220,
+      "premio_centavos": 0,
+      "criterio": "desempate por kills do time"
+    },
+    {
+      "time": "Águias",
+      "vitorias": 0,
+      "kills_time": 232,
+      "premio_centavos": 0,
+      "criterio": ""
+    }
+  ],
+  "05": [
+    {
+      "time": "Dragões",
+      "vitorias": 7,
+      "kills_time": 527,
+      "premio_centavos": 500000,
+      "criterio": ""
+    },
+    {
+      "time": "Fênix",
+      "vitorias": 6,
+      "kills_time": 546,
+      "premio_centavos": 300000,
+      "criterio": ""
+    },
+    {
+      "time": "Leões",
+      "vitorias": 5,
+      "kills_time": 516,
+      "premio_centavos": 200000,
+      "criterio": ""
+    },
+    {
+      "time": "Lobos-Guará",
+      "vitorias": 4,
+      "kills_time": 512,
+      "premio_centavos": 0,
+      "criterio": ""
+    },
+    {
+      "time": "Ursos",
+      "vitorias": 3,
+      "kills_time": 449,
+      "premio_centavos": 0,
+      "criterio": ""
+    },
+    {
+      "time": "Águias",
+      "vitorias": 2,
+      "kills_time": 396,
+      "premio_centavos": 0,
+      "criterio": ""
+    },
+    {
+      "time": "Jaguares",
+      "vitorias": 1,
+      "kills_time": 372,
+      "premio_centavos": 0,
+      "criterio": ""
+    },
+    {
+      "time": "Gaviões",
+      "vitorias": 0,
+      "kills_time": 335,
+      "premio_centavos": 0,
+      "criterio": ""
+    }
+  ],
+  "outubro": [
+    {
+      "time": "Leões",
+      "vitorias": 5,
+      "kills_time": 412,
+      "premio_centavos": 500000,
+      "criterio": ""
+    },
+    {
+      "time": "Águias",
+      "vitorias": 4,
+      "kills_time": 393,
+      "premio_centavos": 300000,
+      "criterio": ""
+    },
+    {
+      "time": "Dragões",
+      "vitorias": 3,
+      "kills_time": 293,
+      "premio_centavos": 200000,
+      "criterio": ""
+    },
+    {
+      "time": "Ursos",
+      "vitorias": 2,
+      "kills_time": 295,
+      "premio_centavos": 0,
+      "criterio": ""
+    },
+    {
+      "time": "Fênix",
+      "vitorias": 1,
+      "kills_time": 307,
+      "premio_centavos": 0,
+      "criterio": ""
+    },
+    {
+      "time": "Lobos-Guará",
+      "vitorias": 0,
+      "kills_time": 265,
+      "premio_centavos": 0,
+      "criterio": ""
+    }
+  ],
+  "novembro": {
+    "instaveis": {
+      "#62142": {
+        "falhas_antes_de_responder": 2
+      },
+      "#62477": {
+        "falhas_antes_de_responder": 5
+      }
+    }
+  }
+}

@@ -55,6 +55,19 @@ describe('dividirMaiorResto', () => {
     expect(soma(r)).toBe(500_000);
   });
 
+  it('desempate pela ordem da lista: no empate da fração, ganha quem vem primeiro', () => {
+    // entre posições do pódio: o centavo vai para a melhor colocada, não pela ordem alfabética
+    const r = dividirMaiorResto(
+      123_457,
+      [{ nome: 'Zebras', peso: 50 }, { nome: 'Águias', peso: 50 }],
+      { desempate: 'ordem_da_lista' },
+    );
+    expect(r).toEqual([
+      { nome: 'Zebras', valor: 61_729, recebeuCentavo: true },
+      { nome: 'Águias', valor: 61_728, recebeuCentavo: false },
+    ]);
+  });
+
   it('devolve os participantes na mesma ordem em que vieram', () => {
     const r = dividirMaiorResto(10, [{ nome: 'B', peso: 1 }, { nome: 'A', peso: 1 }, { nome: 'C', peso: 1 }]);
     expect(r.map((p) => p.nome)).toEqual(['B', 'A', 'C']);

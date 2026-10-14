@@ -1,10 +1,12 @@
 /**
  * Divisão de um valor em centavos pelo método do maior resto (D9). Uma regra só no sistema todo:
- * dentro do time (pesos = minutos ou kills) e entre times empatados (pesos iguais).
+ * entre as posições do pódio (pesos = percentuais, D20), entre times empatados (pesos iguais) e
+ * dentro do time (pesos = minutos ou kills).
  *
  * 1. Cada um recebe a parte inteira do seu valor exato (total × peso ÷ soma dos pesos).
  * 2. Os centavos que sobram vão, um por vez, para quem tem a maior fração, ou seja, quem mais
- *    perdeu no corte. Empate na fração: ordem alfabética de dicionário do nome.
+ *    perdeu no corte. Empate na fração: ordem alfabética de dicionário do nome, ou a ordem da
+ *    lista quando pedido (posições: a melhor colocada).
  * 3. A soma das partes é sempre exatamente o total.
  *
  * Tudo em inteiros, sem float em nenhum passo. Como todos dividem pela mesma soma, a fração de
@@ -34,7 +36,20 @@ export interface Parte {
   recebeuCentavo: boolean;
 }
 
-export function dividirMaiorResto(total: number, participantes: Participante[]): Parte[] {
+export interface OpcoesDivisao {
+  /**
+   * Quem leva o centavo quando as frações empatam:
+   * - 'alfabetica' (padrão): ordem alfabética de dicionário do nome (jogadores, times empatados);
+   * - 'ordem_da_lista': quem vem primeiro na lista (posições do pódio: a melhor colocada).
+   */
+  desempate?: 'alfabetica' | 'ordem_da_lista';
+}
+
+export function dividirMaiorResto(
+  total: number,
+  participantes: Participante[],
+  { desempate = 'alfabetica' }: OpcoesDivisao = {},
+): Parte[] {
   exigirInteiroNaoNegativo(total, 'O valor a dividir');
   const nomes = new Set<string>();
   for (const { nome, peso } of participantes) {
@@ -48,9 +63,9 @@ export function dividirMaiorResto(total: number, participantes: Participante[]):
   const somaPesos = participantes.reduce((soma, p) => soma + BigInt(p.peso), 0n);
   if (somaPesos === 0n) throw new SomaDosPesosZero(total);
 
-  const contas = participantes.map((p) => {
+  const contas = participantes.map((p, indice) => {
     const exato = totalB * BigInt(p.peso); // valor exato = exato ÷ somaPesos
-    return { nome: p.nome, inteiro: exato / somaPesos, resto: exato % somaPesos };
+    return { nome: p.nome, indice, inteiro: exato / somaPesos, resto: exato % somaPesos };
   });
 
   // centavos que sobraram depois de cada um levar a parte inteira (sempre menos que o número de participantes)
@@ -58,7 +73,7 @@ export function dividirMaiorResto(total: number, participantes: Participante[]):
 
   const ordemDoCentavo = [...contas].sort((a, b) => {
     if (a.resto !== b.resto) return a.resto > b.resto ? -1 : 1; // maior fração primeiro
-    return compararAlfabetico(a.nome, b.nome);
+    return desempate === 'ordem_da_lista' ? a.indice - b.indice : compararAlfabetico(a.nome, b.nome);
   });
   const recebem = new Set(ordemDoCentavo.slice(0, sobra).map((c) => c.nome));
 

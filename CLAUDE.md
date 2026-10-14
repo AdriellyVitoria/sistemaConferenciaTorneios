@@ -28,6 +28,7 @@ Projeto: desafio técnico da PowerRev (Desenvolvedora Full Stack Júnior). Siste
 - Etapa 1, parte 1 (leitura da planilha, `api/src/dominio/planilha.ts`): concluída.
 - Etapa 1, parte 2 (comparação planilha × site, `api/src/dominio/comparacao.ts`, regras na D19): concluída. Dados do site de setembro (D15) em `api/test/fixtures/site-setembro.json`.
 - Etapa 1, parte 3 (classificação, `api/src/dominio/classificacao.ts`): concluída. Critério sem "divisão igual", que é da parte 4.
-- Etapa 1, parte 4a (maior resto, `api/src/dominio/divisao.ts`): pronta, aguardando aprovação. Soma dos pesos zero lança `SomaDosPesosZero`; a regra de negócio desse caso vem no 4c.
+- Etapa 1, parte 4a (maior resto, `api/src/dominio/divisao.ts`): concluída. Soma dos pesos zero lança `SomaDosPesosZero`; a regra de negócio desse caso vem no 4c.
+- Etapa 1, parte 4b (prêmio por time, `api/src/dominio/premio.ts`): pronta, aguardando aprovação. D20 decidida: percentuais somam 100 (`erroDosPercentuais`, para a criação do torneio reaproveitar) e o prêmio é dividido entre as posições pelo maior resto, com empate para a melhor colocada.
 - Forma de trabalho: em cada pedaço, escrever os testes, **rodar e mostrar que falham**, e só depois implementar.
-- Próximo passo: **Etapa 1, parte 4b**, depois da aprovação da Adrielly.
+- Próximo passo: **Etapa 1, parte 4c** (divisão entre jogadores), depois da aprovação da Adrielly.

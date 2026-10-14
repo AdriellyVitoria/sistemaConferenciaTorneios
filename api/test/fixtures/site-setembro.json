@@ -1,0 +1,1088 @@
+{
+  "#45659": {
+    "id": "#45659",
+    "data": "2026-09-05",
+    "rodada": 1,
+    "times": [
+      "Lobos",
+      "Serpentes"
+    ],
+    "vencedor": "Lobos",
+    "jogadores": [
+      {
+        "nick": "xXSniperXx",
+        "time": "Lobos",
+        "minutos": 43,
+        "kills": 25
+      },
+      {
+        "nick": "Dona.Tank",
+        "time": "Lobos",
+        "minutos": 43,
+        "kills": 25
+      },
+      {
+        "nick": "Pipoca",
+        "time": "Lobos",
+        "minutos": 43,
+        "kills": 6
+      },
+      {
+        "nick": "R4mbo",
+        "time": "Lobos",
+        "minutos": 43,
+        "kills": 5
+      },
+      {
+        "nick": "Lua_",
+        "time": "Lobos",
+        "minutos": 43,
+        "kills": 14
+      },
+      {
+        "nick": "Kaio_BR",
+        "time": "Serpentes",
+        "minutos": 43,
+        "kills": 8
+      },
+      {
+        "nick": "Naja",
+        "time": "Serpentes",
+        "minutos": 43,
+        "kills": 1
+      },
+      {
+        "nick": "Víbora",
+        "time": "Serpentes",
+        "minutos": 43,
+        "kills": 18
+      },
+      {
+        "nick": "Cobrinha",
+        "time": "Serpentes",
+        "minutos": 43,
+        "kills": 12
+      },
+      {
+        "nick": "Bote",
+        "time": "Serpentes",
+        "minutos": 43,
+        "kills": 11
+      }
+    ]
+  },
+  "#44040": {
+    "id": "#44040",
+    "data": "2026-09-05",
+    "rodada": 1,
+    "times": [
+      "Corvos",
+      "Panteras"
+    ],
+    "vencedor": "Corvos",
+    "jogadores": [
+      {
+        "nick": "Bia.gg",
+        "time": "Corvos",
+        "minutos": 28,
+        "kills": 10
+      },
+      {
+        "nick": "Corvinho",
+        "time": "Corvos",
+        "minutos": 28,
+        "kills": 21
+      },
+      {
+        "nick": "M4theus",
+        "time": "Corvos",
+        "minutos": 28,
+        "kills": 24
+      },
+      {
+        "nick": "Zeca",
+        "time": "Corvos",
+        "minutos": 28,
+        "kills": 24
+      },
+      {
+        "nick": "Nina.exe",
+        "time": "Corvos",
+        "minutos": 28,
+        "kills": 16
+      },
+      {
+        "nick": "Sombra",
+        "time": "Panteras",
+        "minutos": 28,
+        "kills": 17
+      },
+      {
+        "nick": "Pantera_X",
+        "time": "Panteras",
+        "minutos": 28,
+        "kills": 11
+      },
+      {
+        "nick": "Mel",
+        "time": "Panteras",
+        "minutos": 28,
+        "kills": 14
+      },
+      {
+        "nick": "Tchê",
+        "time": "Panteras",
+        "minutos": 28,
+        "kills": 5
+      },
+      {
+        "nick": "Rafa.K",
+        "time": "Panteras",
+        "minutos": 28,
+        "kills": 9
+      }
+    ]
+  },
+  "#44799": {
+    "id": "#44799",
+    "data": "2026-09-05",
+    "rodada": 1,
+    "times": [
+      "Tubarões",
+      "Falcões"
+    ],
+    "vencedor": "Tubarões",
+    "jogadores": [
+      {
+        "nick": "Tubarao01",
+        "time": "Tubarões",
+        "minutos": 31,
+        "kills": 13
+      },
+      {
+        "nick": "Hanzo_BR",
+        "time": "Tubarões",
+        "minutos": 31,
+        "kills": 20
+      },
+      {
+        "nick": "Gabs",
+        "time": "Tubarões",
+        "minutos": 31,
+        "kills": 20
+      },
+      {
+        "nick": "Ferrugem",
+        "time": "Tubarões",
+        "minutos": 31,
+        "kills": 14
+      },
+      {
+        "nick": "Ju.lia",
+        "time": "Tubarões",
+        "minutos": 31,
+        "kills": 5
+      },
+      {
+        "nick": "Falk",
+        "time": "Falcões",
+        "minutos": 31,
+        "kills": 9
+      },
+      {
+        "nick": "Kiwi",
+        "time": "Falcões",
+        "minutos": 31,
+        "kills": 5
+      },
+      {
+        "nick": "Dudu.pro",
+        "time": "Falcões",
+        "minutos": 31,
+        "kills": 6
+      },
+      {
+        "nick": "Marreta",
+        "time": "Falcões",
+        "minutos": 31,
+        "kills": 15
+      },
+      {
+        "nick": "Sol",
+        "time": "Falcões",
+        "minutos": 31,
+        "kills": 17
+      }
+    ]
+  },
+  "#46065": {
+    "id": "#46065",
+    "data": "2026-09-06",
+    "rodada": 2,
+    "times": [
+      "Lobos",
+      "Panteras"
+    ],
+    "vencedor": "Lobos",
+    "jogadores": [
+      {
+        "nick": "xXSniperXx",
+        "time": "Lobos",
+        "minutos": 42,
+        "kills": 21
+      },
+      {
+        "nick": "Dona.Tank",
+        "time": "Lobos",
+        "minutos": 42,
+        "kills": 6
+      },
+      {
+        "nick": "Pipoca",
+        "time": "Lobos",
+        "minutos": 42,
+        "kills": 17
+      },
+      {
+        "nick": "R4mbo",
+        "time": "Lobos",
+        "minutos": 42,
+        "kills": 10
+      },
+      {
+        "nick": "Lua_",
+        "time": "Lobos",
+        "minutos": 42,
+        "kills": 11
+      },
+      {
+        "nick": "Sombra",
+        "time": "Panteras",
+        "minutos": 42,
+        "kills": 9
+      },
+      {
+        "nick": "Pantera_X",
+        "time": "Panteras",
+        "minutos": 42,
+        "kills": 8
+      },
+      {
+        "nick": "Mel",
+        "time": "Panteras",
+        "minutos": 42,
+        "kills": 13
+      },
+      {
+        "nick": "Tchê",
+        "time": "Panteras",
+        "minutos": 42,
+        "kills": 6
+      },
+      {
+        "nick": "Rafa.K",
+        "time": "Panteras",
+        "minutos": 42,
+        "kills": 3
+      }
+    ]
+  },
+  "#44027": {
+    "id": "#44027",
+    "data": "2026-09-06",
+    "rodada": 2,
+    "times": [
+      "Serpentes",
+      "Falcões"
+    ],
+    "vencedor": "Falcões",
+    "jogadores": [
+      {
+        "nick": "Kaio_BR",
+        "time": "Serpentes",
+        "minutos": 35,
+        "kills": 3
+      },
+      {
+        "nick": "Naja",
+        "time": "Serpentes",
+        "minutos": 35,
+        "kills": 18
+      },
+      {
+        "nick": "Víbora",
+        "time": "Serpentes",
+        "minutos": 35,
+        "kills": 18
+      },
+      {
+        "nick": "Cobrinha",
+        "time": "Serpentes",
+        "minutos": 35,
+        "kills": 15
+      },
+      {
+        "nick": "Bote",
+        "time": "Serpentes",
+        "minutos": 35,
+        "kills": 9
+      },
+      {
+        "nick": "Falk",
+        "time": "Falcões",
+        "minutos": 35,
+        "kills": 14
+      },
+      {
+        "nick": "Kiwi",
+        "time": "Falcões",
+        "minutos": 35,
+        "kills": 4
+      },
+      {
+        "nick": "Dudu.pro",
+        "time": "Falcões",
+        "minutos": 35,
+        "kills": 22
+      },
+      {
+        "nick": "Marreta",
+        "time": "Falcões",
+        "minutos": 35,
+        "kills": 13
+      },
+      {
+        "nick": "Sol",
+        "time": "Falcões",
+        "minutos": 35,
+        "kills": 20
+      }
+    ]
+  },
+  "#46903": {
+    "id": "#46903",
+    "data": "2026-09-06",
+    "rodada": 2,
+    "times": [
+      "Corvos",
+      "Tubarões"
+    ],
+    "vencedor": "Corvos",
+    "jogadores": [
+      {
+        "nick": "Bia.gg",
+        "time": "Corvos",
+        "minutos": 18,
+        "kills": 22
+      },
+      {
+        "nick": "Tuca",
+        "time": "Corvos",
+        "minutos": 19,
+        "kills": 5
+      },
+      {
+        "nick": "Corvinho",
+        "time": "Corvos",
+        "minutos": 37,
+        "kills": 4
+      },
+      {
+        "nick": "M4theus",
+        "time": "Corvos",
+        "minutos": 37,
+        "kills": 24
+      },
+      {
+        "nick": "Zeca",
+        "time": "Corvos",
+        "minutos": 37,
+        "kills": 22
+      },
+      {
+        "nick": "Nina.exe",
+        "time": "Corvos",
+        "minutos": 37,
+        "kills": 19
+      },
+      {
+        "nick": "Tubarao01",
+        "time": "Tubarões",
+        "minutos": 37,
+        "kills": 2
+      },
+      {
+        "nick": "Hanzo_BR",
+        "time": "Tubarões",
+        "minutos": 37,
+        "kills": 9
+      },
+      {
+        "nick": "Gabs",
+        "time": "Tubarões",
+        "minutos": 37,
+        "kills": 14
+      },
+      {
+        "nick": "Ferrugem",
+        "time": "Tubarões",
+        "minutos": 37,
+        "kills": 14
+      },
+      {
+        "nick": "Ju.lia",
+        "time": "Tubarões",
+        "minutos": 37,
+        "kills": 4
+      }
+    ]
+  },
+  "#48087": {
+    "id": "#48087",
+    "data": "2026-09-12",
+    "rodada": 3,
+    "times": [
+      "Lobos",
+      "Falcões"
+    ],
+    "vencedor": "Lobos",
+    "jogadores": [
+      {
+        "nick": "xXSniperXx",
+        "time": "Lobos",
+        "minutos": 45,
+        "kills": 21
+      },
+      {
+        "nick": "Dona.Tank",
+        "time": "Lobos",
+        "minutos": 45,
+        "kills": 5
+      },
+      {
+        "nick": "Pipoca",
+        "time": "Lobos",
+        "minutos": 45,
+        "kills": 20
+      },
+      {
+        "nick": "R4mbo",
+        "time": "Lobos",
+        "minutos": 45,
+        "kills": 26
+      },
+      {
+        "nick": "Lua_",
+        "time": "Lobos",
+        "minutos": 45,
+        "kills": 26
+      },
+      {
+        "nick": "Falk",
+        "time": "Falcões",
+        "minutos": 45,
+        "kills": 3
+      },
+      {
+        "nick": "Kiwi",
+        "time": "Falcões",
+        "minutos": 45,
+        "kills": 17
+      },
+      {
+        "nick": "Dudu.pro",
+        "time": "Falcões",
+        "minutos": 45,
+        "kills": 1
+      },
+      {
+        "nick": "Marreta",
+        "time": "Falcões",
+        "minutos": 45,
+        "kills": 4
+      },
+      {
+        "nick": "Sol",
+        "time": "Falcões",
+        "minutos": 45,
+        "kills": 9
+      }
+    ]
+  },
+  "#43337": {
+    "id": "#43337",
+    "data": "2026-09-12",
+    "rodada": 3,
+    "times": [
+      "Panteras",
+      "Tubarões"
+    ],
+    "vencedor": "Tubarões",
+    "jogadores": [
+      {
+        "nick": "Sombra",
+        "time": "Panteras",
+        "minutos": 37,
+        "kills": 2
+      },
+      {
+        "nick": "Pantera_X",
+        "time": "Panteras",
+        "minutos": 37,
+        "kills": 15
+      },
+      {
+        "nick": "Mel",
+        "time": "Panteras",
+        "minutos": 37,
+        "kills": 15
+      },
+      {
+        "nick": "Tchê",
+        "time": "Panteras",
+        "minutos": 37,
+        "kills": 12
+      },
+      {
+        "nick": "Rafa.K",
+        "time": "Panteras",
+        "minutos": 37,
+        "kills": 13
+      },
+      {
+        "nick": "Tubarao01",
+        "time": "Tubarões",
+        "minutos": 37,
+        "kills": 5
+      },
+      {
+        "nick": "Hanzo_BR",
+        "time": "Tubarões",
+        "minutos": 37,
+        "kills": 12
+      },
+      {
+        "nick": "Gabs",
+        "time": "Tubarões",
+        "minutos": 37,
+        "kills": 9
+      },
+      {
+        "nick": "Ferrugem",
+        "time": "Tubarões",
+        "minutos": 37,
+        "kills": 18
+      },
+      {
+        "nick": "Ju.lia",
+        "time": "Tubarões",
+        "minutos": 37,
+        "kills": 22
+      }
+    ]
+  },
+  "#40446": {
+    "id": "#40446",
+    "data": "2026-09-12",
+    "rodada": 3,
+    "times": [
+      "Serpentes",
+      "Corvos"
+    ],
+    "vencedor": "Corvos",
+    "jogadores": [
+      {
+        "nick": "Kaio_BR",
+        "time": "Serpentes",
+        "minutos": 36,
+        "kills": 7
+      },
+      {
+        "nick": "Naja",
+        "time": "Serpentes",
+        "minutos": 36,
+        "kills": 16
+      },
+      {
+        "nick": "Víbora",
+        "time": "Serpentes",
+        "minutos": 36,
+        "kills": 12
+      },
+      {
+        "nick": "Cobrinha",
+        "time": "Serpentes",
+        "minutos": 36,
+        "kills": 17
+      },
+      {
+        "nick": "Bote",
+        "time": "Serpentes",
+        "minutos": 36,
+        "kills": 2
+      },
+      {
+        "nick": "Bia.gg",
+        "time": "Corvos",
+        "minutos": 36,
+        "kills": 15
+      },
+      {
+        "nick": "Corvinho",
+        "time": "Corvos",
+        "minutos": 36,
+        "kills": 7
+      },
+      {
+        "nick": "M4theus",
+        "time": "Corvos",
+        "minutos": 36,
+        "kills": 6
+      },
+      {
+        "nick": "Zeca",
+        "time": "Corvos",
+        "minutos": 36,
+        "kills": 24
+      },
+      {
+        "nick": "Nina.exe",
+        "time": "Corvos",
+        "minutos": 36,
+        "kills": 26
+      }
+    ]
+  },
+  "#40537": {
+    "id": "#40537",
+    "data": "2026-09-13",
+    "rodada": 4,
+    "times": [
+      "Lobos",
+      "Tubarões"
+    ],
+    "vencedor": "Lobos",
+    "jogadores": [
+      {
+        "nick": "xXSniperXx",
+        "time": "Lobos",
+        "minutos": 40,
+        "kills": 15
+      },
+      {
+        "nick": "Dona.Tank",
+        "time": "Lobos",
+        "minutos": 40,
+        "kills": 7
+      },
+      {
+        "nick": "Pipoca",
+        "time": "Lobos",
+        "minutos": 40,
+        "kills": 8
+      },
+      {
+        "nick": "R4mbo",
+        "time": "Lobos",
+        "minutos": 40,
+        "kills": 8
+      },
+      {
+        "nick": "Lua_",
+        "time": "Lobos",
+        "minutos": 40,
+        "kills": 17
+      },
+      {
+        "nick": "Tubarao01",
+        "time": "Tubarões",
+        "minutos": 40,
+        "kills": 2
+      },
+      {
+        "nick": "Hanzo_BR",
+        "time": "Tubarões",
+        "minutos": 40,
+        "kills": 1
+      },
+      {
+        "nick": "Gabs",
+        "time": "Tubarões",
+        "minutos": 40,
+        "kills": 12
+      },
+      {
+        "nick": "Ferrugem",
+        "time": "Tubarões",
+        "minutos": 40,
+        "kills": 10
+      },
+      {
+        "nick": "Ju.lia",
+        "time": "Tubarões",
+        "minutos": 40,
+        "kills": 18
+      }
+    ]
+  },
+  "#48499": {
+    "id": "#48499",
+    "data": "2026-09-13",
+    "rodada": 4,
+    "times": [
+      "Falcões",
+      "Corvos"
+    ],
+    "vencedor": "Falcões",
+    "jogadores": [
+      {
+        "nick": "Falk",
+        "time": "Falcões",
+        "minutos": 31,
+        "kills": 23
+      },
+      {
+        "nick": "Kiwi",
+        "time": "Falcões",
+        "minutos": 31,
+        "kills": 17
+      },
+      {
+        "nick": "Dudu.pro",
+        "time": "Falcões",
+        "minutos": 31,
+        "kills": 20
+      },
+      {
+        "nick": "Marreta",
+        "time": "Falcões",
+        "minutos": 31,
+        "kills": 23
+      },
+      {
+        "nick": "Sol",
+        "time": "Falcões",
+        "minutos": 31,
+        "kills": 6
+      },
+      {
+        "nick": "Bia.gg",
+        "time": "Corvos",
+        "minutos": 31,
+        "kills": 12
+      },
+      {
+        "nick": "Corvinho",
+        "time": "Corvos",
+        "minutos": 31,
+        "kills": 15
+      },
+      {
+        "nick": "M4theus",
+        "time": "Corvos",
+        "minutos": 31,
+        "kills": 17
+      },
+      {
+        "nick": "Zeca",
+        "time": "Corvos",
+        "minutos": 31,
+        "kills": 17
+      },
+      {
+        "nick": "Nina.exe",
+        "time": "Corvos",
+        "minutos": 31,
+        "kills": 10
+      }
+    ]
+  },
+  "#43432": {
+    "id": "#43432",
+    "data": "2026-09-13",
+    "rodada": 4,
+    "times": [
+      "Panteras",
+      "Serpentes"
+    ],
+    "vencedor": "Panteras",
+    "jogadores": [
+      {
+        "nick": "Sombra",
+        "time": "Panteras",
+        "minutos": 35,
+        "kills": 8
+      },
+      {
+        "nick": "Pantera_X",
+        "time": "Panteras",
+        "minutos": 35,
+        "kills": 15
+      },
+      {
+        "nick": "Mel",
+        "time": "Panteras",
+        "minutos": 35,
+        "kills": 6
+      },
+      {
+        "nick": "Tchê",
+        "time": "Panteras",
+        "minutos": 35,
+        "kills": 22
+      },
+      {
+        "nick": "Rafa.K",
+        "time": "Panteras",
+        "minutos": 35,
+        "kills": 21
+      },
+      {
+        "nick": "Kaio_BR",
+        "time": "Serpentes",
+        "minutos": 35,
+        "kills": 8
+      },
+      {
+        "nick": "Naja",
+        "time": "Serpentes",
+        "minutos": 35,
+        "kills": 16
+      },
+      {
+        "nick": "Víbora",
+        "time": "Serpentes",
+        "minutos": 35,
+        "kills": 8
+      },
+      {
+        "nick": "Cobrinha",
+        "time": "Serpentes",
+        "minutos": 35,
+        "kills": 6
+      },
+      {
+        "nick": "Bote",
+        "time": "Serpentes",
+        "minutos": 35,
+        "kills": 10
+      }
+    ]
+  },
+  "#48450": {
+    "id": "#48450",
+    "data": "2026-09-19",
+    "rodada": 5,
+    "times": [
+      "Lobos",
+      "Corvos"
+    ],
+    "vencedor": "Lobos",
+    "jogadores": [
+      {
+        "nick": "xXSniperXx",
+        "time": "Lobos",
+        "minutos": 41,
+        "kills": 7
+      },
+      {
+        "nick": "Dona.Tank",
+        "time": "Lobos",
+        "minutos": 41,
+        "kills": 7
+      },
+      {
+        "nick": "Pipoca",
+        "time": "Lobos",
+        "minutos": 41,
+        "kills": 16
+      },
+      {
+        "nick": "R4mbo",
+        "time": "Lobos",
+        "minutos": 41,
+        "kills": 10
+      },
+      {
+        "nick": "Lua_",
+        "time": "Lobos",
+        "minutos": 41,
+        "kills": 20
+      },
+      {
+        "nick": "Bia.gg",
+        "time": "Corvos",
+        "minutos": 41,
+        "kills": 3
+      },
+      {
+        "nick": "Corvinho",
+        "time": "Corvos",
+        "minutos": 41,
+        "kills": 8
+      },
+      {
+        "nick": "M4theus",
+        "time": "Corvos",
+        "minutos": 41,
+        "kills": 6
+      },
+      {
+        "nick": "Zeca",
+        "time": "Corvos",
+        "minutos": 41,
+        "kills": 1
+      },
+      {
+        "nick": "Nina.exe",
+        "time": "Corvos",
+        "minutos": 41,
+        "kills": 10
+      }
+    ]
+  },
+  "#49528": {
+    "id": "#49528",
+    "data": "2026-09-19",
+    "rodada": 5,
+    "times": [
+      "Tubarões",
+      "Serpentes"
+    ],
+    "vencedor": "Tubarões",
+    "jogadores": [
+      {
+        "nick": "Tubarao01",
+        "time": "Tubarões",
+        "minutos": 34,
+        "kills": 17
+      },
+      {
+        "nick": "Hanzo_BR",
+        "time": "Tubarões",
+        "minutos": 34,
+        "kills": 17
+      },
+      {
+        "nick": "Gabs",
+        "time": "Tubarões",
+        "minutos": 34,
+        "kills": 22
+      },
+      {
+        "nick": "Ferrugem",
+        "time": "Tubarões",
+        "minutos": 34,
+        "kills": 16
+      },
+      {
+        "nick": "Ju.lia",
+        "time": "Tubarões",
+        "minutos": 34,
+        "kills": 14
+      },
+      {
+        "nick": "Kaio_BR",
+        "time": "Serpentes",
+        "minutos": 34,
+        "kills": 4
+      },
+      {
+        "nick": "Naja",
+        "time": "Serpentes",
+        "minutos": 34,
+        "kills": 8
+      },
+      {
+        "nick": "Víbora",
+        "time": "Serpentes",
+        "minutos": 34,
+        "kills": 3
+      },
+      {
+        "nick": "Cobrinha",
+        "time": "Serpentes",
+        "minutos": 34,
+        "kills": 18
+      },
+      {
+        "nick": "Bote",
+        "time": "Serpentes",
+        "minutos": 34,
+        "kills": 1
+      }
+    ]
+  },
+  "#40923": {
+    "id": "#40923",
+    "data": "2026-09-19",
+    "rodada": 5,
+    "times": [
+      "Falcões",
+      "Panteras"
+    ],
+    "vencedor": "Falcões",
+    "jogadores": [
+      {
+        "nick": "Falk",
+        "time": "Falcões",
+        "minutos": 38,
+        "kills": 14
+      },
+      {
+        "nick": "Kiwi",
+        "time": "Falcões",
+        "minutos": 38,
+        "kills": 11
+      },
+      {
+        "nick": "Dudu.pro",
+        "time": "Falcões",
+        "minutos": 38,
+        "kills": 16
+      },
+      {
+        "nick": "Marreta",
+        "time": "Falcões",
+        "minutos": 38,
+        "kills": 13
+      },
+      {
+        "nick": "Sol",
+        "time": "Falcões",
+        "minutos": 38,
+        "kills": 8
+      },
+      {
+        "nick": "Sombra",
+        "time": "Panteras",
+        "minutos": 38,
+        "kills": 7
+      },
+      {
+        "nick": "Pantera_X",
+        "time": "Panteras",
+        "minutos": 38,
+        "kills": 12
+      },
+      {
+        "nick": "Mel",
+        "time": "Panteras",
+        "minutos": 38,
+        "kills": 9
+      },
+      {
+        "nick": "Tchê",
+        "time": "Panteras",
+        "minutos": 38,
+        "kills": 10
+      },
+      {
+        "nick": "Rafa.K",
+        "time": "Panteras",
+        "minutos": 38,
+        "kills": 7
+      }
+    ]
+  }
+}

@@ -18,12 +18,18 @@ Projeto: desafio técnico da PowerRev (Desenvolvedora Full Stack Júnior). Siste
 
 ## Estado atual
 
-- Regras de negócio: decididas (D1 a D15 no `contexto.md`).
-- Stack: Node.js com TypeScript, Vue, MySQL; conferência em segundo plano por tabela de tarefas no MySQL.
-- Branch de trabalho: `feature/premiacao-torneios`, saindo de `develop` (a ser criada pela Adrielly).
-- Próximo passo: **Etapa 0 — Esqueleto**.
-
-## Pendências antes da etapa 0
-
-- Confirmar as bibliotecas propostas: Express, Knex, Zod, Vitest.
-- Definir quantas kills o site simulado registra para Falcões na partida `#40923` (com 63 ou mais, Falcões ultrapassa Tubarões no desempate).
+- Regras de negócio: decididas (D1 a D17 no `contexto.md`). D3 a D7 e D15 foram revisadas em 14/10/2026; D16 e D17 são novas. Na mesma data: D9 passou ao **maior resto** (regra única de arredondamento, inclusive entre times empatados) e todo item da aba Pendências exige "Ciente" ou correção, inclusive a D13.
+- `testes/gerar_cenarios.py` usa o maior resto. Sem flag, **reescreve as planilhas de `testes/planilhas/` e o `site-oficial.json`**: para regenerar só os esperados, use `--so-esperado`. Não há Python na máquina: rodar num contêiner `python:3.12-slim`, com `testes/planilhas` montado somente leitura.
+- D18 (leitura da planilha) decidida em 14/10/2026.
+- Stack: Node.js 22 com TypeScript, Vue, MySQL 8 (Docker); conferência em segundo plano por tabela de tarefas no MySQL.
+- Bibliotecas confirmadas: Express, Knex, Zod, Vitest. Monorepo com npm workspaces.
+- Branch de trabalho: `feature/premiacao-torneios` (já existe e é a branch atual), saindo de `develop`.
+- Etapa 0 (esqueleto): concluída em 14/10/2026. `docker compose up --build` sobe MySQL 8.4, API (3000), site simulado (4000) e web (5173); `npm test` roda os testes da API.
+- Etapa 1, parte 1 (leitura da planilha, `api/src/dominio/planilha.ts`): concluída.
+- Etapa 1, parte 2 (comparação planilha × site, `api/src/dominio/comparacao.ts`, regras na D19): concluída. Dados do site de setembro (D15) em `api/test/fixtures/site-setembro.json`.
+- Etapa 1, parte 3 (classificação, `api/src/dominio/classificacao.ts`): concluída. Critério sem "divisão igual", que é da parte 4.
+- Etapa 1, parte 4a (maior resto, `api/src/dominio/divisao.ts`): concluída. Soma dos pesos zero lança `SomaDosPesosZero`; a regra de negócio desse caso vem no 4c.
+- Etapa 1, parte 4b (prêmio por time, `api/src/dominio/premio.ts`): concluída. D20: percentuais somam 100 (`erroDosPercentuais`, para a criação do torneio reaproveitar) e o prêmio é dividido entre as posições pelo maior resto, com empate para a melhor colocada.
+- Etapa 1, parte 4c (rateio entre jogadores, `api/src/dominio/rateio.ts`): pronta, aguardando aprovação. D21: no modo kills, 0 kills recebe R$ 0; time sem kills é dividido pelos minutos. **Com ela, a etapa 1 está completa.**
+- Forma de trabalho: em cada pedaço, escrever os testes, **rodar e mostrar que falham**, e só depois implementar.
+- Próximo passo: **Etapa 2 — Site oficial simulado**, depois da aprovação da Adrielly.

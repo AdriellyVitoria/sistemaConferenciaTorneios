@@ -1,0 +1,17 @@
+{
+  "name": "sistema-conferencia-torneios",
+  "private": true,
+  "description": "Conferência de partidas e premiação de torneios da Maria Clara (desafio PowerRev)",
+  "workspaces": [
+    "api",
+    "web",
+    "site-oficial-simulado"
+  ],
+  "scripts": {
+    "test": "npm run test --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

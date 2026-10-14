@@ -166,8 +166,9 @@ erDiagram
     }
     pendencias {
         int id PK
-        int partida_id FK
-        enum tipo "divergencia | duplicata | nick_diferente | jogador_dois_times | nao_encontrada | times_diferentes"
+        int torneio_id FK
+        int partida_id FK "nulo para itens do torneio todo (dois times, nome de time); ver D19"
+        enum tipo "nao_encontrada | times_diferentes | sem_dados_planilha | duplicata | nick_diferente | divergencia | jogador_so_na_planilha | jogador_so_no_site | time_escrito_diferente | jogador_dois_times"
         varchar nick "quando o item é de um jogador"
         varchar campo "minutos | kills | vencedor | jogador (para divergencia)"
         varchar valor_planilha

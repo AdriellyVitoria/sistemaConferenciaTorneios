@@ -25,5 +25,6 @@ Projeto: desafio técnico da PowerRev (Desenvolvedora Full Stack Júnior). Siste
 - Bibliotecas confirmadas: Express, Knex, Zod, Vitest. Monorepo com npm workspaces.
 - Branch de trabalho: `feature/premiacao-torneios` (já existe e é a branch atual), saindo de `develop`.
 - Etapa 0 (esqueleto): concluída em 14/10/2026. `docker compose up --build` sobe MySQL 8.4, API (3000), site simulado (4000) e web (5173); `npm test` roda os testes da API.
-- Etapa 1, parte 1 (leitura da planilha, `api/src/dominio/planilha.ts`): pronta, aguardando aprovação.
-- Próximo passo: **Etapa 1, parte 2** (comparação planilha × site), depois da aprovação da Adrielly.
+- Etapa 1, parte 1 (leitura da planilha, `api/src/dominio/planilha.ts`): concluída.
+- Etapa 1, parte 2 (comparação planilha × site, `api/src/dominio/comparacao.ts`, regras na D19): pronta, aguardando aprovação. Dados do site de setembro (D15) em `api/test/fixtures/site-setembro.json`.
+- Próximo passo: **Etapa 1, parte 3** (maior resto, classificação e divisão do prêmio), depois da aprovação da Adrielly.

@@ -5,6 +5,8 @@
  * Só valida o formato. Duplicatas, nicks parecidos e a comparação com o site são da parte 2.
  */
 
+import { normalizarNome } from './texto';
+
 export interface LinhaPlanilha {
   /** Número da linha como a Maria vê no Excel (o cabeçalho é a linha 1). */
   numeroLinha: number;
@@ -148,13 +150,7 @@ function separarRegistros(texto: string, separador: string): string[][] {
 
 /** Compara nomes de coluna sem acento, sem maiúsculas, sem espaços extras e sem o "?" final. */
 function normalizarNomeColuna(nome: string): string {
-  return nome
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/\s+/g, ' ')
-    .trim()
-    .replace(/\s*\?$/, '');
+  return normalizarNome(nome).replace(/\?$/, '').trimEnd();
 }
 
 function lerCabecalho(

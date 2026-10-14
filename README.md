@@ -16,7 +16,7 @@ docker compose up --build
 |---|---|
 | Tela (Vue) | http://localhost:5173 |
 | API | http://localhost:3000/saude |
-| Site oficial simulado | http://localhost:4000/saude |
+| Site oficial simulado | http://localhost:4000/partidas/40923 (ID só com os números) |
 | MySQL | `localhost:3307` (usuário `torneios`, senha `torneios`) |
 
 A página inicial mostra se a API e o banco estão no ar. A API aplica as migrations do banco sozinha ao subir.
@@ -29,7 +29,7 @@ Pré-requisito: Node 22.
 
 ```bash
 npm install
-npm test
+npm test        # testes da API e do site oficial simulado
 ```
 
 ## Desenvolvimento sem Docker (opcional)

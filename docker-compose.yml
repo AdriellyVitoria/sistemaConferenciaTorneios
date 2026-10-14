@@ -45,6 +45,11 @@ services:
       dockerfile: site-oficial-simulado/Dockerfile
     environment:
       SITE_PORTA: 4000
+      SITE_ARQUIVOS: /dados/site-oficial.json,/dados/site-setembro.json
+    volumes:
+      # os dados do site são só lidos (:ro); o simulador não consegue alterá-los
+      - ./testes/site-oficial.json:/dados/site-oficial.json:ro
+      - ./api/test/fixtures/site-setembro.json:/dados/site-setembro.json:ro
     ports:
       - "4000:4000"
 

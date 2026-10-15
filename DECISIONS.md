@@ -878,9 +878,22 @@ O code review de 15/10/2026 está em `code-review.md`. As correções entram em 
 | **`ErroDeRegra`** no domínio, só para as frases escritas para a Maria (time premiado sem minutos nem kills; percentuais que não somam 100; nenhum time). O cálculo captura e a rota responde **409 com a frase** | Responder todo erro do cálculo com 409 | Proteções de programação (valor que não é inteiro, nome repetido) são bug: o 500 é a resposta certa para elas, e o teste confere que continuam assim |
 | O cálculo monta o resultado **antes** de gravar qualquer coisa: com um `ErroDeRegra`, nada fica pela metade | Desfazer o que foi gravado | Não há o que desfazer; a ordem já garante |
 
-**A tela não muda:** no 409 do cálculo, ela já recarrega e mostra a frase da API num aviso âmbar (6d).
+**A tela não muda (R1b):** no 409 do cálculo, ela já recarrega e mostra a frase da API num aviso âmbar (6d).
 
 **Os testes:** cada regra de coerência com o seu caso, incluindo o vencedor `"lobos"`; os limites; as 148 partidas dos dados do simulador, que continuam todas válidas; de ponta a ponta, o job deixa a `#48450` incoerente "aguardando o site", com o motivo e a próxima tentativa, e confere as outras 14; e o cálculo de setembro com os Lobos sem minutos nem kills responde 409 com a frase, sem gravar nada (antes, 500).
+
+### R1c: ajustes pequenos (itens 10, 15 e 18), 15/10/2026
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **CSV:** célula que começa com tab (`\t`) ou `\r` também ganha o apóstrofo, como `=`, `+`, `-` e `@` (lista da OWASP) | Só os quatro sinais | O Excel também interpreta como fórmula o que vem depois de um tab ou `\r` no início da célula |
+| **`calcularEGravar` saiu do serviço** e virou um auxiliar de teste (`api/test/integracao/calcular-sem-trava.ts`) | Fazê-la chamar `calcularTorneio` | Os testes do 6a usam a função para conferir a montagem e a gravação em torneios que nem sempre estão prontos; passar pela trava mudaria o que eles provam. No serviço, exportada, ela calculava sem trava e sem conferir pendências: alguém poderia chamá-la de uma rota |
+| **`app.disable('x-powered-by')`** | `helmet` | Uma linha resolve o que o review apontou; `helmet` traria uma lista de cabeçalhos para uma API que não serve páginas |
+
+**Status que vieram do rascunho do banco e nunca são gravados** (ficam no `enum`, sem uso):
+- **Torneio:** `conferindo` e `pronto`. O torneio passa de `criado` a `importado` e depois a `calculado`. Se ele "pode calcular" é calculado na hora (5c), e não gravado.
+- **Partida (`status_conferencia`):** `times_diferentes`. "Times diferentes" é um **tipo de pendência**, que sai da comparação na hora (D19); a partida fica `conferida`. O serviço de pendências só lê esse valor, por segurança.
+- **Por que não foram removidos:** tirar um valor de um `enum` exige uma migration que altera a coluna, e o ganho é só de limpeza. Fica em "Próximos passos".
 
 ---
 
@@ -910,6 +923,7 @@ Decididos com a Adrielly em 15/10/2026 (no fim da etapa 6, nas etapas 7a e 7d e 
 |---|---|---|
 | **Aba "Aguardando o site" igual ao protótipo 1c** | O quadro "O site oficial está instável agora" com o "Tentar agora" dentro da aba; um estado por partida ("Consultando o site", "Na fila", "O site falhou · 3 tentativas", "Erro interno, não é o site") e a espera ao lado da próxima tentativa ("(espera de 5 min)") | A aba do 4c já mostra o motivo, as tentativas e "última às X, próxima às Y" (D10), que é o que a Maria precisa para não vigiar o site. O que falta é polimento visual, sem regra nova |
 | **Relógio único na API** | A importação passa a gravar a próxima tentativa com o "agora" da API, em vez do `NOW()` do MySQL | Hoje a importação usa o relógio do MySQL, e o job e a correção de ID usam o do Node. No Docker os dois são o mesmo relógio (a mesma máquina virtual), então não há problema em produção; os testes já usam um relógio só. Um relógio só também no código seria mais simples de explicar |
+| **Limpar os status sem uso** | Tirar `conferindo` e `pronto` do status do torneio e `times_diferentes` do `status_conferencia` da partida (R1c) | Vieram do rascunho do banco e nunca são gravados; removê-los do `enum` exige uma migration que altera as colunas, e o ganho é só de limpeza |
 | **PDF do resultado** | Pela impressão do navegador ("Salvar como PDF"), com um CSS de impressão na tela do resultado: sem cabeçalho do sistema, sem filtro e sem botões, com as tabelas inteiras | O CSV já permite pagar (6c); o PDF é para guardar ou enviar. Pela impressão do navegador, não precisa de biblioteca nova nem de rota na API |
 | **"Jogou X de Y partidas" no resultado** | O cálculo passa a gravar, para cada jogador, em quantas partidas jogou por aquele time e quantas o time jogou; a tela mostra isso no lugar de deduzir "Reserva" pelos minutos (6e) | Exige uma coluna nova em `premios_jogador` e uma mudança no cálculo. Deduzir pelos minutos marcaria errado quem só saiu mais cedo numa partida (Bia.gg) |
 | **Controle de "Pago" por jogador** | Marcar, na tela do resultado, quem já recebeu, com a data; o resultado continua congelado, só o pagamento muda | O sistema não controla pagamento (D12). Hoje a Maria paga com o CSV no Excel, que já tem a coluna "Pago" vazia para ela marcar (M1); o controle dentro do sistema é uma comodidade, não uma regra do desafio |

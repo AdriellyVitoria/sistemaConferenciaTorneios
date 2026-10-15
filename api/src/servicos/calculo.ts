@@ -82,13 +82,3 @@ export async function calcularTorneio(bd: Knex, torneioId: number, agora = new D
     return { tipo: 'calculado', resultado: (await buscarResultado(trx, torneioId))! } as const;
   });
 }
-
-/** Calcula e grava o resultado, numa transação: ou grava tudo, ou nada. */
-export async function calcularEGravar(bd: Knex, torneioId: number, agora = new Date()): Promise<Resultado | null> {
-  return bd.transaction(async (trx) => {
-    const montado = await montarResultadoDoTorneio(trx, torneioId);
-    if (!montado) return null;
-    await gravarResultado(trx, torneioId, montado.config, montado.resultado, agora);
-    return montado.resultado;
-  });
-}

@@ -10,7 +10,7 @@ import { executarRodada } from '../../src/conferencia/job';
 import { criarClienteSiteOficial, type SiteOficial } from '../../src/conferencia/site-oficial';
 import type { ModoDivisao } from '../../src/dominio/rateio';
 import { buscarResultado } from '../../src/repositorios/resultado';
-import { calcularEGravar } from '../../src/servicos/calculo';
+import { calcularEGravar } from './calcular-sem-trava';
 import { corrigirId } from '../../src/servicos/partidas';
 import { criarTorneio, importarPlanilha } from '../../src/servicos/torneios';
 import { conectarAoBancoDeTeste, esvaziarTabelas, relogioDoBanco } from './banco-de-teste';

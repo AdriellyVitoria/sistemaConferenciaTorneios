@@ -18,6 +18,8 @@ export interface Dependencias {
 // Monta o app sem abrir porta nem conexão: o servidor e os testes injetam o que precisam.
 export function criarApp({ bd, verificarBanco, agora = () => new Date() }: Dependencias) {
   const app = express();
+  // não anuncia o Express nem a versão a quem chamar a API (code review, item 18)
+  app.disable('x-powered-by');
   app.use(express.json());
   app.use(rotaSaude(verificarBanco));
   app.use(rotasTorneios(bd, agora));

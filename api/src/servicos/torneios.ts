@@ -9,6 +9,7 @@ import { lerPlanilha, type ErroLeitura } from '../dominio/planilha';
 import { erroDosPercentuais } from '../dominio/premio';
 import { segundosParaTentarAgora } from '../dominio/tentar-agora';
 import { anteciparAguardando, contarAguardando } from '../repositorios/conferencia';
+import { apagarCientesDoTorneio } from '../repositorios/pendencias';
 import { inserirLinhas } from '../repositorios/linhas-planilha';
 import { apagarPartidasDoTorneio, inserirPartidas, listarPartidas, type Partida } from '../repositorios/partidas';
 import {
@@ -111,6 +112,8 @@ export async function importarPlanilha(
     if (torneio.status === 'calculado') return { tipo: 'torneio_calculado' } as const;
 
     const substituiuPlanilhaAnterior = (await apagarPartidasDoTorneio(trx, torneioId)) > 0;
+    // a conferência recomeça do zero, e os Cientes dados na planilha anterior também (D22)
+    await apagarCientesDoTorneio(trx, torneioId);
     const partidaIds = await inserirPartidas(trx, torneioId, montagem.partidas);
     await inserirLinhas(trx, torneioId, leitura.linhas, partidaIds);
     await registrarImportacao(trx, torneioId, { arquivo, convertidoDeWindows1252 });

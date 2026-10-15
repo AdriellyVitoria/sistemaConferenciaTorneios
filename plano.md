@@ -304,6 +304,8 @@ Em três pedaços. **4a:** as peças da consulta, sem o job: cliente HTTP do sit
 **Pronto quando:** com o site derrubado no meio, nada se perde; ao religar, tudo é conferido; duas execuções do job nunca pegam a mesma partida.
 
 ### Etapa 5 — Revisão das pendências
+**5a (API):** listar pendências (bloqueantes e não bloqueantes) e Ciente, desfazer e "Ciente de todas". As pendências são calculadas na hora pela comparação; só os Cientes são gravados (tabela `cientes`, no lugar da tabela `pendencias` do rascunho do banco), pela chave de cada pendência. **5b:** correção do ID. Depois, a tela.
+
 - Tela com três abas (D17): **Conferidas**, **Pendências** e **Aguardando o site**.
 - Divergência de minutos, kills, vencedor ou jogadores, duplicata, nick com caixa diferente e jogador em dois times: lado a lado, planilha × site, destacado em cor, com **"Ciente"** e **"Ciente de todas"** (D4a, D6, D7, D13).
 - ID não encontrado ou de partida de outros times: campo para **corrigir o ID**, que consulta de novo só aquela partida (D4b, D5, D16). Nada mais é editável.

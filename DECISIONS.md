@@ -285,6 +285,29 @@ O cartão "Prêmios calculados" está na tela, com o que a API já tem (status e
 
 ---
 
+## Pendências e Ciente (etapa 5a), 15/10/2026
+
+Só API, sem tela.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **As pendências não são gravadas:** saem sempre da comparação atual (`compararComSite`, D19) entre `linhas_planilha` e o que o job gravou do site (`partidas` + `participacoes`). **Só o Ciente é gravado** (tabela `cientes`, migration 008), pela chave da pendência | Tabela `pendencias` gerada na conferência, como no rascunho do banco | Uma cópia gravada fica desatualizada quando algo muda (correção de ID, nova consulta) e precisaria ser regenerada, levando os Cientes junto sem errar. Calcular na hora é sempre o estado atual; para 15 a 28 partidas, custa milissegundos |
+| **O Ciente vale para a pendência exata**, identificada por uma **chave**: tipo, partida, jogador, campo e os dois valores (planilha e site). Se algum valor muda, a chave muda e o Ciente antigo não se aplica | Ciente por partida, ou por tipo e jogador | Um Ciente dado a "18 × 8 kills" não pode valer para "18 × 9": a Maria não viu esse valor |
+| Itens do torneio todo (jogador em dois times, nome de time) usam a **lista de partidas**, ordenada, no lugar da partida | Deixar a partida vazia na chave | Se o jogador aparecer em mais uma partida, é outra situação: o Ciente precisa ser dado de novo |
+| **A mensagem fica fora da chave** | Usar a mensagem | Reescrever uma frase no código apagaria os Cientes já dados |
+| A chave é o **SHA-256** dos campos em JSON, com a **versão do formato** na frente | Os campos em texto, separados por um caractere | O JSON não confunde campos vizinhos ("a\|b" + "c" ≠ "a" + "b\|c"); o tamanho fixo (64) cabe num índice único; a versão permite mudar o formato sem confundir chaves antigas |
+| **Bloqueantes** (não encontrada, times diferentes) não aceitam Ciente: **409**; se resolvem corrigindo o ID (5b). As **não bloqueantes** aceitam Ciente, mas **também seguram o cálculo** enquanto não o recebem (D17) | — | "Não bloqueante" quer dizer "não precisa de correção", e não "não segura o cálculo" |
+| Marcar o Ciente de novo **não muda nada** (vale a hora do primeiro); desfazer o que não tem Ciente também não é erro | Responder erro | Dois cliques, ou duas abas, não podem dar erro na tela |
+| Ciente numa chave que **não é de nenhuma pendência atual**: **404** "os dados mudaram, atualize a lista" | Aceitar e gravar | Seria um Ciente dado a algo que a Maria não está vendo |
+| Ciente, desfazer e Ciente de todas **travam o torneio** (`SELECT ... FOR UPDATE`) | Sem trava | Um Ciente não pode correr junto com uma planilha nova (D22) nem com o cálculo |
+| **Planilha nova (D22) apaga os Cientes** do torneio | Manter os que coincidirem | A D22 diz que a conferência recomeça do zero; um Ciente da planilha antiga não é um Ciente da nova |
+| Os **dois times do site** são os times dos jogadores em `participacoes`, na ordem em que aparecem | Uma migration para guardar os times da resposta do site | No formato do site, todo jogador é de um dos dois times da partida; dá o mesmo resultado sem mais uma coluna |
+| As linhas são comparadas com o **ID atual** da partida (pela chave `partida_id`) | O ID digitado em cada linha | Quando a Maria corrigir o ID (5b), as linhas vão junto com a partida |
+
+**Comportamento esperado:** um Ciente cuja pendência mudou fica guardado, sem efeito. Se os valores voltarem exatamente aos de antes, ele volta a valer, porque é a mesma pendência que a Maria já viu.
+
+---
+
 ## Stack e ferramentas
 
 | Decisão | Alternativa descartada | Por quê |

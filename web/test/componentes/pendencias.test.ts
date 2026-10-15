@@ -26,6 +26,8 @@ async function abrirPendencias(pagina: VueWrapper) {
 }
 /** O cartão de uma pendência, pelo texto do selo. */
 const cartao = (pagina: VueWrapper, selo: string) => pagina.findAll('article.pendencia').find((c) => c.find('.selo').text() === selo)!;
+/** O diálogo do Ciente de todas, pelo título: a página tem outros (substituir planilha, calcular). */
+const dialogoDoCienteDeTodas = (pagina: VueWrapper) => pagina.findAll('dialog').find((d) => d.find('h2').text().startsWith('Marcar Ciente'))!;
 const botao = (raiz: VueWrapper | ReturnType<VueWrapper['find']>, texto: string) => raiz.findAll('button').find((b) => b.text() === texto);
 
 describe('abas da página do torneio (D17)', () => {
@@ -123,7 +125,7 @@ describe('"Ciente de todas"', () => {
 
     await botao(pagina, 'Ciente de todas')!.trigger('click');
     await flushPromises();
-    const dialogo = pagina.find('dialog');
+    const dialogo = dialogoDoCienteDeTodas(pagina);
     expect(dialogo.attributes('open')).toBeDefined();
     expect(dialogo.text()).toContain('Marcar Ciente em 2 pendências?');
     expect(dialogo.text()).toContain('A pendência que pede correção do ID não entra.');
@@ -141,8 +143,8 @@ describe('"Ciente de todas"', () => {
     await abrirPendencias(pagina);
     await botao(pagina, 'Ciente de todas')!.trigger('click');
     await flushPromises();
-    expect(pagina.find('dialog').text()).toContain('Marcar Ciente em 3 pendências?');
-    await botao(pagina.find('dialog'), 'Cancelar')!.trigger('click');
+    expect(dialogoDoCienteDeTodas(pagina).text()).toContain('Marcar Ciente em 3 pendências?');
+    await botao(dialogoDoCienteDeTodas(pagina), 'Cancelar')!.trigger('click');
     await flushPromises();
     expect(api.estado.pedidos).not.toContain('POST /api/torneios/1/pendencias/ciente-de-todas');
   });

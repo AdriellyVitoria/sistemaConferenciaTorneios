@@ -40,9 +40,11 @@ export interface OpcoesApiFalsa {
   aguardando?: number;
   /** Sem nenhuma pendência (tudo bateu com o site). */
   semPendencias?: boolean;
+  /** O cálculo responde 409: algo mudou entre a tela e o clique. */
+  recusarCalculo?: boolean;
 }
 
-export function criarApiFalsa({ calculado = false, semPlanilha = false, aguardando = 0, semPendencias = false }: OpcoesApiFalsa = {}) {
+export function criarApiFalsa({ calculado = false, semPlanilha = false, aguardando = 0, semPendencias = false, recusarCalculo = false }: OpcoesApiFalsa = {}) {
   const pendencias: Pendencia[] = [
     {
       chave: chave('a'), tipo: 'nao_encontrada', idPartida: '#52214', valorPlanilha: '#52214', valorSite: null, acao: 'corrigir_id',
@@ -166,6 +168,19 @@ export function criarApiFalsa({ calculado = false, semPlanilha = false, aguardan
       for (let i = pendencias.length - 1; i >= 0; i--) if (pendencias[i].idPartida === p.idPartida) pendencias.splice(i, 1);
       Object.assign(p, { idPartida: novo, statusConferencia: 'aguardando', tentativas: 0, vencedor: null, ultimaTentativaEm: null, proximaTentativaEm: '2026-10-15T12:31:00.000Z' });
       return json(200, p);
+    }
+
+    // cálculo (6b): 409 se mudou algo; senão, o torneio fica calculado
+    if (metodo === 'POST' && caminho === '/api/torneios/1/calculo') {
+      if (estado.calculado) return json(409, { erro: 'O torneio já foi calculado.' });
+      if (recusarCalculo) {
+        // entre a tela e o clique, um Ciente foi desfeito
+        const p = pendencias.find((x) => !x.bloqueante && x.ciente);
+        if (p) Object.assign(p, { ciente: false, cienteEm: null });
+        return json(409, { erro: 'Ainda não dá para calcular: 1 sem Ciente.', calculo: torneio().calculo });
+      }
+      estado.calculado = true;
+      return json(200, { calculadoEm: '2026-10-15T13:00:00.000Z', times: [], jogadores: [] });
     }
 
     return json(404, { erro: `rota falsa não encontrada: ${metodo} ${caminho}` });

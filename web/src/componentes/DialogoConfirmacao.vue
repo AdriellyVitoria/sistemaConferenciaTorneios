@@ -1,35 +1,48 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { nextTick, ref, useId, watch } from 'vue';
 
 /**
  * Pergunta antes de uma ação que não se desfaz (substituir a planilha, calcular).
- * Usa o <dialog> do navegador: prende o foco dentro dele e fecha com Esc.
+ * Usa o <dialog> do navegador: prende o foco dentro dele e fecha com Esc. O foco começa no
+ * botão de cancelar, a opção segura.
  */
-const props = defineProps<{
-  aberto: boolean;
-  titulo: string;
-  textoConfirmar: string;
-  perigo?: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    aberto: boolean;
+    titulo: string;
+    textoConfirmar: string;
+    textoCancelar?: string;
+    perigo?: boolean;
+  }>(),
+  { textoCancelar: 'Cancelar' },
+);
 const emit = defineEmits<{ confirmar: []; cancelar: [] }>();
 
 const dialogo = ref<HTMLDialogElement | null>(null);
+const cancelar = ref<HTMLButtonElement | null>(null);
+// um id só deste diálogo: a página do torneio tem vários, e o rótulo precisa apontar para o certo
+const idDoTitulo = `titulo-dialogo-${useId()}`;
 
 watch(
   () => props.aberto,
-  (aberto) => {
-    if (aberto && !dialogo.value?.open) dialogo.value?.showModal();
+  async (aberto) => {
+    if (aberto && !dialogo.value?.open) {
+      dialogo.value?.showModal();
+      // o autofocus nem sempre é respeitado: o foco vai explicitamente para a opção segura
+      await nextTick();
+      cancelar.value?.focus();
+    }
     if (!aberto && dialogo.value?.open) dialogo.value.close();
   },
 );
 </script>
 
 <template>
-  <dialog ref="dialogo" class="dialogo" aria-labelledby="titulo-dialogo" @cancel.prevent="emit('cancelar')">
-    <h2 id="titulo-dialogo">{{ titulo }}</h2>
+  <dialog ref="dialogo" class="dialogo" :aria-labelledby="idDoTitulo" @cancel.prevent="emit('cancelar')">
+    <h2 :id="idDoTitulo">{{ titulo }}</h2>
     <div class="corpo"><slot /></div>
     <div class="acoes">
-      <button type="button" class="botao secundario" autofocus @click="emit('cancelar')">Cancelar</button>
+      <button ref="cancelar" type="button" class="botao secundario" autofocus @click="emit('cancelar')">{{ textoCancelar }}</button>
       <button type="button" class="botao" :class="{ perigo }" @click="emit('confirmar')">{{ textoConfirmar }}</button>
     </div>
   </dialog>

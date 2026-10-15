@@ -1,30 +1,53 @@
 <script setup lang="ts">
 /**
  * "Pronto para calcular" (5e), no topo da página do torneio: diz o que falta, com as contagens, e
- * cada item leva para a aba onde se resolve. O botão "Calcular" é da etapa 6.
+ * cada item leva para a aba onde se resolve. Tem o botão "Calcular prêmios" (6d), habilitado só
+ * quando a API diz que pode; quem pergunta antes de calcular é a página, com o modal (D22).
+ * Depois do cálculo, mostra a data e o link "Ver resultado".
  */
-import { computed } from 'vue';
+import { computed, useId } from 'vue';
+import { RouterLink } from 'vue-router';
 import { avisoDoCalculo, type AbaDoTorneio } from '../dominio/calculo';
 import type { SituacaoDoCalculo } from '../servicos/api';
 
-const props = defineProps<{ calculo: SituacaoDoCalculo }>();
-const emit = defineEmits<{ irPara: [aba: AbaDoTorneio] }>();
+const props = defineProps<{
+  torneioId: number;
+  calculo: SituacaoDoCalculo;
+  /** Pedido de cálculo em andamento: o botão fica desabilitado (sem clique duplo). */
+  calculando: boolean;
+}>();
+const emit = defineEmits<{ irPara: [aba: AbaDoTorneio]; calcular: [] }>();
 
 const aviso = computed(() => avisoDoCalculo(props.calculo));
 const TOM: Record<string, string> = { sem_planilha: 'neutro', faltando: 'alerta', pronto: 'sucesso', calculado: 'sucesso' };
+const idDoTexto = `situacao-calculo-${useId()}`;
 </script>
 
 <template>
   <section class="aviso-calculo" :class="TOM[aviso.estado]" aria-label="Situação do cálculo" aria-live="polite">
-    <svg v-if="aviso.estado === 'pronto' || aviso.estado === 'calculado'" class="icone" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M20 6 9 17l-5-5" />
-    </svg>
-    <strong>{{ aviso.texto }}</strong>
-    <ul v-if="aviso.itens.length" class="itens">
-      <li v-for="item in aviso.itens" :key="item.texto">
-        <button type="button" class="item" @click="emit('irPara', item.aba)">{{ item.texto }}</button>
-      </li>
-    </ul>
+    <div :id="idDoTexto" class="texto">
+      <svg v-if="aviso.estado === 'pronto' || aviso.estado === 'calculado'" class="icone" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M20 6 9 17l-5-5" />
+      </svg>
+      <strong>{{ aviso.texto }}</strong>
+      <ul v-if="aviso.itens.length" class="itens">
+        <li v-for="item in aviso.itens" :key="item.texto">
+          <button type="button" class="item" @click="emit('irPara', item.aba)">{{ item.texto }}</button>
+        </li>
+      </ul>
+    </div>
+
+    <RouterLink v-if="aviso.estado === 'calculado'" :to="{ name: 'resultado', params: { id: torneioId } }" class="botao">Ver resultado</RouterLink>
+    <button
+      v-else
+      type="button"
+      class="botao"
+      :disabled="!calculo.podeCalcular || calculando"
+      :aria-describedby="idDoTexto"
+      @click="emit('calcular')"
+    >
+      Calcular prêmios
+    </button>
   </section>
 </template>
 
@@ -33,7 +56,8 @@ const TOM: Record<string, string> = { sem_planilha: 'neutro', faltando: 'alerta'
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--espaco-2) var(--espaco-3);
+  justify-content: space-between;
+  gap: var(--espaco-3);
   border-radius: var(--raio-grande);
   padding: var(--espaco-3) var(--espaco-5);
   border: 1px solid transparent;
@@ -50,6 +74,13 @@ const TOM: Record<string, string> = { sem_planilha: 'neutro', faltando: 'alerta'
 .aviso-calculo.sucesso {
   background: var(--sucesso-fundo);
   color: var(--sucesso);
+}
+.texto {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-2) var(--espaco-3);
+  min-width: 0;
 }
 .icone {
   flex-shrink: 0;
@@ -84,6 +115,9 @@ const TOM: Record<string, string> = { sem_planilha: 'neutro', faltando: 'alerta'
 @media (max-width: 640px) {
   .aviso-calculo {
     padding: var(--espaco-3) var(--espaco-4);
+  }
+  .aviso-calculo > .botao {
+    width: 100%;
   }
 }
 </style>

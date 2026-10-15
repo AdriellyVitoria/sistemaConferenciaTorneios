@@ -51,4 +51,11 @@ Projeto: desafio técnico da PowerRev (Desenvolvedora Full Stack Júnior). Siste
 - Etapa 5, pedaço 5d (tela das pendências, só web): concluído.
 - Etapa 5, pedaço 5e (correção do ID e "pronto para calcular" na tela, só web): concluído.
 - Etapa 5, pedaço 5f (aba Conferidas): concluído. Etapas 4 e 5 completas e marcadas no checklist do `plano.md`.
-- Próximo passo: **Etapa 6** (cálculo e resultado).
+- Regras de negócio: D24 (menos times do que posições premiadas) decidida em 15/10/2026.
+- `testes/gerar_cenarios.py --so-esperado` agora gera também os gabaritos de 02, 03, 07 e novembro.
+- Etapa 6, pedaço 6a (calcular e gravar o resultado, só API, sem rota): concluído.
+- Etapa 6, pedaço 6b (rota de cálculo, só API): concluído.
+- Etapa 6, pedaço 6c (ler o resultado e baixar o CSV, só API): concluído.
+- Etapa 6, pedaço 6d (botão Calcular com confirmação, só web): concluído.
+- Etapa 6, pedaço 6e (tela do resultado, só web): pronto, aguardando aprovação. Decisões no `DECISIONS.md`. Com ele, a etapa 6 fica completa (marcar no checklist quando a Adrielly aprovar).
+- Próximo passo: **Etapa 7** (página pública e links por time premiado), depois da aprovação do 6e.

@@ -431,6 +431,171 @@ Web, com **uma mudança pequena na API, decidida com a Adrielly:** o `GET /torne
 
 ---
 
+## Calcular e gravar o resultado (etapa 6a), 15/10/2026
+
+Só API, sem rota. Migration **009**, com três tabelas: `calculos`, `premios_time` e `premios_jogador`.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| O cálculo usa os **dados oficiais da comparação atual** (`compararAtual`), a mesma de onde saem as pendências: só partidas encontradas no site e com os times certos, com os nicks e os números do site (D3, D7). A duplicata da planilha não existe aqui (D6) | Ler as participações direto, sem passar pela comparação | Poderia entrar no prêmio uma partida que a Maria nem viu (times diferentes). Com uma fonte só, o que ela revisou é exatamente o que é pago |
+| Uma **função pura** (`montarResultado`) junta as peças da etapa 1: classificação (D2), prêmio por time (D20) e rateio (D1, D8, D9, D13, D21), e acrescenta os **minutos e as kills de cada jogador por time** | Repetir a conta no serviço | A regra que mexe com dinheiro continua no domínio, testável sem banco |
+| Tabela **`calculos`**, uma por torneio, com a **data do cálculo e a configuração usada** (prêmio, percentuais, modo) | Só `calculado_em` no torneio, como no rascunho do banco | É a foto do momento: o que foi pago se explica por ela, mesmo se alguém mudar o torneio no banco. O status e a trava do torneio ficam para o 6b, na mesma transação |
+| `premios_time`: **todos os times**, com posição, vitórias, kills, prêmio (0 para os sem prêmio), critério e centavo, e a **ordem** da classificação | Só os premiados | A página pública (D11) mostra a classificação inteira |
+| `premios_jogador`: **só os jogadores dos times premiados**, uma linha por time em que jogou (D13), com minutos, kills, a base usada (D1, D21), o valor, o centavo (D9) e a explicação | Todos os jogadores com R$ 0 | É o que o rateio do domínio devolve e o que os links por time mostram; os esperados de `testes/` também só listam os premiados |
+| Gravar de novo **substitui** o cálculo anterior do torneio | Recusar | Quem impede um segundo cálculo é a trava do 6b; aqui a função faz uma coisa só |
+| O serviço tem **duas peças**: montar o resultado e gravar, para o 6b chamar dentro da sua transação, com o torneio travado | Uma função que faz tudo | O 6b precisa conferir "pode calcular" e travar o torneio na mesma transação |
+
+**Testado no caminho de verdade:** importar a planilha → o job confere com o site simulado → calcular e gravar → ler do banco.
+- **Centavo por centavo**, contra `testes/esperado/` (classificação e jogadores): 01-limpa, 04-empate-em-kills, 05-oito-times, outubro e setembro, este com Tuca em R$ 65,90 e Falcões e Tubarões em 3º com R$ 1.000 cada.
+- **As somas fecham** (todos os jogadores = prêmio total; cada time = o valor do time) em todos os cenários que dá para calcular: 01, 02 (depois de corrigir o ID), 03, 04, 05, 07, outubro, novembro e setembro.
+- **Modo kills:** os valores dos Lobos da seção 8 do `contexto.md` batem.
+
+O que ficou de fora dos testes:
+- **06a** é recusada na importação.
+- **06b** só testa o separador: os IDs dela não existem no site simulado, então não há o que calcular.
+- **02, 03, 07 e novembro** não têm arquivo em `testes/esperado/`. Gerar esses arquivos (`gerar_cenarios.py --so-esperado`) é uma melhoria para depois.
+
+**Decidido no 6b (D24):** com menos times do que posições premiadas, o valor das posições sem time é dividido igualmente entre todos os times; antes, o domínio lançava "Há mais posições premiadas do que times".
+
+---
+
+## Rota de cálculo (etapa 6b), 15/10/2026
+
+Só API. `POST /torneios/:id/calculo`. Sem migration nova: o resultado usa as tabelas do 6a.
+
+### D24 (regra de negócio nova, decidida pela Adrielly): menos times do que posições premiadas
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| O valor das **posições sem time é dividido igualmente entre todos os times**, pelo maior resto, com o **centavo primeiro ao mais bem colocado**. R$ 10.000 em 50/30/20 com 2 times: 1º R$ 6.000, 2º R$ 4.000 | Dar tudo ao 1º colocado; ou recusar o cálculo (o domínio lançava erro até o 6a) | **Nenhum dinheiro fica sem dono.** Dar tudo ao 1º premiaria demais uma posição; recusar travaria um torneio já pronto, sem como mudar os percentuais depois da criação |
+
+### A rota
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **Uma transação**, que **trava o torneio primeiro** (`SELECT ... FOR UPDATE`), na mesma ordem das outras gravações (torneio → partidas → participações) | Travar só no fim | Lição do deadlock do 4b: a mesma ordem em todas as gravações. Dois cálculos ao mesmo tempo esperam um pelo outro, e o segundo encontra o torneio já calculado (teste: três ao mesmo tempo → um 200 e dois 409, gravado uma vez) |
+| **Confere de novo, dentro da transação**, se pode calcular (a mesma situação do 5c), **sem confiar na tela** | Confiar no `podeCalcular` que a tela recebeu | Entre a tela e o clique, um Ciente pode ter sido desfeito (teste) ou uma partida pode ter voltado para a fila |
+| Não pode: **409** com uma frase ("Ainda não dá para calcular: 2 aguardando o site, 1 bloqueio, 3 sem Ciente.") e as contagens | 400 | Não é um pedido mal feito: é o estado do torneio que ainda não permite |
+| Já calculado: **409** "O torneio já foi calculado.", sem mudar nada | Recalcular | D1, D22: depois do cálculo, nada muda |
+| Calculado: grava o resultado (6a) e **marca o torneio como calculado**, na mesma transação. Daí em diante, Ciente, desfazer, Ciente de todas, correção de ID, nova planilha e "tentar agora" respondem 409 (teste) | — | Já estavam prontas para isso desde as etapas 3 a 5; o teste confirma todas juntas |
+| O **modo de divisão** fica travado porque **não existe rota para mudá-lo**: ele é escolhido na criação e lido no cálculo, que é feito uma vez só | Uma rota de edição com 409 depois do cálculo | Uma rota a mais sem uso; a D1 diz que o modo é escolhido antes da planilha |
+| A hora do cálculo é gravada em **segundos inteiros**, igual em `calculos` e em `torneios` | Milissegundos em `calculos` | `torneios.calculado_em` guarda segundos, e o MySQL arredonda a fração: a mesma hora sairia diferente nos dois lugares |
+
+### Os jogadores dos times sem prêmio
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **Gravados também**, com R$ 0, os minutos e as kills deles e a base do modo; a **posição do time** vem de `premios_time` (pela ligação), em cada jogador lido | Gravar só os premiados (como no 6a) | O filtro por nick (6e) precisa achar qualquer jogador, e "por que meu time não ganhou?" se responde com o que estava no cálculo |
+
+### Os gabaritos de 02, 03, 07 e novembro
+
+O `gerar_cenarios.py --so-esperado` **não gerava** esses quatro gabaritos: o script montava os cenários, mas só chamava `salvar_esperado` para 01, 04, 05, outubro e setembro. Foram acrescentadas quatro chamadas:
+- **02:** o resultado depois de corrigir o ID, porque o site tem a partida certa;
+- **03:** as divergências só existem na planilha, e o cálculo usa o site;
+- **07:** Garra em dois times, confirmado pelo site;
+- **novembro:** o nick e a duplicata só existem na planilha.
+
+O script rodou num contêiner `python:3.12-slim`, com `testes/planilhas` montado somente leitura. Os checksums dos 23 arquivos que já existiam (planilhas, gabaritos antigos, `site-oficial.json` e a planilha original de setembro) ficaram **idênticos**. Mudou só o `resumo-geracao.json`, que o script sempre regrava.
+
+Os quatro cenários passaram a ser testados **centavo por centavo**, e passaram de primeira: o domínio já calculava igual ao script de referência.
+
+**Cenários só de erro, sem cálculo:**
+- **06a:** coluna faltando, recusada na importação;
+- **06b:** só o separador; os IDs dela não existem no site simulado.
+
+---
+
+## Ler o resultado e baixar o CSV (etapa 6c), 15/10/2026
+
+Só API: `GET /torneios/:id/resultado` e `GET /torneios/:id/resultado.csv`. Sem migration.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| As duas rotas leem **só o que foi gravado no cálculo** (`buscarResultado`): configuração usada, data, classificação e jogadores. **Nada é recalculado** (teste: mudar o prêmio e o modo no banco depois não muda o resultado) | Recalcular a cada leitura | O que foi pago precisa ser sempre o mesmo, mesmo que o código ou o banco mudem depois |
+| O **critério** de cada time vem como foi gravado: "desempate por kills do time", "divisão igual (empate em vitórias e kills)" ou "empate em vitórias e kills" (fora do pódio) | Reescrever o texto na leitura | Seria um texto diferente do que estava no cálculo; a tela pode escolher como mostrar |
+| A resposta traz também o **nome do torneio** | Só o id | A tela e o arquivo precisam do nome |
+| Antes do cálculo: **409** "O torneio ainda não foi calculado."; torneio inexistente: 404 | 404 nos dois | O torneio existe; o que ainda não existe é o cálculo |
+| **Sem filtro por nick na API** | `?nick=` | São poucos jogadores (até ~40); o filtro fica na tela |
+| CSV em **UTF-8 com BOM**, separador **";"** e linhas **CRLF** | UTF-8 sem BOM | Sem o BOM, o Excel em português abre "Falcões" como "FalcÃµes" |
+| Colunas: **posição, time, nick, minutos, kills, valor e "Centavo de arredondamento" (sim/não)**; **ordem**: posição, depois o valor maior, depois o nick | Ordem alfabética | A Maria paga do 1º para baixo; dentro do time, quem recebe mais primeiro |
+| Valor em reais com vírgula e **sem ponto de milhar** ("1000,00", "65,90"), feito só com inteiros | "1.000,00" | O Excel em português lê "1000,00" como número em qualquer configuração; a Maria consegue somar a coluna |
+| **Sem linha de total** no CSV | Uma linha "Total" no fim | Somar a coluna no Excel contaria o total duas vezes |
+| Texto que começa com **=, +, - ou @** ganha um **apóstrofo** | Deixar como veio | Um nick como "=SOMA(...)" seria executado como fórmula pelo Excel (injeção de CSV) |
+| Nome do arquivo com o nome do torneio: `filename` só com letras sem acento e hífen ("resultado-torneio-de-setembro-2026.csv") e `filename*` com os acentos (RFC 6266) | Só o nome com acentos | Navegadores antigos não entendem o `filename*`; os novos usam o nome bonito |
+| A função que gera o CSV é **pura** (`csvDoResultado`), com testes próprios; a rota só acrescenta o BOM e os cabeçalhos | Montar o CSV na rota | Ordem, formato do valor, aspas e a proteção contra fórmula testados sem banco |
+
+**Testes:**
+- **Setembro pela rota:** Tuca R$ 65,90 com o centavo; Falcões e Tubarões em 3º, com o critério.
+- **O CSV:** começa com o BOM, tem "Falcões" e "Tubarões" com os acentos, traz as 31 linhas na ordem certa, e a soma da coluna de valor dá exatamente 10.000,00.
+- **Antes do cálculo:** 409 nas duas rotas.
+
+---
+
+## Botão Calcular com confirmação (etapa 6d), 15/10/2026
+
+Só web; a API é a do 6b.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **"Calcular prêmios" no aviso do topo** (5e), sempre visível até o cálculo, **habilitado só quando `calculo.podeCalcular`**, e ligado ao texto do aviso por `aria-describedby` (o leitor de tela diz por que está desabilitado) | Esconder o botão enquanto não pode | Mostrar desabilitado, com o motivo ao lado, diz à Maria o que falta para chegar lá |
+| **Modal de confirmação (D22)** com o resumo do que vai ser calculado (prêmio total, percentuais por posição, forma de divisão, partidas e Cientes) e o aviso "O cálculo é definitivo. Depois dele não dá para dar Ciente, corrigir ID nem trocar a planilha." Botões **"Voltar"** e **"Calcular prêmios"** | Um "Tem certeza?" sem resumo | A Maria confere a regra (prêmio, percentuais, minutos ou kills) uma última vez antes de travar |
+| **O foco começa no "Voltar"**, a opção segura, posto explicitamente depois de abrir | Confiar no `autofocus` | Nem todo ambiente respeita o `autofocus` num `<dialog>`; um Enter por engano não pode calcular |
+| O `<dialog>` nativo (`showModal`) **prende o foco** e **fecha com Esc**; o **título tem um id só dele** (`useId`), usado no `aria-labelledby` | `id` fixo "titulo-dialogo" | A página do torneio tem três diálogos (substituir planilha, Ciente de todas, calcular); três `id` iguais quebravam o rótulo para o leitor de tela |
+| O componente do diálogo ganhou **`textoCancelar`** (padrão "Cancelar") | Um diálogo só para o cálculo | O mesmo diálogo, com o foco na opção segura, serve às três confirmações |
+| **Sem clique duplo:** a trava (`calculando`) é ligada **antes de qualquer espera**, e o botão fica desabilitado até a resposta. A API também trava (6b) | Só desabilitar o botão | Dois cliques no mesmo instante passariam antes de a tela redesenhar; o teste dispara os dois juntos e vê um pedido só |
+| **409** (algo mudou entre a tela e o clique): a tela **mostra a frase da API** e **recarrega** o torneio e as pendências, sem sair da página | Fechar a tela, ou só mostrar o erro | A Maria vê na hora o que mudou ("1 sem Ciente") e onde resolver |
+| **Depois do sucesso:** o aviso mostra "Calculado em dd/mm/aaaa às hh:mm." e o link **"Ver resultado"**, que leva à rota `/torneios/:id/resultado`, por enquanto "em construção", com o link do CSV (6c) | Ir direto para o resultado | A tela do resultado é a 6e; até lá, o CSV já permite pagar |
+
+**Testes de componente:**
+- o botão desabilitado quando não pode calcular, e habilitado quando pode;
+- o modal com o resumo certo e o rótulo único;
+- o foco no "Voltar";
+- "Voltar" e Esc fecham sem calcular;
+- o clique duplo gera um pedido só;
+- o botão desabilitado durante o pedido;
+- o 409 mostra a mensagem e recarrega;
+- o sucesso mostra a data e o link.
+
+**No navegador** (roteiro pelo protocolo de depuração do Edge, contra o Docker): o foco começa no "Voltar"; Tab e Shift+Tab não saem do modal; Esc fecha; o modal cabe em 375 px; o cálculo de verdade trava a tela.
+
+**Testes do 5d ajustados:** dois deles pegavam "o primeiro `<dialog>` da página", que agora é o do cálculo. Passaram a achar o do "Ciente de todas" pelo título.
+
+---
+
+## Tela do resultado (etapa 6e), 15/10/2026
+
+Só web, seguindo o protótipo 2-resultado, no lugar da página "em construção" do 6d. A API é a do 6c.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **Tudo sai do que foi gravado no cálculo**: a tela só soma centavos (total distribuído, rodapé) e monta textos; nenhum valor é recalculado | Recalcular na tela | O que aparece é exatamente o que foi pago |
+| Cabeçalho: "Calculado em dd/mm/aaaa às hh:mm · Divisão por … (travada)", **"Total distribuído"** (a soma dos jogadores gravados) e **"Baixar CSV"** (a rota do 6c) | Mostrar o prêmio configurado | A soma dos valores gravados é o que de fato saiu; se um dia divergisse do prêmio, a tela mostraria |
+| Classificação com as **posições empatadas** (1, 2, 3, 3, 5) e o critério gravado como selo ("Desempate por kills", "Empate total · prêmio dividido", "Empate total") | Reescrever o critério | O texto gravado continua sendo a fonte; a tela só encurta |
+| **A frase dos empates é montada dos dados** (`explicarEmpates`): os grupos com as mesmas vitórias, quem desempatou por kills, e os empatados também em kills, com as posições que pagavam (pelos percentuais gravados), o valor somado e a fração de cada time ("metade", "um terço") | Uma frase escrita para setembro | Vale para qualquer torneio; testado com setembro, com o cenário 04 (dois empates, um sem prêmio) e com casos pequenos |
+| Prêmio por jogador: time, nick, **minutos ou kills conforme o modo** ("173 de 865"), **% do time** (arredondado só com inteiros), valor e observação | — | Como o protótipo |
+| **A observação mostra só o que está gravado:** "+R$ 0,01 de arredondamento" (D9) e a explicação do cálculo (D21). **Sem a etiqueta "Reserva"** do protótipo | Deduzir "reserva" pelos minutos | O resultado não guarda em quantas partidas cada jogador jogou. Pelos minutos, Bia.gg (154, saiu mais cedo numa partida) também seria marcada como reserva. Para mostrar "Reserva" com dado de verdade, o cálculo precisaria gravar as partidas jogadas: fica como melhoria, se a Adrielly quiser |
+| Rodapé: "21 jogadores premiados · soma: R$ 10.000,00", com a soma calculada dos dados; com filtro, "1 de 21 jogadores premiados". **Anunciado ao leitor de tela** (`aria-live`) | Texto fixo | O número muda com o filtro |
+| **Filtro por nick** parcial, sem diferenciar maiúsculas e acentos ("sniper" acha xXSniperXx; "vibora" acha Víbora). Sem busca, a tabela mostra os premiados | Busca exata | A Maria lembra do nick pela metade, e os jogadores digitam sem acento |
+| Nick de time sem prêmio: **"Víbora jogou pelo time Serpentes, que ficou em 6º, sem prêmio."** | "jogou pelos Panteras, que ficaram…" | O artigo depende do nome do time ("pelas Águias", "pelos Lobos"), e o sistema não sabe o gênero de cada nome |
+| Nick inexistente: "Nenhum jogador com esse nick neste torneio." | — | — |
+| **Tabelas com legenda e cabeçalhos** (`caption`, `scope`); campo de filtro com rótulo; no celular, as tabelas **rolam dentro da caixa** e a página não alarga | Empilhar as tabelas | As colunas de número se leem melhor lado a lado |
+| Antes do cálculo (409): a frase da API e o botão "Voltar ao torneio" | Página em branco | — |
+| **Os links por time premiado ficam para a etapa 7** | — | Como pedido |
+
+**Testes de componente com o setembro**, montado dos gabaritos de `testes/esperado/`:
+- a classificação com o 3º empatado;
+- a frase do empate;
+- Tuca com R$ 65,90, o centavo e "19 de 865";
+- o filtro parcial e sem acento;
+- o jogador de time sem prêmio e o nick inexistente;
+- a soma de R$ 10.000,00;
+- a coluna de kills no modo kills;
+- o rótulo do filtro e o anúncio do resultado.
+
+**No navegador** (roteiro pelo protocolo de depuração do Edge, contra o Docker): um setembro calculado de verdade, do torneio até o resultado pelo link "Ver resultado", com o filtro, o CSV e o celular.
+
+---
+
 ## Stack e ferramentas
 
 | Decisão | Alternativa descartada | Por quê |

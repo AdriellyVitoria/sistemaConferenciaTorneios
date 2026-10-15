@@ -50,6 +50,8 @@ export interface Partida {
   emConsultaDesde: string | null;
   ultimoErro: string | null;
   origemDoErro: OrigemDoErro | null;
+  /** Kills do time A e do time B segundo o site (5f); null enquanto o site não respondeu. */
+  killsSite: { timeA: number; timeB: number } | null;
 }
 
 /** Se o torneio pode ser calculado e, se não, quanto falta (5c). */

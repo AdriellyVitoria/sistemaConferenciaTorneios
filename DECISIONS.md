@@ -408,6 +408,29 @@ Só web; a API é a do 5b e do 5c.
 
 ---
 
+## Aba Conferidas (etapa 5f), 15/10/2026
+
+Web, com **uma mudança pequena na API, decidida com a Adrielly:** o `GET /torneios/:id` traz, em cada partida conferida, `killsSite: { timeA, timeB }`, a soma das kills de cada time segundo as participações do site (`null` enquanto o site não respondeu). O nome do time é comparado sem acentos e maiúsculas, como na D19.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **Kills por time na tabela**, com uma mudança pequena na API | Tirar a coluna para ficar só no web | As kills ajudam a Maria a reconhecer a partida e são os números que entram no desempate (D2) |
+| Conferidas como o protótipo 1b: **agrupadas por rodada** ("Rodada 1 · 05/09"), com **ID, times, kills e vencedor do site** e a situação. Tabela com legenda e cabeçalhos para leitor de tela (`caption`, `scope="col"`, `scope="rowgroup"`) | A tabela de antes, sem agrupar | São 15 a 28 partidas; por rodada é como a Maria pensa no torneio |
+| **Filtros "Todas", "Bateram com o site" e "Com Ciente"**, com contagem, como botões de alternância (`aria-pressed`); a rodada sem partida no filtro some | Abas dentro da aba | Abas aninhadas confundem; filtros deixam claro que é a mesma lista |
+| Nas com Ciente: **qual era a diferença** numa linha ("Nick escrito diferente: xxsniperxx → xXSniperXx"), a **hora do Ciente** e **"Ver a diferença"**, que abre o lado a lado (`aria-expanded`, `aria-controls`) com o **Desfazer** | Mostrar o lado a lado sempre | A lista ficaria longa; o detalhe é para quando a Maria quer rever |
+| **Depois do Ciente, a pendência sai de Pendências** e a partida vai para Conferidas. O aviso "Ciente registrado: a partida #46065 foi para Conferidas." tem um **Desfazer**, para o arrependimento imediato. Decidido com a Adrielly | Deixar o cartão nos dois lugares (como no 5d) | Contraria a D17: o mesmo problema aparecia duas vezes. Os protótipos mostram a pendência com Ciente só em Conferidas |
+| Se a partida ainda tem outra pendência, o aviso diz "A partida ainda tem pendência aqui" | Dizer sempre "foi para Conferidas" | Seria falso para uma partida com duas diferenças |
+| Pendências sem nada faltando, mas com Cientes: "Nada faltando: as N pendências com Ciente estão em Conferidas." | "Nenhuma pendência" | A Maria precisa saber onde foram parar |
+| **Depois do cálculo:** "Ver a diferença" continua; sem Desfazer; um aviso diz que é só consulta | Esconder as diferenças | O registro do que foi visto antes de pagar continua útil |
+| O lado a lado virou um **componente só** (`LadoALado.vue`), usado em Pendências e em Conferidas | Copiar o trecho | As duas abas mostram a mesma diferença do mesmo jeito |
+| **No celular, a tabela rola dentro da caixa**; a página não alarga. Dentro da tabela, as palavras não quebram no meio, e as colunas curtas ficam numa linha | Empilhar a tabela, como em Pendências | Com a rolagem na caixa, a tabela fica legível; o padrão da página (`overflow-wrap: anywhere`) quebrava "#46065" em "#460 / 65" |
+
+**Defeito confirmado (ponto 2 do pedido):** antes do 5f, o Desfazer não se perdia (ele continuava em Pendências), mas **não existia pela aba Conferidas**, onde a partida passava a aparecer. O teste "Ciente dado em Pendências: a partida vai para Conferidas e lá dá para ver a diferença e desfazer" falhou antes da correção e passa agora.
+
+**Teste do 5d ajustado:** "Ciente vira Desfazer" virou "Ciente tira o cartão de Pendências; o Desfazer do aviso traz de volta", por causa da decisão acima.
+
+---
+
 ## Stack e ferramentas
 
 | Decisão | Alternativa descartada | Por quê |

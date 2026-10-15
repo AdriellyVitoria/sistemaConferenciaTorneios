@@ -71,19 +71,21 @@ describe('pendências', () => {
     expect(duplicata.find('.lado.site').text()).toContain('42 min, 8 kills');
   });
 
-  it('"Ciente" marca e vira "Desfazer"; "Desfazer" volta; a contagem acompanha', async () => {
+  // 5f: com o Ciente, a pendência sai daqui e vai para Conferidas (D17: um lugar só); o
+  // "Desfazer" fica no aviso, para o arrependimento imediato, e em Conferidas
+  it('"Ciente" tira o cartão de Pendências; o "Desfazer" do aviso traz de volta; a contagem acompanha', async () => {
     const { pagina, api } = await montar();
     await abrirPendencias(pagina);
 
     await botao(cartao(pagina, 'Linha duplicada'), 'Ciente')!.trigger('click');
     await flushPromises();
     expect(api.estado.pedidos).toContain(`PUT /api/torneios/1/pendencias/${'b'.repeat(64)}/ciente`);
-    expect(botao(cartao(pagina, 'Linha duplicada'), 'Ciente')).toBeUndefined();
-    expect(botao(cartao(pagina, 'Linha duplicada'), 'Desfazer')).toBeDefined();
-    expect(cartao(pagina, 'Linha duplicada').text()).toContain('Ciente às');
+    expect(cartao(pagina, 'Linha duplicada')).toBeUndefined();
     expect(aba(pagina, 'Pendências')!.find('.contador').text()).toBe('3');
 
-    await botao(cartao(pagina, 'Linha duplicada'), 'Desfazer')!.trigger('click');
+    const aviso = pagina.find('#painel-pendencias [role="status"].aviso');
+    expect(botao(aviso, 'Desfazer')!.attributes('aria-label')).toBe('Desfazer o Ciente: Linha duplicada, partida #46065');
+    await botao(aviso, 'Desfazer')!.trigger('click');
     await flushPromises();
     expect(api.estado.pedidos).toContain(`DELETE /api/torneios/1/pendencias/${'b'.repeat(64)}/ciente`);
     expect(botao(cartao(pagina, 'Linha duplicada'), 'Ciente')).toBeDefined();

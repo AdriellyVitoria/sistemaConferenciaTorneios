@@ -242,6 +242,29 @@ describe('depois do cálculo, nada muda', () => {
   });
 });
 
+describe('GET /torneios/:id: kills de cada time segundo o site (5f)', () => {
+  const SITE_SETEMBRO: Record<string, { jogadores: { time: string; kills: number }[] }> = JSON.parse(readFileSync(DADOS_DO_SITE[1], 'utf8'));
+  const killsDoSite = (idPartida: string, time: string) =>
+    SITE_SETEMBRO[idPartida].jogadores.filter((j) => j.time === time).reduce((total, j) => total + j.kills, 0);
+
+  it('cada partida conferida traz as kills do time A e do time B (na ordem da planilha), somadas do site', async () => {
+    const id = await torneioCom('torneio-setembro.csv');
+    const { corpo } = await pedir('GET', `/torneios/${id}`);
+    const porId = new Map(corpo.partidas.map((p: { idPartida: string }) => [p.idPartida, p]));
+
+    expect(porId.get('#40923')).toMatchObject({ timeA: 'Falcões', timeB: 'Panteras', killsSite: { timeA: 62, timeB: 45 } });
+    for (const p of corpo.partidas as { idPartida: string; timeA: string; timeB: string; killsSite: unknown }[]) {
+      expect(p.killsSite).toEqual({ timeA: killsDoSite(p.idPartida, p.timeA), timeB: killsDoSite(p.idPartida, p.timeB) });
+    }
+  });
+
+  it('partida que o site ainda não respondeu: sem kills (null)', async () => {
+    const id = await torneioCom('torneio-setembro.csv', { conferir: false });
+    const { corpo } = await pedir('GET', `/torneios/${id}`);
+    expect(corpo.partidas.every((p: { killsSite: unknown }) => p.killsSite === null)).toBe(true);
+  });
+});
+
 describe('GET /torneios/:id: pronto para calcular (5c)', () => {
   const calculo = async (id: number) => (await pedir('GET', `/torneios/${id}`)).corpo.calculo;
 

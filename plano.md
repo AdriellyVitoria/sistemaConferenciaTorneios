@@ -304,7 +304,7 @@ Em três pedaços. **4a:** as peças da consulta, sem o job: cliente HTTP do sit
 **Pronto quando:** com o site derrubado no meio, nada se perde; ao religar, tudo é conferido; duas execuções do job nunca pegam a mesma partida.
 
 ### Etapa 5 — Revisão das pendências
-**5a (API):** listar pendências (bloqueantes e não bloqueantes) e Ciente, desfazer e "Ciente de todas". As pendências são calculadas na hora pela comparação; só os Cientes são gravados (tabela `cientes`, no lugar da tabela `pendencias` do rascunho do banco), pela chave de cada pendência. **5b (API):** correção do ID (`PUT /torneios/:id/partidas/:partidaId/id-partida`): a partida volta para a fila do zero; a duplicata mantém o Ciente pelo id interno da partida, e as pendências do site voltam sem Ciente. **5c (API):** o `GET /torneios/:id` diz se pode calcular (campo `calculo`, com as contagens de aguardando o site, bloqueios e sem Ciente), calculado na hora. **5d (web):** abas Conferidas, Pendências e Aguardando o site; cartões com planilha × site, Ciente/Desfazer, "Ciente de todas" com modal, recarga quando os dados mudaram, só leitura depois do cálculo. **5e (web):** "Corrigir ID" no cartão da pendência bloqueante (erros da API junto do campo, a sondagem volta a rodar, "#antigo → #novo (corrigido)" onde o ID aparece) e o aviso "pronto para calcular" no topo, com o que falta levando à aba certa.
+**5a (API):** listar pendências (bloqueantes e não bloqueantes) e Ciente, desfazer e "Ciente de todas". As pendências são calculadas na hora pela comparação; só os Cientes são gravados (tabela `cientes`, no lugar da tabela `pendencias` do rascunho do banco), pela chave de cada pendência. **5b (API):** correção do ID (`PUT /torneios/:id/partidas/:partidaId/id-partida`): a partida volta para a fila do zero; a duplicata mantém o Ciente pelo id interno da partida, e as pendências do site voltam sem Ciente. **5c (API):** o `GET /torneios/:id` diz se pode calcular (campo `calculo`, com as contagens de aguardando o site, bloqueios e sem Ciente), calculado na hora. **5d (web):** abas Conferidas, Pendências e Aguardando o site; cartões com planilha × site, Ciente/Desfazer, "Ciente de todas" com modal, recarga quando os dados mudaram, só leitura depois do cálculo. **5e (web):** "Corrigir ID" no cartão da pendência bloqueante (erros da API junto do campo, a sondagem volta a rodar, "#antigo → #novo (corrigido)" onde o ID aparece) e o aviso "pronto para calcular" no topo, com o que falta levando à aba certa. **5f (web, e `killsSite` na API):** aba Conferidas agrupada por rodada, com kills e vencedor do site, filtros e "Ver a diferença" com Desfazer; a pendência com Ciente sai de Pendências.
 
 - Tela com três abas (D17): **Conferidas**, **Pendências** e **Aguardando o site**.
 - Divergência de minutos, kills, vencedor ou jogadores, duplicata, nick com caixa diferente e jogador em dois times: lado a lado, planilha × site, destacado em cor, com **"Ciente"** e **"Ciente de todas"** (D4a, D6, D7, D13).
@@ -360,8 +360,8 @@ Em três pedaços. **4a:** as peças da consulta, sem o job: cliente HTTP do sit
 - [x] Etapa 1 — Regras de negócio puras
 - [x] Etapa 2 — Site oficial simulado
 - [x] Etapa 3 — Torneio e importação
-- [ ] Etapa 4 — Conferência em segundo plano
-- [ ] Etapa 5 — Revisão das pendências
+- [x] Etapa 4 — Conferência em segundo plano
+- [x] Etapa 5 — Revisão das pendências
 - [ ] Etapa 6 — Cálculo e resultado
 - [ ] Etapa 7 — Página pública e links por time
 - [ ] Etapa 8 — Documentação

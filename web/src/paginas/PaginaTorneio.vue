@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
+import AbaConferidas from '../componentes/AbaConferidas.vue';
 import AvisoDoCalculo from '../componentes/AvisoDoCalculo.vue';
 import DialogoConfirmacao from '../componentes/DialogoConfirmacao.vue';
 import PainelPendencias from '../componentes/PainelPendencias.vue';
@@ -16,7 +17,6 @@ import { formatarCentavos } from '../dominio/dinheiro';
 import { resumoDosPercentuais } from '../dominio/percentuais';
 import {
   envioDaPlanilha,
-  formatarData,
   linhasDoErro,
   rotuloDoId,
   rotuloDoModo,
@@ -407,31 +407,13 @@ async function enviar() {
           </ul>
         </div>
 
-        <div v-else id="painel-conferidas" role="tabpanel" aria-labelledby="aba-conferidas" class="rolagem">
-          <p v-if="conferidas.length === 0" class="texto-medio vazio-aba">Nenhuma partida conferida ainda.</p>
-          <table v-else class="tabela partidas empilhavel">
-            <thead>
-              <tr>
-                <th>Partida</th>
-                <th class="numero">Rodada</th>
-                <th>Data</th>
-                <th>Times</th>
-                <th>Situação</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="{ partida: p, comCiente } in conferidas" :key="p.id">
-                <td class="mono" data-rotulo="Partida">{{ rotuloDoId(p) }}</td>
-                <td class="numero" data-rotulo="Rodada">{{ p.rodada }}</td>
-                <td class="numeral" data-rotulo="Data">{{ formatarData(p.data) }}</td>
-                <td data-rotulo="Times">{{ p.timeA }} x {{ p.timeB }}</td>
-                <td data-rotulo="Situação">
-                  <span v-if="comCiente" class="selo info">Conferida com Ciente</span>
-                  <span v-else class="selo sucesso">Bateu com o site</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div v-else id="painel-conferidas" role="tabpanel" aria-labelledby="aba-conferidas">
+          <AbaConferidas
+            :torneio-id="torneio.id"
+            :conferidas="conferidas"
+            :somente-leitura="somenteLeitura"
+            :recarregar="carregar"
+          />
         </div>
       </section>
 

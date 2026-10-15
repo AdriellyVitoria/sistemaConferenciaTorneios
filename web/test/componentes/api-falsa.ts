@@ -22,9 +22,12 @@ type Pendencia = {
 };
 
 const partida = (id: number, idPartida: string, rodada: number, timeA: string, timeB: string, statusConferencia = 'conferida') => ({
-  id, torneioId: 1, idPartida, idPartidaPlanilha: idPartida, rodada, data: '2026-09-06', timeA, timeB, vencedor: timeA,
+  // um dia por rodada: rodada 1 = 05/09, rodada 2 = 06/09...
+  id, torneioId: 1, idPartida, idPartidaPlanilha: idPartida, rodada, data: `2026-09-${String(rodada + 4).padStart(2, '0')}`, timeA, timeB,
+  vencedor: statusConferencia === 'conferida' ? timeA : null,
   statusConferencia, tentativas: 0, proximaTentativaEm: null, ultimaTentativaEm: '2026-10-15T12:00:00.000Z',
   emConsultaDesde: null, ultimoErro: null, origemDoErro: null,
+  killsSite: statusConferencia === 'conferida' ? { timeA: 60 + id, timeB: 40 + id } : null,
 });
 
 const chave = (letra: string) => letra.repeat(64);

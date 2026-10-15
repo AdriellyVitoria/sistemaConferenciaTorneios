@@ -43,11 +43,12 @@ Projeto: desafio técnico da PowerRev (Desenvolvedora Full Stack Júnior). Siste
 - Visual: protótipo em `C:\Users\mende\Downloads\prototipo\prototipo` (três HTML de editor de design; usar só o visual, tokens em `web/src/estilos.css`).
 - Etapa 4, pedaço 4a (cliente do site e agenda das novas tentativas): concluído.
 - Etapa 4, pedaço 4b (job de conferência): concluído.
-- Etapa 4, pedaço 4c (tela de progresso e "tentar agora"): pronto, aguardando aprovação. Decisões no `DECISIONS.md` (seção da etapa 4c).
+- Etapa 4, pedaço 4c (tela de progresso e "tentar agora"): concluído.
 - Pedaço visual (base de tokens em `web/src/estilos.css` e nova lista de torneios): concluído.
 - Etapa 5, pedaço 5a (pendências e Ciente, só API): concluído.
 - Etapa 5, pedaço 5b (correção do ID, só API): concluído.
 - Etapa 5, pedaço 5c (pronto para calcular, só API): concluído.
 - Etapa 5, pedaço 5d (tela das pendências, só web): concluído.
-- Etapa 5, pedaço 5e (correção do ID e "pronto para calcular" na tela, só web): pronto, aguardando aprovação. Decisões no `DECISIONS.md`. Com ele, a etapa 5 está completa.
-- Próximo passo: **Etapa 6** (cálculo e resultado), depois da aprovação do 5e.
+- Etapa 5, pedaço 5e (correção do ID e "pronto para calcular" na tela, só web): concluído.
+- Etapa 5, pedaço 5f (aba Conferidas): concluído. Etapas 4 e 5 completas e marcadas no checklist do `plano.md`.
+- Próximo passo: **Etapa 6** (cálculo e resultado).

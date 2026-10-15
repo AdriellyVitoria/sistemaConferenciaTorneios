@@ -69,8 +69,8 @@ export function valorDoLado(p: Pendencia, lado: 'planilha' | 'site'): string {
 
 export interface PartidaConferida {
   partida: Partida;
-  /** Teve pendência e já recebeu Ciente (D17: "conferidas" inclui as que já receberam Ciente). */
-  comCiente: boolean;
+  /** As pendências da partida que já receberam Ciente; vazio = bateu com o site. */
+  comCiente: Pendencia[];
 }
 
 /**
@@ -80,10 +80,53 @@ export interface PartidaConferida {
  */
 export function partidasConferidas(partidas: Partida[], lista: ListaDePendencias): PartidaConferida[] {
   const faltando = new Set([...lista.bloqueantes, ...lista.naoBloqueantes.filter((p) => !p.ciente)].flatMap(partidasDa));
-  const comCiente = new Set(lista.naoBloqueantes.filter((p) => p.ciente).flatMap(partidasDa));
+  const comCiente = lista.naoBloqueantes.filter((p) => p.ciente);
   return partidas
     .filter((p) => p.statusConferencia === 'conferida' && !faltando.has(p.idPartida))
-    .map((partida) => ({ partida, comCiente: comCiente.has(partida.idPartida) }));
+    .map((partida) => ({ partida, comCiente: comCiente.filter((p) => partidasDa(p).includes(partida.idPartida)) }));
+}
+
+export type FiltroConferidas = 'todas' | 'bateram' | 'com_ciente';
+
+export function filtrarConferidas(conferidas: PartidaConferida[], filtro: FiltroConferidas): PartidaConferida[] {
+  if (filtro === 'bateram') return conferidas.filter((c) => c.comCiente.length === 0);
+  if (filtro === 'com_ciente') return conferidas.filter((c) => c.comCiente.length > 0);
+  return conferidas;
+}
+
+export function contarConferidas(conferidas: PartidaConferida[]): Record<FiltroConferidas, number> {
+  const comCiente = conferidas.filter((c) => c.comCiente.length > 0).length;
+  return { todas: conferidas.length, bateram: conferidas.length - comCiente, com_ciente: comCiente };
+}
+
+/** As partidas por rodada, na ordem; a data da rodada é a da sua primeira partida ("05/09"). */
+export function agruparPorRodada(conferidas: PartidaConferida[]): { rodada: number; data: string; itens: PartidaConferida[] }[] {
+  const grupos = new Map<number, PartidaConferida[]>();
+  for (const c of [...conferidas].sort((a, b) => a.partida.rodada - b.partida.rodada || a.partida.id - b.partida.id)) {
+    grupos.set(c.partida.rodada, [...(grupos.get(c.partida.rodada) ?? []), c]);
+  }
+  return [...grupos].map(([rodada, itens]) => {
+    const [, mes, dia] = [...itens.map((i) => i.partida.data)].sort()[0].split('-');
+    return { rodada, data: `${dia}/${mes}`, itens };
+  });
+}
+
+/** Uma linha com o que era a diferença, para a aba Conferidas: "Nick escrito diferente: xxsniperxx → xXSniperXx". */
+export function resumoDaDiferenca(p: Pendencia): string {
+  const de = p.valorPlanilha ?? '—';
+  const para = p.valorSite ?? '—';
+  const detalhe = (() => {
+    switch (p.tipo) {
+      case 'duplicata': return `${p.nick} contado uma vez`;
+      case 'sem_dados_planilha': return 'usados os dados do site';
+      case 'divergencia': return p.campo === 'vencedor' ? `vencedor ${de} → ${para}` : `${p.nick}, ${CAMPOS[p.campo ?? 'minutos'].toLowerCase()} ${de} → ${para}`;
+      case 'jogador_so_na_planilha': return `${p.nick} não está no site`;
+      case 'jogador_so_no_site': return `${p.nick} só no site`;
+      case 'jogador_dois_times': return `${p.nick} jogou por ${para}`;
+      default: return `${de} → ${para}`;
+    }
+  })();
+  return `${rotuloDoTipo(p.tipo)}: ${detalhe}`;
 }
 
 const plural = (n: number, singular: string, plural: string) => `${n} ${n === 1 ? singular : plural}`;

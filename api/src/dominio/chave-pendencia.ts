@@ -15,11 +15,26 @@ import type { ItemPendencia, TipoPendencia } from './comparacao';
 
 const VERSAO_DA_CHAVE = 1;
 
-export function chaveDaPendencia(item: ItemPendencia): string {
+/**
+ * @param idInternoDaPartida o id da partida no banco, que NÃO muda quando a Maria corrige o ID
+ *   (5b). Só a duplicata o usa: ela vem da planilha, então o Ciente continua depois da correção,
+ *   desde que o site mostre o mesmo valor para o jogador (o valor do site está na chave, porque a
+ *   duplicata é o único lugar onde a Maria vê esse valor: a D19 não gera divergência para ele).
+ *   As outras pendências usam o ID consultado no site: com um ID novo, é outra consulta, e o Ciente
+ *   precisa ser dado de novo.
+ */
+export function chaveDaPendencia(item: ItemPendencia, idInternoDaPartida?: number | null): string {
+  let partida: unknown = item.idPartida;
+  if (item.tipo === 'duplicata') {
+    if (idInternoDaPartida == null) throw new Error('A chave da duplicata precisa do id interno da partida.');
+    partida = { interna: idInternoDaPartida };
+  }
   const campos = [
     VERSAO_DA_CHAVE,
     item.tipo,
-    item.idPartida,
+    partida,
+    // sort() padrão (pelo código de cada caractere), e não localeCompare: o resultado não pode
+    // depender da versão das regras de idioma, senão a chave mudaria numa atualização do Node
     item.partidas ? [...item.partidas].sort() : null,
     item.nick ?? null,
     item.campo ?? null,

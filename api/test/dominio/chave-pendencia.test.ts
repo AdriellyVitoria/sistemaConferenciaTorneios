@@ -67,6 +67,39 @@ describe('chaveDaPendencia: o Ciente vale para aquela pendência exata', () => {
   });
 });
 
+describe('a chave depois de corrigir o ID da partida (5b)', () => {
+  const DUPLICATA: ItemPendencia = {
+    tipo: 'duplicata',
+    idPartida: '#46065',
+    nick: 'Pantera_X',
+    valorPlanilha: '2 vezes: 42 min, 8 kills / 42 min, 8 kills',
+    valorSite: '42 min, 8 kills',
+    acao: 'ciente',
+    mensagem: 'Pantera_X aparece 2 vezes na partida #46065 (linhas 38 e 39).',
+  };
+  // a mesma partida (id interno 17), antes e depois de a Maria corrigir o ID
+  const antes = (item: ItemPendencia) => chaveDaPendencia(item, 17);
+  const depois = (item: ItemPendencia) => chaveDaPendencia({ ...item, idPartida: '#46056' }, 17);
+
+  it('duplicata: vem da planilha, então a chave não muda com o ID novo', () => {
+    expect(depois(DUPLICATA)).toBe(antes(DUPLICATA));
+  });
+
+  it('duplicata: muda se o site mostrar outro valor para o jogador (é o único lugar onde a Maria vê esse valor)', () => {
+    expect(chaveDaPendencia({ ...DUPLICATA, idPartida: '#46056', valorSite: '40 min, 8 kills' }, 17)).not.toBe(antes(DUPLICATA));
+  });
+
+  it('duplicata: outra partida é outra pendência, mesmo com o mesmo texto de ID', () => {
+    expect(chaveDaPendencia(DUPLICATA, 18)).not.toBe(chaveDaPendencia(DUPLICATA, 17));
+  });
+
+  it('pendência que depende do site: com o ID novo, é outra pendência (outra consulta ao site)', () => {
+    expect(depois(DIVERGENCIA)).not.toBe(antes(DIVERGENCIA));
+    const nick: ItemPendencia = { ...DIVERGENCIA, tipo: 'nick_diferente', campo: undefined, valorPlanilha: 'xxsniperxx', valorSite: 'xXSniperXx' };
+    expect(depois(nick)).not.toBe(antes(nick));
+  });
+});
+
 describe('ehBloqueante: só se resolve corrigindo o ID', () => {
   it('não encontrada e times diferentes são bloqueantes; o resto aceita Ciente', () => {
     expect(ehBloqueante({ ...DIVERGENCIA, tipo: 'nao_encontrada', acao: 'corrigir_id' })).toBe(true);

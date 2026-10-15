@@ -60,8 +60,9 @@ async function calcularPendencias(bd: Executor, torneioId: number): Promise<List
 
   const { pendencias, aguardandoSite } = compararComSite(linhasComIdAtual, respostasDoSite(partidas, participacoes));
 
+  const idInterno = new Map(partidas.map((p) => [p.idPartida, p.id]));
   const listadas = pendencias.map((item): PendenciaListada => {
-    const chave = chaveDaPendencia(item);
+    const chave = chaveDaPendencia(item, item.idPartida ? idInterno.get(item.idPartida) : null);
     const cienteEm = cientes.get(chave) ?? null;
     return { ...item, chave, bloqueante: ehBloqueante(item), ciente: cienteEm !== null, cienteEm };
   });

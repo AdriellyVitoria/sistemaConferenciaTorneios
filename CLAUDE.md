@@ -45,5 +45,6 @@ Projeto: desafio técnico da PowerRev (Desenvolvedora Full Stack Júnior). Siste
 - Etapa 4, pedaço 4b (job de conferência): concluído.
 - Etapa 4, pedaço 4c (tela de progresso e "tentar agora"): pronto, aguardando aprovação. Decisões no `DECISIONS.md` (seção da etapa 4c).
 - Pedaço visual (base de tokens em `web/src/estilos.css` e nova lista de torneios): concluído.
-- Etapa 5, pedaço 5a (pendências e Ciente, só API): pronto, aguardando aprovação. Decisões no `DECISIONS.md`.
-- Próximo passo: **Etapa 5, pedaço 5b** (correção do ID), depois da aprovação do 5a.
+- Etapa 5, pedaço 5a (pendências e Ciente, só API): concluído.
+- Etapa 5, pedaço 5b (correção do ID, só API): pronto, aguardando aprovação. Decisões no `DECISIONS.md`.
+- Próximo passo: **Etapa 5, tela de revisão**, depois da aprovação do 5b.

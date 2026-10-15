@@ -88,7 +88,50 @@ export async function apagarPartidasDoTorneio(bd: Executor, torneioId: number): 
 
 export async function listarPartidas(bd: Executor, torneioId: number): Promise<Partida[]> {
   const linhas: LinhaPartida[] = await bd('partidas').where({ torneio_id: torneioId }).orderBy('id');
-  return linhas.map((l) => ({
+  return linhas.map(paraPartida);
+}
+
+/** A partida do torneio, TRAVADA até o fim da transação (SELECT ... FOR UPDATE). */
+export async function buscarPartidaParaAtualizar(trx: Executor, torneioId: number, partidaId: number): Promise<Partida | null> {
+  const linha: LinhaPartida | undefined = await trx('partidas').where({ id: partidaId, torneio_id: torneioId }).forUpdate().first();
+  return linha ? paraPartida(linha) : null;
+}
+
+export async function buscarPartida(bd: Executor, partidaId: number): Promise<Partida | null> {
+  const linha: LinhaPartida | undefined = await bd('partidas').where({ id: partidaId }).first();
+  return linha ? paraPartida(linha) : null;
+}
+
+/** Outra partida do torneio já usa esse ID? */
+export async function idJaUsado(bd: Executor, torneioId: number, idPartida: string, excetoPartidaId: number): Promise<boolean> {
+  const outra = await bd('partidas').where({ torneio_id: torneioId, id_partida: idPartida }).whereNot({ id: excetoPartidaId }).first('id');
+  return outra !== undefined;
+}
+
+/**
+ * Correção do ID (D16, 5b): a partida passa a ter o ID novo e volta para a fila do zero, como uma
+ * partida recém-importada. As participações do ID antigo saem: eram de outra consulta ao site.
+ * id_partida_planilha não muda: continua sendo o ID da planilha, mesmo depois de várias correções.
+ * Se a partida estava em consulta, em_consulta_desde fica nulo e o recibo do job não vale mais
+ * (4b): o resultado do ID antigo é descartado.
+ */
+export async function corrigirIdPartida(bd: Executor, partidaId: number, idPartida: string, agora: Date): Promise<void> {
+  await bd('participacoes').where({ partida_id: partidaId }).del();
+  await bd('partidas').where({ id: partidaId }).update({
+    id_partida: idPartida,
+    status_conferencia: 'aguardando',
+    tentativas: 0,
+    proxima_tentativa_em: new Date(Math.floor(agora.getTime() / 1000) * 1000),
+    ultima_tentativa_em: null,
+    em_consulta_desde: null,
+    vencedor: null,
+    ultimo_erro: null,
+    origem_do_erro: null,
+  });
+}
+
+function paraPartida(l: LinhaPartida): Partida {
+  return {
     id: l.id,
     torneioId: l.torneio_id,
     idPartida: l.id_partida,
@@ -105,5 +148,5 @@ export async function listarPartidas(bd: Executor, torneioId: number): Promise<P
     emConsultaDesde: l.em_consulta_desde,
     ultimoErro: l.ultimo_erro,
     origemDoErro: l.origem_do_erro,
-  }));
+  };
 }

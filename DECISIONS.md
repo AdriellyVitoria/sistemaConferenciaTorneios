@@ -308,6 +308,33 @@ Só API, sem tela.
 
 ---
 
+## Correção do ID da partida (etapa 5b), 15/10/2026
+
+Só API, sem tela. **Sem migration:** `partidas.id_partida_planilha` (gravado na importação e nunca alterado) guarda o ID da planilha, e `partidas.id_partida` guarda o atual.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| `PUT /torneios/:id/partidas/:partidaId/id-partida`, pelo **id interno** da partida | Pelo ID do jogo ("#52214") na URL | O ID do jogo é o que muda; o id interno é estável. E o "#" na URL vira fragmento (o mesmo problema do site simulado) |
+| **Só o ID é editável** (D16). Validado com **as mesmas regras e frases da importação** (`validarIdPartida`, D18): aceita "52241" e espaços; recusa letras e vazio (400) | Regras próprias | A Maria vê a mesma explicação nos dois lugares |
+| Corrigir de novo: **o original continua sendo o da planilha** | Guardar o ID anterior a cada correção | O que importa para a história é o que a Maria digitou; as linhas da planilha não mudam |
+| A partida **volta para a fila do zero**: "aguardando", próxima tentativa agora, **tentativas zeradas**, sem vencedor, sem erro e **sem as participações do ID antigo** | Manter as tentativas | É um ID novo: outra história com o site |
+| **ID que já é de outra partida do torneio: 409** | Juntar as duas | Juntaria 4 times numa partida (D23) |
+| O mesmo ID que já está: **400** "Esse já é o ID da partida" | Aceitar e consultar de novo | Não é correção; para consultar de novo existe o "tentar agora" |
+| **Depois do cálculo: 409** | — | D1, D22: a base do resultado não muda |
+| Torneio e partida **travados**, na mesma ordem da importação e do job (torneio → partidas → participações) | Sem trava | Duas correções, ou uma correção e uma planilha nova, não podem se misturar; a mesma ordem evita deadlock |
+| **Partida em consulta pode ser corrigida:** o recibo do job (4b) deixa de valer e o resultado do ID antigo é descartado. Um teste prova isso: a consulta do ID antigo termina depois da correção e não grava nada | Esperar a consulta acabar | A Maria não precisa saber que havia uma consulta em andamento |
+
+**A chave do Ciente (5a) depois da correção.** O 5a usava o ID do jogo na chave de toda pendência. Com a correção, a duplicata perderia o Ciente. Agora:
+
+| Pendência | Identifica a partida por | Depois de corrigir o ID |
+|---|---|---|
+| **Linha duplicada** (vem da planilha) | **id interno** da partida, que não muda | O Ciente **continua**, se o site mostrar o mesmo valor para o jogador. Se mostrar outro, pede Ciente de novo: a duplicata é o único lugar onde a Maria vê esse valor (a D19 não gera divergência de valor para jogador duplicado). Decidido com a Adrielly |
+| **As que dependem do site** (valores, nick, vencedor, sem dados, jogador só de um lado, nome de time, dois times, não encontrada, times diferentes) | ID consultado no site | **Voltam sem Ciente**: é outra consulta ao site |
+
+A lista de partidas dos itens do torneio todo é ordenada pelo código de cada caractere, e não por `localeCompare`: a chave não pode mudar com a versão das regras de idioma do Node. Cientes de duplicata dados antes desta mudança ficam sem efeito (o formato da chave da duplicata mudou); só havia dados de desenvolvimento.
+
+---
+
 ## Stack e ferramentas
 
 | Decisão | Alternativa descartada | Por quê |

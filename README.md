@@ -60,6 +60,11 @@ curl localhost:3000/torneios/1/pendencias
 curl -X PUT    localhost:3000/torneios/1/pendencias/CHAVE/ciente
 curl -X DELETE localhost:3000/torneios/1/pendencias/CHAVE/ciente
 curl -X POST   localhost:3000/torneios/1/pendencias/ciente-de-todas
+
+# corrigir o ID de uma partida (17 = o "id" interno da partida, de GET /torneios/1);
+# ela volta para a fila e o job consulta o ID novo
+curl -X PUT localhost:3000/torneios/1/partidas/17/id-partida -H 'content-type: application/json' \
+  -d '{"idPartida":"#52241"}'
 ```
 
 ## Ver o banco

@@ -431,6 +431,34 @@ Web, com **uma mudança pequena na API, decidida com a Adrielly:** o `GET /torne
 
 ---
 
+## Calcular e gravar o resultado (etapa 6a), 15/10/2026
+
+Só API, sem rota. Migration **009**, com três tabelas: `calculos`, `premios_time` e `premios_jogador`.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| O cálculo usa os **dados oficiais da comparação atual** (`compararAtual`), a mesma de onde saem as pendências: só partidas encontradas no site e com os times certos, com os nicks e os números do site (D3, D7). A duplicata da planilha não existe aqui (D6) | Ler as participações direto, sem passar pela comparação | Poderia entrar no prêmio uma partida que a Maria nem viu (times diferentes). Com uma fonte só, o que ela revisou é exatamente o que é pago |
+| Uma **função pura** (`montarResultado`) junta as peças da etapa 1: classificação (D2), prêmio por time (D20) e rateio (D1, D8, D9, D13, D21), e acrescenta os **minutos e as kills de cada jogador por time** | Repetir a conta no serviço | A regra que mexe com dinheiro continua no domínio, testável sem banco |
+| Tabela **`calculos`**, uma por torneio, com a **data do cálculo e a configuração usada** (prêmio, percentuais, modo) | Só `calculado_em` no torneio, como no rascunho do banco | É a foto do momento: o que foi pago se explica por ela, mesmo se alguém mudar o torneio no banco. O status e a trava do torneio ficam para o 6b, na mesma transação |
+| `premios_time`: **todos os times**, com posição, vitórias, kills, prêmio (0 para os sem prêmio), critério e centavo, e a **ordem** da classificação | Só os premiados | A página pública (D11) mostra a classificação inteira |
+| `premios_jogador`: **só os jogadores dos times premiados**, uma linha por time em que jogou (D13), com minutos, kills, a base usada (D1, D21), o valor, o centavo (D9) e a explicação | Todos os jogadores com R$ 0 | É o que o rateio do domínio devolve e o que os links por time mostram; os esperados de `testes/` também só listam os premiados |
+| Gravar de novo **substitui** o cálculo anterior do torneio | Recusar | Quem impede um segundo cálculo é a trava do 6b; aqui a função faz uma coisa só |
+| O serviço tem **duas peças**: montar o resultado e gravar, para o 6b chamar dentro da sua transação, com o torneio travado | Uma função que faz tudo | O 6b precisa conferir "pode calcular" e travar o torneio na mesma transação |
+
+**Testado no caminho de verdade:** importar a planilha → o job confere com o site simulado → calcular e gravar → ler do banco.
+- **Centavo por centavo**, contra `testes/esperado/` (classificação e jogadores): 01-limpa, 04-empate-em-kills, 05-oito-times, outubro e setembro, este com Tuca em R$ 65,90 e Falcões e Tubarões em 3º com R$ 1.000 cada.
+- **As somas fecham** (todos os jogadores = prêmio total; cada time = o valor do time) em todos os cenários que dá para calcular: 01, 02 (depois de corrigir o ID), 03, 04, 05, 07, outubro, novembro e setembro.
+- **Modo kills:** os valores dos Lobos da seção 8 do `contexto.md` batem.
+
+O que ficou de fora dos testes:
+- **06a** é recusada na importação.
+- **06b** só testa o separador: os IDs dela não existem no site simulado, então não há o que calcular.
+- **02, 03, 07 e novembro** não têm arquivo em `testes/esperado/`. Gerar esses arquivos (`gerar_cenarios.py --so-esperado`) é uma melhoria para depois.
+
+**Para o 6b decidir:** com menos times do que posições premiadas (por exemplo, 2 times e percentuais 50/30/20), o domínio lança "Há mais posições premiadas do que times". A criação do torneio não impede isso hoje.
+
+---
+
 ## Stack e ferramentas
 
 | Decisão | Alternativa descartada | Por quê |

@@ -1,0 +1,130 @@
+/** O resultado congelado do cálculo (etapa 6a): gravar e ler. */
+
+import type { Executor } from '../banco/conexao';
+import type { PremioTime } from '../dominio/premio';
+import type { ModoDivisao } from '../dominio/rateio';
+import type { JogadorDoResultado, Resultado } from '../dominio/resultado';
+
+export interface ConfiguracaoUsada {
+  premioCentavos: number;
+  percentuais: number[];
+  modoDivisao: ModoDivisao;
+}
+
+export interface TimeGravado {
+  posicao: number;
+  time: string;
+  vitorias: number;
+  killsTime: number;
+  premioCentavos: number;
+  criterio: string | null;
+  recebeuCentavo: boolean;
+}
+
+export type JogadorGravado = Pick<
+  JogadorDoResultado,
+  'time' | 'nick' | 'minutos' | 'kills' | 'base' | 'baseTime' | 'baseUsada' | 'premioCentavos' | 'recebeuCentavo' | 'explicacao'
+>;
+
+export interface ResultadoGravado extends ConfiguracaoUsada {
+  calculadoEm: Date;
+  times: TimeGravado[];
+  jogadores: JogadorGravado[];
+}
+
+/**
+ * Grava o resultado e a configuração usada. Se o torneio já tinha um cálculo, ele é substituído
+ * (as linhas saem junto, pela chave estrangeira). Quem impede um segundo cálculo é a etapa 6b.
+ */
+export async function gravarResultado(
+  bd: Executor,
+  torneioId: number,
+  config: ConfiguracaoUsada,
+  resultado: Resultado,
+  calculadoEm: Date,
+): Promise<void> {
+  await bd('calculos').where({ torneio_id: torneioId }).del();
+  const [calculoId] = await bd('calculos').insert({
+    torneio_id: torneioId,
+    calculado_em: calculadoEm,
+    premio_centavos: config.premioCentavos,
+    percentuais: JSON.stringify(config.percentuais),
+    modo_divisao: config.modoDivisao,
+  });
+
+  if (resultado.times.length) {
+    await bd('premios_time').insert(
+      resultado.times.map((t: PremioTime, ordem) => ({
+        calculo_id: calculoId,
+        ordem,
+        posicao: t.posicao,
+        time: t.time,
+        vitorias: t.vitorias,
+        kills_time: t.killsTime,
+        premio_centavos: t.premioCentavos,
+        criterio: t.criterio,
+        recebeu_centavo: t.recebeuCentavo,
+      })),
+    );
+  }
+  if (resultado.jogadores.length) {
+    await bd('premios_jogador').insert(
+      resultado.jogadores.map((j) => ({
+        calculo_id: calculoId,
+        time: j.time,
+        nick: j.nick,
+        minutos: j.minutos,
+        kills: j.kills,
+        base: j.base,
+        base_time: j.baseTime,
+        base_usada: j.baseUsada,
+        premio_centavos: j.premioCentavos,
+        recebeu_centavo: j.recebeuCentavo,
+        explicacao: j.explicacao,
+      })),
+    );
+  }
+}
+
+/** O resultado gravado do torneio, ou null se ainda não foi calculado. */
+export async function buscarResultado(bd: Executor, torneioId: number): Promise<ResultadoGravado | null> {
+  const calculo = await bd('calculos').where({ torneio_id: torneioId }).first();
+  if (!calculo) return null;
+  const times = await bd('premios_time').where({ calculo_id: calculo.id }).orderBy('ordem');
+  // os jogadores na ordem dos times da classificação, e por nick dentro do time
+  const jogadores = await bd('premios_jogador as j')
+    .join('premios_time as t', function ligar() {
+      this.on('t.calculo_id', '=', 'j.calculo_id').andOn('t.time', '=', 'j.time');
+    })
+    .where('j.calculo_id', calculo.id)
+    .orderBy([{ column: 't.ordem' }, { column: 'j.id' }])
+    .select('j.*');
+
+  return {
+    calculadoEm: calculo.calculado_em,
+    premioCentavos: calculo.premio_centavos,
+    percentuais: typeof calculo.percentuais === 'string' ? JSON.parse(calculo.percentuais) : calculo.percentuais,
+    modoDivisao: calculo.modo_divisao,
+    times: times.map((t) => ({
+      posicao: t.posicao,
+      time: t.time,
+      vitorias: t.vitorias,
+      killsTime: t.kills_time,
+      premioCentavos: t.premio_centavos,
+      criterio: t.criterio,
+      recebeuCentavo: Boolean(t.recebeu_centavo),
+    })),
+    jogadores: jogadores.map((j) => ({
+      time: j.time,
+      nick: j.nick,
+      minutos: j.minutos,
+      kills: j.kills,
+      base: j.base,
+      baseTime: j.base_time,
+      baseUsada: j.base_usada,
+      premioCentavos: j.premio_centavos,
+      recebeuCentavo: Boolean(j.recebeu_centavo),
+      explicacao: j.explicacao,
+    })),
+  };
+}

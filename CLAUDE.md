@@ -51,4 +51,5 @@ Projeto: desafio técnico da PowerRev (Desenvolvedora Full Stack Júnior). Siste
 - Etapa 5, pedaço 5d (tela das pendências, só web): concluído.
 - Etapa 5, pedaço 5e (correção do ID e "pronto para calcular" na tela, só web): concluído.
 - Etapa 5, pedaço 5f (aba Conferidas): concluído. Etapas 4 e 5 completas e marcadas no checklist do `plano.md`.
-- Próximo passo: **Etapa 6** (cálculo e resultado).
+- Etapa 6, pedaço 6a (calcular e gravar o resultado, só API, sem rota): pronto, aguardando aprovação. Decisões no `DECISIONS.md`.
+- Próximo passo: **Etapa 6, pedaço 6b** (rota, trava e concorrência), depois da aprovação do 6a.

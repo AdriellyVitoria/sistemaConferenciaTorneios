@@ -314,6 +314,8 @@ Em três pedaços. **4a:** as peças da consulta, sem o job: cliente HTTP do sit
 **Pronto quando:** consigo resolver todas as pendências de setembro, de novembro e dos cenários 02 e 03 pela tela.
 
 ### Etapa 6 — Cálculo e resultado ⭐
+**6a (API, sem rota):** `montarResultado` (domínio) e `calcularEGravar` (serviço), com os dados oficiais da comparação atual; resultado congelado em `calculos`, `premios_time` e `premios_jogador` (migration 009). **6b:** a rota, a trava e a concorrência.
+
 - Calcular: aplica as regras da etapa 1 sobre os dados do site; **trava o modo de divisão** (D1).
 - **Confirmação ao calcular:** avisar que, depois do cálculo, o modo de divisão e a planilha ficam travados, e pedir confirmação (D1, D22).
 - Tela da Maria: classificação com a justificativa do desempate, prêmio por time e **prêmio por jogador com filtro por nick**.

@@ -13,7 +13,7 @@
 import type { Knex } from 'knex';
 import type { Executor } from '../banco/conexao';
 import { chaveDaPendencia, ehBloqueante } from '../dominio/chave-pendencia';
-import { compararComSite, type ItemPendencia, type PartidaSite, type RespostaSite } from '../dominio/comparacao';
+import { compararComSite, type ItemPendencia, type PartidaSite, type RespostaSite, type ResultadoComparacao } from '../dominio/comparacao';
 import type { LinhaPlanilha } from '../dominio/planilha';
 import { listarLinhas } from '../repositorios/linhas-planilha';
 import { listarPartidas, type Partida } from '../repositorios/partidas';
@@ -46,20 +46,27 @@ export async function listarPendencias(bd: Knex, torneioId: number): Promise<Lis
   return calcularPendencias(bd, torneioId);
 }
 
-/** As pendências atuais do torneio (sem conferir se o torneio existe). */
-export async function calcularPendencias(bd: Executor, torneioId: number): Promise<ListaDePendencias> {
-  const [partidas, linhas, participacoes, cientes] = await Promise.all([
+/**
+ * A comparação atual do torneio (D19), montada com o que está no banco: as linhas da planilha e o
+ * que o job gravou do site. É a fonte única das pendências (5a) e dos dados oficiais do cálculo
+ * (6a, D3): o que a Maria revisou é exatamente o que entra no prêmio.
+ */
+export async function compararAtual(bd: Executor, torneioId: number): Promise<{ partidas: Partida[]; comparacao: ResultadoComparacao }> {
+  const [partidas, linhas, participacoes] = await Promise.all([
     listarPartidas(bd, torneioId),
     listarLinhas(bd, torneioId),
     listarParticipacoes(bd, torneioId),
-    listarCientes(bd, torneioId),
   ]);
-
   // a linha é comparada com o ID atual da partida: se a Maria corrigir o ID (etapa 5b), a linha vai junto
   const idAtual = new Map(partidas.map((p) => [p.id, p.idPartida]));
   const linhasComIdAtual: LinhaPlanilha[] = linhas.map(({ partidaId, ...linha }) => ({ ...linha, idPartida: idAtual.get(partidaId)! }));
+  return { partidas, comparacao: compararComSite(linhasComIdAtual, respostasDoSite(partidas, participacoes)) };
+}
 
-  const { pendencias, aguardandoSite } = compararComSite(linhasComIdAtual, respostasDoSite(partidas, participacoes));
+/** As pendências atuais do torneio (sem conferir se o torneio existe). */
+export async function calcularPendencias(bd: Executor, torneioId: number): Promise<ListaDePendencias> {
+  const [{ partidas, comparacao }, cientes] = await Promise.all([compararAtual(bd, torneioId), listarCientes(bd, torneioId)]);
+  const { pendencias, aguardandoSite } = comparacao;
 
   const idInterno = new Map(partidas.map((p) => [p.idPartida, p.id]));
   const listadas = pendencias.map((item): PendenciaListada => {

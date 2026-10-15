@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { regrasEmTexto } from '../src/dominio/publico';
+import { comEspacosComuns } from './ajudantes/espacos';
 
 const DESEMPATE = 'Ganha a melhor posição quem tem mais vitórias. Empate em vitórias: fica na frente o time com mais kills no torneio.';
 const regras = (extra: Partial<Parameters<typeof regrasEmTexto>[0]> = {}) => ({
@@ -8,7 +9,7 @@ const regras = (extra: Partial<Parameters<typeof regrasEmTexto>[0]> = {}) => ({
 
 describe('regrasEmTexto: as regras do torneio em texto simples, para o jogador', () => {
   it('setembro: prêmio, quantas posições são premiadas, minutos e o desempate', () => {
-    expect(regrasEmTexto(regras(), 6)).toEqual([
+    expect(comEspacosComuns(regrasEmTexto(regras(), 6))).toEqual([
       { rotulo: 'Prêmio total', texto: 'R$ 10.000,00' },
       { rotulo: 'Divisão entre os times', texto: 'Premia 3 posições: 1º 50% · 2º 30% · 3º 20%. Os outros times não recebem prêmio.' },
       {

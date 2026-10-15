@@ -43,8 +43,19 @@ export function formatarReais(centavos: number): string {
   return `${sinal}${reaisComPontos},${String(resto).padStart(2, '0')}`;
 }
 
-/** 1000000 -> "R$ 10.000,00". Mesmo formato do formatarCentavos da API. */
+/**
+ * O espaço que não quebra (U+00A0), escrito com o código do caractere: no código, o próprio
+ * caractere é invisível e igual ao espaço comum (R2b).
+ */
+const ESPACO_QUE_NAO_QUEBRA = String.fromCharCode(0x00a0);
+
+/**
+ * 1000000 -> "R$ 10.000,00". Entre "R$" e o número vai um espaço que não quebra (R2b): numa tabela
+ * estreita no celular, "R$" nunca fica sozinho no fim de uma linha com o valor na seguinte. É o que o
+ * Intl.NumberFormat do navegador também faz. Para ler, copiar e colar, não muda nada.
+ */
 export function formatarCentavos(centavos: number): string {
   const reais = formatarReais(centavos);
-  return reais.startsWith('-') ? `-R$ ${reais.slice(1)}` : `R$ ${reais}`;
+  const simbolo = `R$${ESPACO_QUE_NAO_QUEBRA}`;
+  return reais.startsWith('-') ? `-${simbolo}${reais.slice(1)}` : `${simbolo}${reais}`;
 }

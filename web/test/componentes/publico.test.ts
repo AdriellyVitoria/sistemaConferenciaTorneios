@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createMemoryHistory, createRouter } from 'vue-router';
 import App from '../../src/App.vue';
 import { rotas } from '../../src/roteador';
+import { espacosComuns, textoDe } from '../ajudantes/espacos';
 
 // A classificação de setembro como a API devolve em GET /publico/:codigo, montada do gabarito (só lido)
 const ESPERADO = path.resolve(__dirname, '../../../testes/esperado');
@@ -58,12 +59,12 @@ async function abrir(caminho: string, resposta: { status: number; corpo: unknown
   return app;
 }
 
-const tabela = (app: VueWrapper) => app.findAll('table').find((t) => t.find('caption').text() === 'Classificação')!;
+const tabela = (app: VueWrapper) => app.findAll('table').find((t) => textoDe(t.find('caption')) === 'Classificação')!;
 /** O texto que aparece na tela: sem o que é só para o leitor de tela (.visualmente-oculto). */
 const visivel = (celula: Element) => {
   const copia = celula.cloneNode(true) as Element;
   copia.querySelectorAll('.visualmente-oculto').forEach((n) => n.remove());
-  return (copia.textContent ?? '').trim();
+  return espacosComuns((copia.textContent ?? '').trim());
 };
 const linhasDaTabela = (app: VueWrapper) => tabela(app).findAll('tbody tr').map((tr) => tr.findAll('td, th').map((c) => visivel(c.element)));
 
@@ -81,13 +82,13 @@ const SETEMBRO_EM_50_50 = {
 describe('página pública: setembro', () => {
   it('nome do torneio e "Calculado em 15/10/2026"', async () => {
     const app = await abrir(`/publico/${CODIGO}`);
-    expect(app.find('h1').text()).toBe('Torneio de Setembro/2026');
-    expect(app.text()).toContain('Calculado em 15/10/2026');
+    expect(textoDe(app.find('h1'))).toBe('Torneio de Setembro/2026');
+    expect(textoDe(app)).toContain('Calculado em 15/10/2026');
     expect(pedidos).toContain(`/api/publico/${CODIGO}`);
   });
 
   it('as regras em texto simples', async () => {
-    const texto = (await abrir(`/publico/${CODIGO}`)).text();
+    const texto = textoDe((await abrir(`/publico/${CODIGO}`)));
     for (const parte of ['Prêmio total', 'R$ 10.000,00', 'Premia 3 posições: 1º 50% · 2º 30% · 3º 20%', 'Proporcional aos minutos que cada jogador jogou', DESEMPATE]) {
       expect(texto).toContain(parte);
     }
@@ -107,32 +108,32 @@ describe('página pública: setembro', () => {
 
   it('a tabela tem legenda e cabeçalhos (de coluna e de linha), e o "—" do prêmio é lido como "sem prêmio"', async () => {
     const app = await abrir(`/publico/${CODIGO}`);
-    expect(tabela(app).findAll('thead th[scope="col"]').map((t) => t.text())).toEqual(['Posição', 'Time', 'Prêmio', 'Vitórias', 'Kills do time', 'Critério']);
+    expect(tabela(app).findAll('thead th[scope="col"]').map((t) => textoDe(t))).toEqual(['Posição', 'Time', 'Prêmio', 'Vitórias', 'Kills do time', 'Critério']);
     expect(tabela(app).findAll('tbody th[scope="row"]')).toHaveLength(6);
-    const serpentes = tabela(app).findAll('tbody tr').find((tr) => tr.text().includes('Serpentes'))!;
-    expect(serpentes.findAll('td')[1].find('.visualmente-oculto').text()).toBe('sem prêmio');
+    const serpentes = tabela(app).findAll('tbody tr').find((tr) => textoDe(tr).includes('Serpentes'))!;
+    expect(textoDe(serpentes.findAll('td')[1].find('.visualmente-oculto'))).toBe('sem prêmio');
   });
 
   it('50/50: "Premia 2 posições" nas regras, o 3º empatado sem prêmio e a frase dizendo por quê', async () => {
     const app = await abrir(`/publico/${CODIGO}`, { status: 200, corpo: SETEMBRO_EM_50_50 });
-    expect(app.text()).toContain('Premia 2 posições: 1º 50% · 2º 50%. Os outros times não recebem prêmio.');
+    expect(textoDe(app)).toContain('Premia 2 posições: 1º 50% · 2º 50%. Os outros times não recebem prêmio.');
     expect(linhasDaTabela(app).map((l) => l.slice(0, 3))).toEqual([
       ['1º', 'Lobos', 'R$ 5.000,00'], ['2º', 'Corvos', 'R$ 5.000,00'], ['3º', 'Falcões', '—'], ['3º', 'Tubarões', '—'], ['5º', 'Panteras', '—'], ['6º', 'Serpentes', '—'],
     ]);
-    expect(app.text()).toContain('Corvos, Falcões e Tubarões terminaram com 3 vitórias. Corvos fez mais kills (368) e ficou em 2º. Falcões e Tubarões empataram também em kills (310) e ficaram em 3º. Este torneio premia só 2 posições.');
+    expect(textoDe(app)).toContain('Corvos, Falcões e Tubarões terminaram com 3 vitórias. Corvos fez mais kills (368) e ficou em 2º. Falcões e Tubarões empataram também em kills (310) e ficaram em 3º. Este torneio premia só 2 posições.');
   });
 
   it('"Premia 3 posições" na linha do título "Classificação", e também nas regras', async () => {
     const app = await abrir(`/publico/${CODIGO}`);
     const cabecalho = app.find('section[aria-labelledby="t-classificacao"] .cabecalho-classificacao');
-    expect(cabecalho.find('h2#t-classificacao').text()).toBe('Classificação');
-    expect(cabecalho.find('p.texto-suave').text()).toBe('Premia 3 posições: 1º 50% · 2º 30% · 3º 20%');
-    expect(app.find('.regras').text()).toContain('Premia 3 posições: 1º 50% · 2º 30% · 3º 20%.');
+    expect(textoDe(cabecalho.find('h2#t-classificacao'))).toBe('Classificação');
+    expect(textoDe(cabecalho.find('p.texto-suave'))).toBe('Premia 3 posições: 1º 50% · 2º 30% · 3º 20%');
+    expect(textoDe(app.find('.regras'))).toContain('Premia 3 posições: 1º 50% · 2º 30% · 3º 20%.');
   });
 
   it('a frase do empate, montada dos dados, com os nomes dos times', async () => {
     const app = await abrir(`/publico/${CODIGO}`);
-    expect(app.text()).toContain('Corvos, Falcões e Tubarões terminaram com 3 vitórias. Corvos fez mais kills (368) e ficou em 2º. Falcões e Tubarões empataram também em kills (310) e dividiram o prêmio do 3º lugar: R$ 2.000,00, metade para cada time.');
+    expect(textoDe(app)).toContain('Corvos, Falcões e Tubarões terminaram com 3 vitórias. Corvos fez mais kills (368) e ficou em 2º. Falcões e Tubarões empataram também em kills (310) e dividiram o prêmio do 3º lugar: R$ 2.000,00, metade para cada time.');
   });
 
   it('o título da aba do navegador é o do torneio', async () => {
@@ -162,40 +163,40 @@ describe('é uma página para jogadores (D11)', () => {
     const app = await abrir(`/publico/${CODIGO}`);
     expect(app.findAll('a')).toEqual([]);
     expect(app.find('nav').exists()).toBe(false);
-    expect(app.text()).not.toContain('Torneios');
-    expect(app.text()).not.toContain('Banco de dados');
+    expect(textoDe(app)).not.toContain('Torneios');
+    expect(textoDe(app)).not.toContain('Banco de dados');
     // a marca continua, mas como texto
-    expect(app.text()).toContain('Premiação de torneios');
+    expect(textoDe(app)).toContain('Premiação de torneios');
   });
 
   it('as telas da Maria continuam com o menu e o rodapé', async () => {
     const app = await abrir('/torneios/novo');
-    expect(app.find('nav').text()).toContain('Torneios');
-    expect(app.text()).toContain('Banco de dados');
+    expect(textoDe(app.find('nav'))).toContain('Torneios');
+    expect(textoDe(app)).toContain('Banco de dados');
   });
 });
 
 describe('código inválido', () => {
   it('404: "Página não encontrada", sem dizer se o torneio existe, e sem links', async () => {
     const app = await abrir('/publico/naoexiste', { status: 404, corpo: { erro: 'Página não encontrada.' } });
-    expect(app.find('h1').text()).toBe('Página não encontrada');
-    expect(app.text()).toContain('Confira se o link foi copiado inteiro.');
+    expect(textoDe(app.find('h1'))).toBe('Página não encontrada');
+    expect(textoDe(app)).toContain('Confira se o link foi copiado inteiro.');
     // o conteúdo da página (a marca do cabeçalho, "Premiação de torneios", fica de fora)
-    expect(app.find('main').text()).not.toMatch(/torneio/i);
+    expect(textoDe(app.find('main'))).not.toMatch(/torneio/i);
     expect(app.findAll('a')).toEqual([]);
     expect(app.find('table').exists()).toBe(false);
   });
 
   it('sem código: a mesma página, sem pedir nada à API (e não cai na lista da Maria)', async () => {
     const app = await abrir('/publico/');
-    expect(app.find('h1').text()).toBe('Página não encontrada');
+    expect(textoDe(app.find('h1'))).toBe('Página não encontrada');
     expect(pedidos).toEqual([]);
   });
 
   it('o servidor fora do ar não vira "não encontrada": pede para tentar de novo', async () => {
     const app = await abrir(`/publico/${CODIGO}`, { status: 500, corpo: { erro: 'Erro inesperado no servidor. Tente de novo.' } });
-    expect(app.find('[role="alert"]').text()).toBe('Não foi possível carregar a página agora. Tente de novo em alguns minutos.');
-    expect(app.find('h1').text()).toBe('Não foi possível carregar');
+    expect(textoDe(app.find('[role="alert"]'))).toBe('Não foi possível carregar a página agora. Tente de novo em alguns minutos.');
+    expect(textoDe(app.find('h1'))).toBe('Não foi possível carregar');
   });
 });
 

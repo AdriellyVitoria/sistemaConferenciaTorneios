@@ -840,7 +840,7 @@ Decisões da Adrielly (plano, seção 9): remover só antes do cálculo, com con
 - **Sem desvio:** a integração rodou 5 vezes seguidas, todas com 152 de 152.
 - **Com desvio simulado:** rodou de novo com o relógio do Node deslocado 5 s para frente e 5 s para trás, bem acima da folga antiga, e passou nas duas. Um teste temporário confirmou que o desvio valia dentro dos testes.
 
-**Observação sobre o código da API (sem mudança agora):** a importação grava a próxima tentativa com o relógio do MySQL, e o job e a correção de ID usam o do Node. No Docker, a API e o MySQL rodam na mesma máquina virtual e têm o mesmo relógio, então não há problema em produção. Ainda assim, um relógio só também no código seria mais simples de explicar: a importação passaria a gravar o "agora" da API.
+**Observação sobre o código da API (resolvida no R2a, em "Correções do code review"):** a importação grava a próxima tentativa com o relógio do MySQL, e o job e a correção de ID usam o do Node. No Docker, a API e o MySQL rodam na mesma máquina virtual e têm o mesmo relógio, então não há problema em produção. Ainda assim, um relógio só também no código seria mais simples de explicar: a importação passaria a gravar o "agora" da API.
 
 ---
 
@@ -895,6 +895,39 @@ O code review de 15/10/2026 está em `code-review.md`. As correções entram em 
 - **Partida (`status_conferencia`):** `times_diferentes`. "Times diferentes" é um **tipo de pendência**, que sai da comparação na hora (D19); a partida fica `conferida`. O serviço de pendências só lê esse valor, por segurança.
 - **Por que não foram removidos:** tirar um valor de um `enum` exige uma migration que altera a coluna, e o ganho é só de limpeza. Fica em "Próximos passos".
 
+### R4: "Limpar filtros" na lista de torneios, 15/10/2026
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| O botão **aparece só com algum filtro fora do padrão** (situação, divisão, mês ou busca) e some quando tudo volta ao padrão | Sempre visível | Um botão que não faz nada no estado padrão confunde; aparecer é o sinal de que há filtro ligado |
+| O padrão fica **numa constante só** (`PADRAO`), usada para começar a página e para limpar | Os valores iniciais repetidos no botão | Se o padrão de um filtro mudar, o botão continua voltando ao lugar certo |
+| Ao limpar, **o foco vai para o primeiro filtro** ("Todos", da situação) | Deixar o foco onde estava | O botão some ao ser clicado: o foco cairia no começo da página e quem navega pelo teclado perderia o lugar |
+| **Anúncio ao leitor de tela** num `role="status"` próprio, fora do botão: "Filtros limpos: 3 torneios." | Contar com o `aria-live` da lista | A lista inteira seria lida de novo; a frase curta diz o que aconteceu e quanto apareceu |
+| Fica **junto dos filtros**, e no celular ocupa a largura toda, como eles | Num lugar à parte | É uma ação sobre os filtros |
+
+### R2a: fuso e relógio (seção "Os dois itens que você já conhecia"), 15/10/2026
+
+**O risco era o fuso, não só o desvio.** A seção "Testes de integração com um relógio só" falava do desvio entre os relógios do Node e do MySQL e concluía que "no Docker não há problema". O review mostrou um risco maior: o `timezone: 'Z'` do mysql2 só diz como converter as datas do JavaScript; o `NOW()` e o `CURRENT_TIMESTAMP` usam o **fuso da sessão do MySQL**. No contêiner, a sessão é UTC por acaso; num MySQL configurado em `-03:00`, os horários gravados por ele saem **3 horas errados**. O teste reproduziu isso: com o servidor em `-03:00`, o horário de criação do torneio ficou exatamente 10.800.000 ms (3 h) atrás da hora real, e a próxima tentativa das partidas saiu com o relógio do MySQL, e não com o da API.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **Sessão do MySQL fixada em UTC** em toda conexão nova do pool (`SET time_zone = '+00:00'`, no `afterCreate`) | Confiar na configuração do servidor | Um MySQL gerenciado, ou instalado no computador da Maria, pode vir em `-03:00`. O horário de criação define o "mês do torneio" sem planilha (M1) e erraria perto da virada do mês |
+| **Um relógio só no código:** a importação recebe `agora`, o mesmo relógio do job e da correção de ID, e grava com ele a primeira tentativa das partidas e o horário da importação, em segundos inteiros | A primeira tentativa vir do padrão `NOW()` da coluna | Com dois relógios, o job (relógio da API) e a importação (relógio do MySQL) podiam discordar sobre se a partida "já está pronta". Um relógio só é mais simples de explicar e de testar |
+| O `created_at` continua com o `CURRENT_TIMESTAMP` do banco | Gravá-lo também com o relógio da API | Com a sessão em UTC ele sai certo, e mudar todas as tabelas seria uma mudança grande para o mesmo resultado |
+
+**Os testes:** um teste de integração põe o servidor em `-03:00` (fuso global, com o root), abre uma conexão nova e confere: a sessão é UTC; a importação grava a primeira tentativa e o horário da importação com o `agora` recebido; o `created_at` bate com a hora real (segundos desde 1970, que não dependem de fuso). O fuso global original volta no fim, mesmo se o teste falhar, porque vale para o servidor todo. Os testes que importam direto passaram a dar à importação o mesmo relógio do job, e o teste "nasce agora" do repositório compara o valor exato, sem precisar da hora do MySQL.
+
+### R2b: "R$" com espaço que não quebra, 15/10/2026
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| Entre "R$" e o número, um **espaço que não quebra** (U+00A0), no formatador da web | `white-space: nowrap` nas células de valor | Resolve a tabela, mas não as frases do link do time, que também têm valores |
+| No código, o caractere vai como `String.fromCharCode(0x00a0)`, com nome | Escrever o caractere | Ele é invisível e igual ao espaço comum: ninguém saberia qual dos dois está ali (o mesmo problema que já apareceu num regex) |
+| Os testes comparam o texto **como se lê**, com espaço comum: os de componente leem a tela sempre por `textoDe(…)`, e os de domínio passam o valor por `comEspacosComuns(…)` (`web/test/ajudantes/espacos.ts`) | Escrever o espaço que não quebra nos textos esperados | Espalharia o caractere invisível por dezenas de testes. Um teste próprio confere que o formatador usa mesmo o U+00A0 |
+| O **CSV não muda** | Usar o mesmo formatador | O CSV tem o seu formato (sem "R$" e sem ponto de milhar, para o Excel somar) |
+
+Colar o valor formatado de volta no campo do prêmio continua funcionando: a leitura já aceitava qualquer espaço depois do "R$".
+
 ---
 
 ## Stack e ferramentas
@@ -922,7 +955,6 @@ Decididos com a Adrielly em 15/10/2026 (no fim da etapa 6, nas etapas 7a e 7d e 
 | Próximo passo | O que é | Por que ficou para depois |
 |---|---|---|
 | **Aba "Aguardando o site" igual ao protótipo 1c** | O quadro "O site oficial está instável agora" com o "Tentar agora" dentro da aba; um estado por partida ("Consultando o site", "Na fila", "O site falhou · 3 tentativas", "Erro interno, não é o site") e a espera ao lado da próxima tentativa ("(espera de 5 min)") | A aba do 4c já mostra o motivo, as tentativas e "última às X, próxima às Y" (D10), que é o que a Maria precisa para não vigiar o site. O que falta é polimento visual, sem regra nova |
-| **Relógio único na API** | A importação passa a gravar a próxima tentativa com o "agora" da API, em vez do `NOW()` do MySQL | Hoje a importação usa o relógio do MySQL, e o job e a correção de ID usam o do Node. No Docker os dois são o mesmo relógio (a mesma máquina virtual), então não há problema em produção; os testes já usam um relógio só. Um relógio só também no código seria mais simples de explicar |
 | **Limpar os status sem uso** | Tirar `conferindo` e `pronto` do status do torneio e `times_diferentes` do `status_conferencia` da partida (R1c) | Vieram do rascunho do banco e nunca são gravados; removê-los do `enum` exige uma migration que altera as colunas, e o ganho é só de limpeza |
 | **PDF do resultado** | Pela impressão do navegador ("Salvar como PDF"), com um CSS de impressão na tela do resultado: sem cabeçalho do sistema, sem filtro e sem botões, com as tabelas inteiras | O CSV já permite pagar (6c); o PDF é para guardar ou enviar. Pela impressão do navegador, não precisa de biblioteca nova nem de rota na API |
 | **"Jogou X de Y partidas" no resultado** | O cálculo passa a gravar, para cada jogador, em quantas partidas jogou por aquele time e quantas o time jogou; a tela mostra isso no lugar de deduzir "Reserva" pelos minutos (6e) | Exige uma coluna nova em `premios_jogador` e uma mudança no cálculo. Deduzir pelos minutos marcaria errado quem só saiu mais cedo numa partida (Bia.gg) |

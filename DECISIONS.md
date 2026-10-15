@@ -562,6 +562,40 @@ Só web; a API é a do 6b.
 
 ---
 
+## Tela do resultado (etapa 6e), 15/10/2026
+
+Só web, seguindo o protótipo 2-resultado, no lugar da página "em construção" do 6d. A API é a do 6c.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **Tudo sai do que foi gravado no cálculo**: a tela só soma centavos (total distribuído, rodapé) e monta textos; nenhum valor é recalculado | Recalcular na tela | O que aparece é exatamente o que foi pago |
+| Cabeçalho: "Calculado em dd/mm/aaaa às hh:mm · Divisão por … (travada)", **"Total distribuído"** (a soma dos jogadores gravados) e **"Baixar CSV"** (a rota do 6c) | Mostrar o prêmio configurado | A soma dos valores gravados é o que de fato saiu; se um dia divergisse do prêmio, a tela mostraria |
+| Classificação com as **posições empatadas** (1, 2, 3, 3, 5) e o critério gravado como selo ("Desempate por kills", "Empate total · prêmio dividido", "Empate total") | Reescrever o critério | O texto gravado continua sendo a fonte; a tela só encurta |
+| **A frase dos empates é montada dos dados** (`explicarEmpates`): os grupos com as mesmas vitórias, quem desempatou por kills, e os empatados também em kills, com as posições que pagavam (pelos percentuais gravados), o valor somado e a fração de cada time ("metade", "um terço") | Uma frase escrita para setembro | Vale para qualquer torneio; testado com setembro, com o cenário 04 (dois empates, um sem prêmio) e com casos pequenos |
+| Prêmio por jogador: time, nick, **minutos ou kills conforme o modo** ("173 de 865"), **% do time** (arredondado só com inteiros), valor e observação | — | Como o protótipo |
+| **A observação mostra só o que está gravado:** "+R$ 0,01 de arredondamento" (D9) e a explicação do cálculo (D21). **Sem a etiqueta "Reserva"** do protótipo | Deduzir "reserva" pelos minutos | O resultado não guarda em quantas partidas cada jogador jogou. Pelos minutos, Bia.gg (154, saiu mais cedo numa partida) também seria marcada como reserva. Para mostrar "Reserva" com dado de verdade, o cálculo precisaria gravar as partidas jogadas: fica como melhoria, se a Adrielly quiser |
+| Rodapé: "21 jogadores premiados · soma: R$ 10.000,00", com a soma calculada dos dados; com filtro, "1 de 21 jogadores premiados". **Anunciado ao leitor de tela** (`aria-live`) | Texto fixo | O número muda com o filtro |
+| **Filtro por nick** parcial, sem diferenciar maiúsculas e acentos ("sniper" acha xXSniperXx; "vibora" acha Víbora). Sem busca, a tabela mostra os premiados | Busca exata | A Maria lembra do nick pela metade, e os jogadores digitam sem acento |
+| Nick de time sem prêmio: **"Víbora jogou pelo time Serpentes, que ficou em 6º, sem prêmio."** | "jogou pelos Panteras, que ficaram…" | O artigo depende do nome do time ("pelas Águias", "pelos Lobos"), e o sistema não sabe o gênero de cada nome |
+| Nick inexistente: "Nenhum jogador com esse nick neste torneio." | — | — |
+| **Tabelas com legenda e cabeçalhos** (`caption`, `scope`); campo de filtro com rótulo; no celular, as tabelas **rolam dentro da caixa** e a página não alarga | Empilhar as tabelas | As colunas de número se leem melhor lado a lado |
+| Antes do cálculo (409): a frase da API e o botão "Voltar ao torneio" | Página em branco | — |
+| **Os links por time premiado ficam para a etapa 7** | — | Como pedido |
+
+**Testes de componente com o setembro**, montado dos gabaritos de `testes/esperado/`:
+- a classificação com o 3º empatado;
+- a frase do empate;
+- Tuca com R$ 65,90, o centavo e "19 de 865";
+- o filtro parcial e sem acento;
+- o jogador de time sem prêmio e o nick inexistente;
+- a soma de R$ 10.000,00;
+- a coluna de kills no modo kills;
+- o rótulo do filtro e o anúncio do resultado.
+
+**No navegador** (roteiro pelo protocolo de depuração do Edge, contra o Docker): um setembro calculado de verdade, do torneio até o resultado pelo link "Ver resultado", com o filtro, o CSV e o celular.
+
+---
+
 ## Stack e ferramentas
 
 | Decisão | Alternativa descartada | Por quê |

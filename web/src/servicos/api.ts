@@ -242,6 +242,56 @@ export async function corrigirIdPartida(
   return { tipo: 'erro', mensagem: corpo.erro ?? `Não foi possível corrigir o ID (erro ${resposta.status}).` };
 }
 
+/** Um time na classificação gravada no cálculo (6c). */
+export interface TimeDoResultado {
+  posicao: number;
+  time: string;
+  vitorias: number;
+  killsTime: number;
+  premioCentavos: number;
+  /** Como foi gravado: "desempate por kills do time", "divisão igual (empate em vitórias e kills)"... */
+  criterio: string | null;
+  recebeuCentavo: boolean;
+}
+
+/** Um jogador no resultado gravado, um por time em que jogou (os sem prêmio com R$ 0). */
+export interface JogadorDoResultado {
+  time: string;
+  posicao: number;
+  nick: string;
+  minutos: number;
+  kills: number;
+  base: number;
+  baseTime: number;
+  baseUsada: ModoDivisao;
+  premioCentavos: number;
+  recebeuCentavo: boolean;
+  explicacao: string | null;
+}
+
+export interface ResultadoDoTorneio {
+  torneio: { id: number; nome: string };
+  calculadoEm: string;
+  premioCentavos: number;
+  percentuais: number[];
+  modoDivisao: ModoDivisao;
+  times: TimeDoResultado[];
+  jogadores: JogadorDoResultado[];
+}
+
+/** O resultado gravado no cálculo; "nao_calculado" = 409. */
+export async function buscarResultado(torneioId: number): Promise<{ tipo: 'ok'; resultado: ResultadoDoTorneio } | { tipo: 'nao_calculado' | 'erro'; mensagem: string }> {
+  const resposta = await chamar(`/api/torneios/${torneioId}/resultado`);
+  const corpo = await resposta.json().catch(() => ({}));
+  if (resposta.ok) return { tipo: 'ok', resultado: corpo };
+  return {
+    tipo: resposta.status === 409 ? 'nao_calculado' : 'erro',
+    mensagem: corpo.erro ?? `Não foi possível ler o resultado (erro ${resposta.status}).`,
+  };
+}
+
+export const enderecoDoCsv = (torneioId: number) => `/api/torneios/${torneioId}/resultado.csv`;
+
 /**
  * Calcula os prêmios (6b). "recusado" = 409: algo mudou entre a tela e o clique (um Ciente
  * desfeito, uma partida de volta na fila) ou o torneio já foi calculado; vem com a frase da API.

@@ -314,7 +314,7 @@ Em três pedaços. **4a:** as peças da consulta, sem o job: cliente HTTP do sit
 **Pronto quando:** consigo resolver todas as pendências de setembro, de novembro e dos cenários 02 e 03 pela tela.
 
 ### Etapa 6 — Cálculo e resultado ⭐
-**6a (API, sem rota):** `montarResultado` (domínio) e `calcularEGravar` (serviço), com os dados oficiais da comparação atual; resultado congelado em `calculos`, `premios_time` e `premios_jogador` (migration 009). **6b (API):** `POST /torneios/:id/calculo`, numa transação que trava o torneio primeiro, confere de novo se pode calcular e marca o torneio como calculado; D24 (menos times do que posições premiadas); jogadores dos times sem prêmio gravados com R$ 0; gabaritos de 02, 03, 07 e novembro. **6c (API):** `GET /torneios/:id/resultado` (o que foi gravado, nada recalculado) e `GET /torneios/:id/resultado.csv` (UTF-8 com BOM, ";", para pagar no Excel). **6d (web):** botão "Calcular prêmios" no aviso do topo, com o modal de confirmação (resumo, foco no "Voltar"), sem clique duplo, 409 que recarrega e o link "Ver resultado". **6e:** a tela do resultado, com o filtro por nick.
+**6a (API, sem rota):** `montarResultado` (domínio) e `calcularEGravar` (serviço), com os dados oficiais da comparação atual; resultado congelado em `calculos`, `premios_time` e `premios_jogador` (migration 009). **6b (API):** `POST /torneios/:id/calculo`, numa transação que trava o torneio primeiro, confere de novo se pode calcular e marca o torneio como calculado; D24 (menos times do que posições premiadas); jogadores dos times sem prêmio gravados com R$ 0; gabaritos de 02, 03, 07 e novembro. **6c (API):** `GET /torneios/:id/resultado` (o que foi gravado, nada recalculado) e `GET /torneios/:id/resultado.csv` (UTF-8 com BOM, ";", para pagar no Excel). **6d (web):** botão "Calcular prêmios" no aviso do topo, com o modal de confirmação (resumo, foco no "Voltar"), sem clique duplo, 409 que recarrega e o link "Ver resultado". **6e (web):** a tela do resultado (protótipo 2-resultado): cabeçalho com o total e o CSV, classificação com a frase dos empates montada dos dados, prêmio por jogador com o filtro por nick. Sem a etiqueta "Reserva" (o cálculo não grava as partidas de cada jogador).
 
 - Calcular: aplica as regras da etapa 1 sobre os dados do site; **trava o modo de divisão** (D1).
 - **Confirmação ao calcular:** avisar que, depois do cálculo, o modo de divisão e a planilha ficam travados, e pedir confirmação (D1, D22).
@@ -364,7 +364,7 @@ Em três pedaços. **4a:** as peças da consulta, sem o job: cliente HTTP do sit
 - [x] Etapa 3 — Torneio e importação
 - [x] Etapa 4 — Conferência em segundo plano
 - [x] Etapa 5 — Revisão das pendências
-- [ ] Etapa 6 — Cálculo e resultado
+- [x] Etapa 6 — Cálculo e resultado
 - [ ] Etapa 7 — Página pública e links por time
 - [ ] Etapa 8 — Documentação
 - [ ] Etapa 9 — Revisão final

@@ -48,45 +48,49 @@ const rotulo: Record<Estado, string> = { verificando: 'verificando…', ok: 'no 
 <style scoped>
 .cabecalho {
   background: var(--cabecalho);
-  color: #ffffff;
-  padding: 14px 24px;
+  color: var(--cabecalho-texto);
+  padding: 14px var(--margem-lateral);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--espaco-3);
 }
 .marca {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-weight: 600;
-  font-size: 16px;
-  color: #ffffff;
+  font-weight: var(--peso-forte);
+  font-size: var(--texto-marca);
+  min-height: var(--alvo-toque);
+  color: var(--cabecalho-texto);
   text-decoration: none;
 }
 .marca:hover {
-  color: #ffffff;
+  color: var(--cabecalho-texto);
 }
 .marca svg {
   color: var(--cabecalho-icone);
 }
 nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--alvo-toque);
   color: var(--cabecalho-texto-suave);
-  font-size: 14px;
+  font-size: var(--texto-md);
   text-decoration: none;
 }
 nav a:hover,
 nav a.router-link-exact-active {
-  color: #ffffff;
+  color: var(--cabecalho-texto);
 }
 .rodape {
-  max-width: 1120px;
+  max-width: var(--largura-pagina);
   margin: 0 auto;
-  padding: 0 24px 32px;
+  padding: 0 var(--margem-lateral) var(--espaco-7);
   display: flex;
-  gap: 8px;
-  font-size: 13px;
+  gap: var(--espaco-2);
+  font-size: var(--texto-sm);
   color: var(--texto-suave);
 }
 .rodape .erro {

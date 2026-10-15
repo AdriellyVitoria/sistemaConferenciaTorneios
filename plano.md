@@ -371,5 +371,5 @@ Em três pedaços. **4a:** as peças da consulta, sem o job: cliente HTTP do sit
 
 Anotadas para depois, **sem implementar** por enquanto. Se não couberem no prazo, vão para o `DECISIONS.md` como "o que ficou de fora".
 
-- **Nova lista de torneios**, seguindo o protótipo `docs/prototipo/0-lista-torneios.html`.
+- ~~**Nova lista de torneios**~~: feita no pedaço visual, só com o que já existe. Ficam para as etapas 5 a 7: "precisam da sua atenção", régua de etapas, linha de detalhe de cada torneio e as ações "Revisar" e "Ver resultado" (lista no `DECISIONS.md`).
 - **Excluir torneio.** Precisa definir antes, como regra de negócio: se pode excluir depois do cálculo (os links dos times já podem ter sido enviados) e se a tela pede confirmação.

@@ -285,7 +285,7 @@ const tomDaConferencia: Record<StatusConferencia, string> = {
             </span>
           </div>
           <div class="rolagem">
-            <table class="tabela erros">
+            <table class="tabela erros empilhavel">
               <thead>
                 <tr>
                   <th>Linha</th>
@@ -295,9 +295,9 @@ const tomDaConferencia: Record<StatusConferencia, string> = {
               </thead>
               <tbody>
                 <tr v-for="(e, i) in recusa.erros" :key="i">
-                  <td class="mono">{{ linhasDoErro(e) }}</td>
-                  <td>{{ e.coluna ?? '—' }}</td>
-                  <td>{{ e.mensagem }}</td>
+                  <td class="numeral" data-rotulo="Linha">{{ linhasDoErro(e) }}</td>
+                  <td data-rotulo="Coluna">{{ e.coluna ?? '—' }}</td>
+                  <td data-rotulo="Problema">{{ e.mensagem }}</td>
                 </tr>
               </tbody>
             </table>
@@ -313,7 +313,7 @@ const tomDaConferencia: Record<StatusConferencia, string> = {
           <div class="titulo-da-pagina">
             <h2 id="t-conferencia">Conferência com o site oficial</h2>
             <p class="texto-medio" aria-live="polite">
-              <strong class="mono">{{ progresso.conferidas }}</strong> de <span class="mono">{{ progresso.total }}</span> conferidas
+              <strong class="numeral">{{ progresso.conferidas }}</strong> de <span class="numeral">{{ progresso.total }}</span> conferidas
               <template v-if="progresso.aguardandoOSite"> · {{ progresso.aguardandoOSite }} aguardando o site</template>
             </p>
           </div>
@@ -349,7 +349,7 @@ const tomDaConferencia: Record<StatusConferencia, string> = {
             class="aba"
             @click="abaEscolhida = 'aguardando'"
           >
-            Aguardando o site <span class="contador neutro mono">{{ naFila.length }}</span>
+            Aguardando o site <span class="contador">{{ naFila.length }}</span>
           </button>
           <button
             id="aba-todas"
@@ -360,7 +360,7 @@ const tomDaConferencia: Record<StatusConferencia, string> = {
             class="aba"
             @click="abaEscolhida = 'todas'"
           >
-            Todas as partidas <span class="contador neutro mono">{{ partidas.length }}</span>
+            Todas as partidas <span class="contador">{{ partidas.length }}</span>
           </button>
         </div>
 
@@ -379,7 +379,7 @@ const tomDaConferencia: Record<StatusConferencia, string> = {
         </div>
 
         <div v-else id="painel-todas" role="tabpanel" aria-labelledby="aba-todas" class="rolagem">
-          <table class="tabela partidas">
+          <table class="tabela partidas empilhavel">
             <thead>
               <tr>
                 <th>Partida</th>
@@ -391,11 +391,11 @@ const tomDaConferencia: Record<StatusConferencia, string> = {
             </thead>
             <tbody>
               <tr v-for="p in partidas" :key="p.id">
-                <td class="mono">{{ p.idPartida }}</td>
-                <td class="numero">{{ p.rodada }}</td>
-                <td class="mono">{{ formatarData(p.data) }}</td>
-                <td>{{ p.timeA }} x {{ p.timeB }}</td>
-                <td><span class="selo" :class="tomDaConferencia[p.statusConferencia]">{{ rotuloDaConferencia(p.statusConferencia) }}</span></td>
+                <td class="mono" data-rotulo="Partida">{{ p.idPartida }}</td>
+                <td class="numero" data-rotulo="Rodada">{{ p.rodada }}</td>
+                <td class="numeral" data-rotulo="Data">{{ formatarData(p.data) }}</td>
+                <td data-rotulo="Times">{{ p.timeA }} x {{ p.timeB }}</td>
+                <td data-rotulo="Situação"><span class="selo" :class="tomDaConferencia[p.statusConferencia]">{{ rotuloDaConferencia(p.statusConferencia) }}</span></td>
               </tr>
             </tbody>
           </table>
@@ -422,66 +422,40 @@ const tomDaConferencia: Record<StatusConferencia, string> = {
 
 <style scoped>
 .valor {
-  font-weight: 500;
+  font-weight: var(--peso-medio);
 }
 .recusa {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--espaco-3);
 }
 .tabela.erros td:first-child {
   white-space: nowrap;
-}
-.tabela.partidas {
-  min-width: 640px;
 }
 .tentar-agora {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 4px;
+  gap: var(--espaco-1);
 }
 .barra {
-  height: 8px;
+  height: var(--espaco-2);
   background: var(--primaria-clara);
-  border-radius: 999px;
+  border-radius: var(--raio-pilula);
   overflow: hidden;
 }
 .barra-cheia {
-  height: 8px;
+  height: 100%;
   background: var(--primaria);
   transition: width 0.4s ease;
 }
-.abas {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  border-bottom: 1px solid var(--borda-forte);
-}
-.aba {
-  font: inherit;
-  background: none;
-  border: none;
-  border-bottom: 3px solid transparent;
-  padding: 12px 16px;
-  min-height: 44px;
-  color: var(--texto-suave);
-  cursor: pointer;
-}
-.aba[aria-selected='true'] {
-  font-weight: 600;
-  color: var(--texto);
-  border-bottom-color: var(--primaria);
-}
-.contador {
-  border-radius: 999px;
-  padding: 1px 8px;
-  margin-left: 4px;
-  background: var(--neutro-fundo);
-  color: var(--neutro);
+@media (prefers-reduced-motion: reduce) {
+  .barra-cheia {
+    transition: none;
+  }
 }
 .vazio-aba {
-  padding: 16px 0 4px;
+  padding: var(--espaco-4) 0 var(--espaco-1);
 }
 .fila {
   list-style: none;
@@ -493,7 +467,7 @@ const tomDaConferencia: Record<StatusConferencia, string> = {
   border-bottom: 1px solid var(--linha-tabela);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--espaco-1);
 }
 .item-fila:last-child {
   border-bottom: none;
@@ -502,6 +476,16 @@ const tomDaConferencia: Record<StatusConferencia, string> = {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
+  gap: 6px 10px;
+}
+@media (max-width: 640px) {
+  .tentar-agora {
+    align-items: stretch;
+    width: 100%;
+  }
+  .aba {
+    flex: 1 1 auto;
+    padding-inline: var(--espaco-2);
+  }
 }
 </style>

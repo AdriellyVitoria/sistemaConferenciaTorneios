@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   envioDaPlanilha,
   formatarData,
+  formatarDataDeCriacao,
   linhasDoErro,
   rotuloDaConferencia,
   rotuloDoModo,
@@ -35,6 +36,13 @@ describe('linhasDoErro: onde procurar o erro no Excel', () => {
 
   it('erro do arquivo todo: sem linha', () => {
     expect(linhasDoErro({ mensagem: 'A planilha não tem nenhuma partida.' })).toBe('—');
+  });
+});
+
+describe('formatarDataDeCriacao', () => {
+  it('a data no fuso da Maria: 01:30 em UTC ainda é o dia anterior em Brasília', () => {
+    expect(formatarDataDeCriacao('2026-10-14T13:00:00.000Z', 'America/Sao_Paulo')).toBe('14/10/2026');
+    expect(formatarDataDeCriacao('2026-10-15T01:30:00.000Z', 'America/Sao_Paulo')).toBe('14/10/2026');
   });
 });
 

@@ -38,20 +38,21 @@ watch(
 <style scoped>
 .dialogo {
   border: none;
-  border-radius: 12px;
-  padding: 24px;
+  border-radius: var(--raio-dialogo);
+  padding: var(--espaco-6);
   max-width: 520px;
-  width: calc(100% - 32px);
+  width: calc(100% - 2 * var(--espaco-4));
+  box-shadow: var(--sombra-dialogo);
   color: var(--texto);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--espaco-4);
 }
 .dialogo:not([open]) {
   display: none;
 }
 .dialogo::backdrop {
-  background: rgb(20 22 27 / 0.5);
+  background: var(--fundo-modal);
 }
 .corpo {
   display: flex;
@@ -63,6 +64,6 @@ watch(
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 12px;
+  gap: var(--espaco-3);
 }
 </style>

@@ -19,6 +19,14 @@ export function linhasDoErro(erro: ErroPlanilha): string {
   return erro.linha === undefined ? '—' : String(erro.linha);
 }
 
+/**
+ * Data de criação ("2026-10-14T13:00:00Z", um instante em UTC) -> "14/10/2026", no fuso do
+ * navegador (ou no informado, para os testes): perto da meia-noite, o dia em UTC é outro.
+ */
+export function formatarDataDeCriacao(iso: string, fuso?: string): string {
+  return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: fuso }).format(new Date(iso));
+}
+
 /** "2026-09-19" -> "19/09/2026". Só texto: como Date, o dia poderia mudar com o fuso. */
 export function formatarData(data: string): string {
   const [ano, mes, dia] = data.split('-');

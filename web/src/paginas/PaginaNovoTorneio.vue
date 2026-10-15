@@ -126,17 +126,18 @@ async function criar() {
               <input
                 :id="`pct-${posicao.chave}`"
                 v-model="posicao.texto"
-                class="campo mono"
+                class="campo numeral"
                 inputmode="numeric"
                 autocomplete="off"
                 :aria-invalid="Boolean(erro('percentuais'))"
               />
               <span aria-hidden="true">%</span>
             </div>
+            <!-- com uma posição só, não há o que remover: o botão nem aparece -->
             <button
+              v-if="posicoes.length > 1"
               type="button"
               class="botao-texto"
-              :disabled="posicoes.length === 1"
               :aria-label="`Remover o ${i + 1}º lugar`"
               @click="removerPosicao(i)"
             >
@@ -148,9 +149,7 @@ async function criar() {
           <button type="button" class="botao secundario" @click="adicionarPosicao">Adicionar posição</button>
           <span aria-live="polite">
             Soma:
-            <span class="selo" :class="percentuais.soma === 100 ? 'sucesso' : 'alerta'">
-              <span class="mono">{{ percentuais.soma ?? '—' }}%</span>
-            </span>
+            <span class="selo" :class="percentuais.soma === 100 ? 'sucesso' : 'alerta'">{{ percentuais.soma ?? '—' }}%</span>
             <span v-if="percentuais.soma !== null && percentuais.soma !== 100" class="texto-suave">
               (precisa ser 100%)
             </span>
@@ -196,12 +195,13 @@ async function criar() {
 
 <style scoped>
 .formulario {
-  gap: 24px;
+  gap: var(--espaco-6);
 }
 fieldset {
   border: none;
   margin: 0;
   padding: 0;
+  min-width: 0;
 }
 legend {
   padding: 0;
@@ -210,11 +210,10 @@ legend {
 .campo-reais {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--espaco-2);
 }
 .campo-reais .campo {
   width: 220px;
-  max-width: 100%;
 }
 .prefixo {
   font-family: var(--fonte-mono);
@@ -222,26 +221,26 @@ legend {
 }
 .posicoes {
   list-style: none;
-  margin: 4px 0 0;
+  margin: var(--espaco-1) 0 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--espaco-2);
 }
 .posicao {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--espaco-3);
+  min-height: var(--alvo-toque);
 }
 .lugar {
   width: 72px;
-  font-weight: 500;
+  font-weight: var(--peso-medio);
 }
 .campo-percentual {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-family: var(--fonte-mono);
 }
 .campo-percentual .campo {
   width: 88px;
@@ -252,22 +251,30 @@ legend {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin-top: 4px;
+  gap: var(--espaco-3);
+  margin-top: var(--espaco-1);
 }
 .modos {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  gap: var(--espaco-3);
 }
 .modo {
   display: flex;
   gap: 10px;
   align-items: flex-start;
   border: 1px solid var(--borda);
-  border-radius: 8px;
+  border-radius: var(--raio);
   padding: 14px;
   cursor: pointer;
+}
+/* o rádio recebe o foco; o cartão inteiro mostra onde ele está */
+.modo:has(input:focus-visible) {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+.modo input:focus-visible {
+  outline: none;
 }
 .modo span {
   display: flex;
@@ -286,6 +293,11 @@ legend {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 12px;
+  gap: var(--espaco-3);
+}
+@media (max-width: 640px) {
+  .acoes .botao {
+    flex: 1 1 100%;
+  }
 }
 </style>

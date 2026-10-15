@@ -259,6 +259,32 @@ As regras da tela (progresso, botão, textos da fila, sondagem) têm testes no V
 
 ---
 
+## Base visual e nova lista de torneios, 14/10/2026
+
+Só front, sem regra de negócio nova e sem mudar a API.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **Tokens visuais definidos uma vez** em `web/src/estilos.css` (cores, fontes, tamanhos de texto, espaçamentos de 4 em 4 px, raios, sombras, foco, alvo de toque de 44 px, larguras), tirados dos protótipos; as telas só usam as variáveis | Valores soltos em cada tela | A próxima tela (etapas 5 a 7) herda o visual sem copiar números, e trocar uma cor é mexer num lugar só |
+| **Mono só para IDs de partida, nomes de arquivo e dinheiro**; números em selos, contadores, percentuais e datas usam a Sans com algarismos de mesma largura (`tabular-nums`) | Mono para todo número, como no protótipo | O zero da IBM Plex Mono tem um ponto no meio; em 12 px, "100%" parecia riscado |
+| **No celular, as tabelas viram blocos** (cada célula com o nome da coluna ao lado); filtros, abas e botões ocupam a largura | Rolagem lateral dentro do cartão | A regra é não haver rolagem lateral. Conferido em 375 px nas três telas: a página não passa da largura da tela |
+| **Foco visível** com contorno de 3 px (`outline`) em tudo que recebe o teclado; no cartão do modo de divisão, o cartão inteiro mostra o foco do rádio | Só o padrão do navegador | O padrão some sobre alguns fundos; o `outline` acompanha o arredondamento de cada elemento |
+| O "Remover" posição **não aparece** com uma posição só | Botão desabilitado | Um botão que nunca pode ser usado é ruído |
+| **Testes de componente** (`@vue/test-utils` com `happy-dom`) para o comportamento das telas: o "Remover", a data, os filtros e a busca da lista | Só regras puras | Reduz o corte registrado na 3c: estes comportamentos estão na tela, não numa função. `happy-dom` 20.14.5, e não a 21, que tinha poucos dias de publicada |
+| A lista é de **cartões**, como no protótipo: a "coluna" de data de criação virou "Criado em dd/mm/aaaa" em cada cartão | Manter a tabela | O protótipo novo é de cartões; a data aparece no mesmo lugar em todos |
+| Resumo, filtros (todos, em andamento, calculados) e busca **calculados na tela**, com o que o `GET /torneios` já devolve; a busca ignora maiúsculas e acentos | Filtrar na API | Poucos torneios; filtrar na tela evita mudar a API agora |
+
+**Ficou de fora do protótipo da lista, por depender das etapas 5 a 7 ou de dados que a API ainda não devolve:**
+- o cartão **"Precisam da sua atenção"** (conta pendências: etapa 5);
+- a **régua de etapas** (Planilha, Conferência, Pendências, Cálculo): o status do torneio ainda não avança com a conferência, então a régua mostraria "Conferência" mesmo com tudo conferido (etapas 5 e 6);
+- a **linha de detalhe** de cada torneio ("9 de 15 conferidas · próxima consulta às…", "3 diferenças aguardam o seu Ciente", "Calculado em… · 21 jogadores premiados"): o `GET /torneios` não traz o progresso de cada um, e as pendências e o cálculo são das etapas 5 e 6;
+- as ações **"Revisar"** (etapa 5) e **"Ver resultado"** (etapa 6): hoje os cartões dizem "Subir planilha", "Acompanhar" ou "Abrir";
+- **excluir torneio**, o cadeado dos calculados e a nota de torneios travados: melhoria pendente no `plano.md` (seção 9).
+
+O cartão "Prêmios calculados" está na tela, com o que a API já tem (status e prêmio), e mostra R$ 0,00 até a etapa 6.
+
+---
+
 ## Stack e ferramentas
 
 | Decisão | Alternativa descartada | Por quê |

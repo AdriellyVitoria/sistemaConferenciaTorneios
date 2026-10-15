@@ -58,5 +58,6 @@ Projeto: desafio técnico da PowerRev (Desenvolvedora Full Stack Júnior). Siste
 - Etapa 6, pedaço 6c (ler o resultado e baixar o CSV, só API): concluído.
 - Etapa 6, pedaço 6d (botão Calcular com confirmação, só web): concluído.
 - Etapa 6, pedaço 6e (tela do resultado, só web): concluído. Etapa 6 completa e marcada no checklist. Sem 6f: PDF, "jogou X de Y partidas" e "Pago"/Pix estão em "Próximos passos" no `DECISIONS.md`.
-- Etapa 7, pedaço 7a (códigos de acesso e `GET /publico/:codigo`, só API, migration 010): pronto, aguardando aprovação. "Gerar novo link" ficou em "Próximos passos" no `DECISIONS.md`.
-- Próximo passo: **Etapa 7, pedaço 7b** (link do time premiado), depois da aprovação do 7a.
+- Etapa 7, pedaço 7a (códigos de acesso e `GET /publico/:codigo`, só API, migration 010): concluído. Código de time não abre a página pública. "Gerar novo link" em "Próximos passos" no `DECISIONS.md`.
+- Etapa 7, pedaço 7b (`GET /time/:codigo` e `GET /torneios/:id/links`, só API): pronto, aguardando aprovação.
+- Próximo passo: **Etapa 7, pedaço 7c** (telas da página pública, do link do time e dos links para copiar), depois da aprovação do 7b.

@@ -623,6 +623,47 @@ Só API. Decisões da Adrielly (D11): os códigos nascem no cálculo, um públic
 
 **Para a 7b:** a rota do link do time (`/time/:codigo`, com o extrato e o filtro por nick) e a tela da Maria com os links para copiar. Até lá, os códigos só existem no banco.
 
+**Confirmado pela Adrielly:** o código de um time não abre a página pública.
+
+---
+
+## Link do time e lista de links (etapa 7b), 15/10/2026
+
+Só API, seguindo o protótipo `docs/prototipo/3-link-do-time.html`. Sem migration: os códigos são os do 7a.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **`GET /time/:codigo`**, sem login, só do resultado congelado: nome do torneio, data do cálculo, o time (colocação, prêmio, total de minutos ou kills), **"como foi calculado"** (prêmio total, percentual da posição, critério gravado e modo de divisão), **cada jogador deste time** (nick, minutos ou kills, percentual, valor, centavo de arredondamento e explicação), o **total do time** e o **código público** (para "Ver a classificação completa") | Devolver o resultado inteiro e a tela filtrar | A API não pode mandar o que o link não pode mostrar (D11) |
+| **Nada de outros times**, nem o id interno do torneio. Do empate, só **quantos times dividiram** e **quais posições foram somadas** (Falcões: 3º e 4º, 20% e 0%, 2 times) | A frase do protótipo, "Corvos empatou com Falcões e Tubarões…" | Os nomes dos outros times estão na página pública, a um clique, pelo código público. Assim o link do time não precisa de exceção à regra "nada de outros times" |
+| **Percentual de cada jogador em centésimos de ponto percentual, inteiro** (`centesimosDePercentual`: 220 = 2,20%), com o mesmo arredondamento da tela do resultado (6e) | Mandar o percentual com casas decimais (float) | Sem float de ponta a ponta; a tela só formata |
+| Jogadores **por valor, do maior para o menor, e por nick** no mesmo valor (ordem do protótipo) | A ordem em que o cálculo grava | Quem abre o link procura o próprio nome; a ordem do protótipo é a mais fácil de ler |
+| **Jogador em dois times (D13):** o link de cada time mostra só a linha daquele time, com os minutos e a parte daquele time | Somar as partes | É assim que o cálculo grava (uma linha por time); no 07, Garra aparece nos Leões com 178 minutos e R$ 400,00, e os Ursos, sem prêmio, não têm link |
+| **Mesmas regras do 7a:** qualquer erro dá o mesmo 404 "Página não encontrada.", código fora do formato não consulta o banco, `X-Robots-Tag: noindex`. **O código público não abre a página do time**, nem o de um time abre a pública | Um código que abre as duas | Cada código tem um papel |
+| **`GET /torneios/:id/links`** (tela da Maria): o código público e o de cada time premiado, com posição e prêmio, na ordem da classificação. Antes do cálculo: **409** "O torneio ainda não foi calculado."; torneio inexistente: 404 (as mesmas respostas do 6c) | Montar o endereço completo na API | A API não sabe em que endereço a tela está (localhost na demonstração, um domínio num deploy). A tela monta o link com o próprio endereço |
+| Os códigos são **sempre os mesmos** a cada leitura | Gerar a cada vez | A Maria pode copiar de novo a qualquer momento, e os links já enviados continuam valendo |
+
+### Guardar o código em texto, e não só o hash
+
+Senhas são guardadas só como **hash**, um resumo de mão única: quem lê o banco não descobre a senha, e o sistema confere comparando o resumo. Para os códigos dos links, **escolhi guardar o texto**, porque a Maria precisa **copiar o link de novo a qualquer momento** (perdeu a mensagem, um jogador novo pediu). Com só o hash, o sistema não conseguiria mostrar o link de novo; a única saída seria gerar outro e invalidar o que já foi enviado.
+
+**Por que é aceitável aqui:**
+- **O link é de consulta**: ele só mostra valores que já foram divulgados ao time. Não paga, não muda nada e não dá acesso a outra parte do sistema.
+- **Não é reaproveitado**: uma senha vazada costuma abrir outros sites onde a pessoa usa a mesma senha. O código foi gerado pelo sistema e só serve para este link.
+- **Quem lê o banco já vê tudo**: os valores de todos os jogadores estão nas tabelas do resultado. O código não protege nada que o banco não mostre de outro jeito.
+- **O risco que sobra é o link vazar** (colado no canal geral, por exemplo). Ele se resolve com o "gerar novo link", que está em "Próximos passos".
+
+**Testes:**
+- **Domínio:** a página dos Corvos campo a campo; nenhum nome nem nick de outro time; Falcões com o empate (3º e 4º, 2 times) sem citar Tubarões; time sem prêmio sem página; o percentual só com inteiros.
+- **Integração:**
+  - os Corvos com os 6 jogadores, Tuca com R$ 65,90 e o centavo, e o total de R$ 3.000,00;
+  - nenhum dos 20 nicks e 5 times de fora, nem o id;
+  - Falcões com o empate dividido e 5 × R$ 200,00;
+  - Garra nos Leões só com a parte dos Leões, no cenário 07;
+  - o código público e 6 tipos de código errado dão o mesmo 404;
+  - a lista de links na ordem, os mesmos códigos a cada leitura e o 409 antes do cálculo.
+
+**Para a 7c:** as telas (a página pública, a do link do time com o filtro por nick e os links para a Maria copiar).
+
 ---
 
 ## Stack e ferramentas

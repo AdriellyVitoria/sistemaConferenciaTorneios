@@ -3,6 +3,7 @@
  *
  *   GET /torneios/:id/resultado       configuração usada, data, classificação e jogadores (JSON)
  *   GET /torneios/:id/resultado.csv   o mesmo, para a Maria pagar no Excel (UTF-8 com BOM, ";")
+ *   GET /torneios/:id/links           os códigos da página pública e de cada time premiado (7b)
  *
  * Antes do cálculo: 409. O filtro por nick é da tela: são poucos jogadores.
  */
@@ -12,7 +13,7 @@ import type { Knex } from 'knex';
 import { z } from 'zod';
 import { assincrono } from './assincrono';
 import { csvDoResultado, nomeDoArquivoCsv, nomeDoArquivoCsvComAcentos } from '../dominio/csv-resultado';
-import { buscarResultado, type ResultadoGravado } from '../repositorios/resultado';
+import { buscarCodigos, buscarResultado, type ResultadoGravado } from '../repositorios/resultado';
 import { buscarTorneio, type Torneio } from '../repositorios/torneios';
 
 const esquemaId = z.coerce.number().int().positive();
@@ -60,6 +61,16 @@ export function rotasResultado(bd: Knex): Router {
       return;
     }
     res.json({ torneio: { id: leitura.torneio.id, nome: leitura.torneio.nome }, ...leitura.resultado });
+  }));
+
+  // os códigos dos links para a Maria copiar (7b); a tela monta o endereço com o próprio domínio
+  rota.get('/torneios/:id/links', assincrono(async (req, res) => {
+    const leitura = await ler(req.params.id);
+    if (leitura.tipo !== 'ok') {
+      responderErro(res, leitura);
+      return;
+    }
+    res.json(await buscarCodigos(bd, leitura.torneio.id));
   }));
 
   return rota;

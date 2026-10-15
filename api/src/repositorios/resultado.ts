@@ -106,6 +106,41 @@ export async function buscarPorCodigoPublico(bd: Executor, codigo: string): Prom
   return linha ? { torneioId: linha.id, nome: linha.nome } : null;
 }
 
+/** O time do código, com o torneio e o código público, ou null se nenhum time premiado tem esse código. */
+export async function buscarPorCodigoDeTime(
+  bd: Executor,
+  codigo: string,
+): Promise<{ torneioId: number; nome: string; time: string; codigoPublico: string } | null> {
+  const linha = await bd('codigos_time as c')
+    .join('premios_time as p', 'p.id', 'c.premio_time_id')
+    .join('calculos as k', 'k.id', 'p.calculo_id')
+    .join('torneios as t', 't.id', 'k.torneio_id')
+    .where('c.codigo', codigo)
+    .first('t.id', 't.nome', 'p.time', 'k.codigo_publico');
+  return linha ? { torneioId: linha.id, nome: linha.nome, time: linha.time, codigoPublico: linha.codigo_publico } : null;
+}
+
+export interface CodigosDoTorneio {
+  publico: { codigo: string };
+  /** Os times premiados, na ordem da classificação. */
+  times: { time: string; posicao: number; premioCentavos: number; codigo: string }[];
+}
+
+/** Os códigos dos links do torneio, para a Maria copiar, ou null se ainda não foi calculado. */
+export async function buscarCodigos(bd: Executor, torneioId: number): Promise<CodigosDoTorneio | null> {
+  const calculo = await bd('calculos').where({ torneio_id: torneioId }).first('id', 'codigo_publico');
+  if (!calculo) return null;
+  const times = await bd('codigos_time as c')
+    .join('premios_time as p', 'p.id', 'c.premio_time_id')
+    .where('p.calculo_id', calculo.id)
+    .orderBy('p.ordem')
+    .select('p.time', 'p.posicao', 'p.premio_centavos', 'c.codigo');
+  return {
+    publico: { codigo: calculo.codigo_publico },
+    times: times.map((t) => ({ time: t.time, posicao: t.posicao, premioCentavos: t.premio_centavos, codigo: t.codigo })),
+  };
+}
+
 /** O resultado gravado do torneio, ou null se ainda não foi calculado. */
 export async function buscarResultado(bd: Executor, torneioId: number): Promise<ResultadoGravado | null> {
   const calculo = await bd('calculos').where({ torneio_id: torneioId }).first();

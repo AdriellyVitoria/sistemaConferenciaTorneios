@@ -58,4 +58,5 @@ Projeto: desafio técnico da PowerRev (Desenvolvedora Full Stack Júnior). Siste
 - Etapa 6, pedaço 6c (ler o resultado e baixar o CSV, só API): concluído.
 - Etapa 6, pedaço 6d (botão Calcular com confirmação, só web): concluído.
 - Etapa 6, pedaço 6e (tela do resultado, só web): concluído. Etapa 6 completa e marcada no checklist. Sem 6f: PDF, "jogou X de Y partidas" e "Pago"/Pix estão em "Próximos passos" no `DECISIONS.md`.
-- Próximo passo: **Etapa 7** (página pública e links por time premiado).
+- Etapa 7, pedaço 7a (códigos de acesso e `GET /publico/:codigo`, só API, migration 010): pronto, aguardando aprovação. "Gerar novo link" ficou em "Próximos passos" no `DECISIONS.md`.
+- Próximo passo: **Etapa 7, pedaço 7b** (link do time premiado), depois da aprovação do 7a.

@@ -323,6 +323,7 @@ Em três pedaços. **4a:** as peças da consulta, sem o job: cliente HTTP do sit
 **Pronto quando:** setembro mostra o empate triplo com a justificativa e os valores batem com o resultado esperado (`contexto.md`, seção 14): Lobos 1º (R$ 5.000), Corvos 2º por kills (368, R$ 3.000), Tubarões e Falcões empatados em vitórias e kills (310) dividindo o 3º lugar (R$ 1.000 cada).
 
 ### Etapa 7 — Página pública e links por time premiado
+**7a (API):** códigos de acesso gerados no cálculo, na mesma transação (um público e um por time premiado, 32 caracteres aleatórios; migration 010, que também preenche os torneios já calculados) e `GET /publico/:codigo`, só do resultado congelado, sem dado de jogador, com 404 igual para qualquer erro e `X-Robots-Tag: noindex`. **(feito)**
 - Página pública: classificação, regras, desempate e prêmio por time, sem valores individuais (D11).
 - Link com token para cada time premiado: extrato de cada jogador, a conta, o centavo de arredondamento e filtro por nick.
 

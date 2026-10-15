@@ -596,6 +596,35 @@ Só web, seguindo o protótipo 2-resultado, no lugar da página "em construção
 
 ---
 
+## Códigos de acesso e página pública (etapa 7a), 15/10/2026
+
+Só API. Decisões da Adrielly (D11): os códigos nascem no cálculo, um público e um por time premiado, e a página pública mostra só o que é do torneio e dos times. Migration nova: `010_cria_codigos_de_acesso`.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **Os códigos são gerados no cálculo, na mesma transação do 6b** (dentro de `gravarResultado`): **um público do torneio** e **um para cada time premiado** (prêmio maior que zero). Times sem prêmio não recebem código: veem a página pública | Gerar ao abrir a tela de links | Nasce junto com o resultado: não existe cálculo sem link nem link sem cálculo. Dois cálculos ao mesmo tempo continuam esperando um pelo outro (6b), então sai um conjunto só (testado com três pedidos juntos) |
+| **24 bytes do gerador criptográfico do Node** (`crypto.randomBytes`, 192 bits) em **base64url**: exatamente **32 caracteres** de letras, números, "-" e "_", que vão na URL sem escape | id do torneio, número sequencial ou `Math.random` | Sem login, o código é a única proteção: quem tem o link vê. Um número em sequência deixaria qualquer um tentar o próximo; `Math.random` não é feito para ser imprevisível |
+| **Código público na própria tabela `calculos`** (`codigo_publico`, obrigatório e único); os dos times numa tabela **`codigos_time`**, ligada à linha do time no cálculo (`premios_time`), também única | Uma tabela só, com o tipo "público" ou "time" | Na tabela única, a coluna do time ficaria vazia no público, e o MySQL não impede dois públicos para o mesmo cálculo com chave única sobre coluna vazia. Assim, o próprio banco garante um público por cálculo e um código por time |
+| Os códigos ficam com **collation binária** (`utf8mb4_bin`) | A collation padrão do banco | Em base64url, "a" e "A" são caracteres diferentes. A padrão ignora maiúsculas: "abc" acharia "ABC", e a chave única recusaria códigos que são diferentes |
+| **Torneios calculados antes desta mudança ganham os códigos na própria migration**: a coluna nasce aceitando vazio, a migration preenche cada cálculo e cada time premiado, e só depois a coluna vira obrigatória | Um script à parte, ou gerar na primeira leitura | Ninguém precisa lembrar de rodar nada, e nenhum cálculo fica sem link. Testado: a migration é desfeita, um cálculo "antigo" é gravado sem código, ela é refeita, e o público e os dois times premiados aparecem |
+| A migration **repete a geração do código** (3 linhas) em vez de importar do domínio | Importar `gerarCodigoDeAcesso` | Uma migration é uma foto: precisa fazer sempre a mesma coisa, mesmo que o domínio mude depois |
+| **`GET /publico/:codigo`**: nome do torneio, data do cálculo, **regras** (prêmio total, percentuais por posição, modo de divisão e o **critério de desempate em texto simples**) e a **classificação** (posição, time, vitórias, kills, prêmio do time e critério) | Devolver o resultado inteiro e a tela esconder os jogadores | A API não pode mandar o que a página não pode mostrar: qualquer um abriria a resposta no navegador e veria os valores (D11) |
+| A página é montada **campo a campo** (`montarPaginaPublica`, função pura), e não "o resultado sem a lista de jogadores" | Tirar `jogadores` do objeto | Se um dia o resultado ganhar um campo novo com dado de jogador, ele não vaza para a página pública sem alguém decidir |
+| **Sem o id interno do torneio** na resposta | Devolver o id | Com o id, dá para chegar às rotas da Maria, que não têm login (limitação da etapa 3b). A página pública não precisa dele |
+| **Só o resultado congelado:** nada é recalculado (teste: mudar o prêmio, os percentuais e o modo no banco depois não muda a página) | — | Mesmo princípio do 6c |
+| **Qualquer erro dá o mesmo 404**, com a mesma frase "Página não encontrada.": código que não existe, fora do formato, com uma letra trocada de maiúscula, o código de um time e o id do torneio. Fora do formato, **nem consulta o banco** | 400 para formato inválido, 409 para "não calculado" | A resposta não pode ajudar quem tenta adivinhar: não diz se o torneio existe nem se o código "quase" acertou |
+| O **código de um time não abre a página pública** | Aceitar os dois | Cada código tem um papel; o link do time é da etapa 7b |
+| Toda resposta de `/publico` leva **`X-Robots-Tag: noindex`**, inclusive o 404 | Só a página de sucesso | Para buscadores não indexarem o link, se ele for colado num lugar público |
+| O **nome** vem do torneio, não do cálculo | Gravar o nome no cálculo | Não existe tela para mudar o nome do torneio; se um dia existir, a decisão volta |
+
+**Testes:**
+- **Domínio:** o código tem 32 caracteres seguros para URL, 10 mil códigos sem repetição, e o formato aceito pela rota; a página pública tem exatamente os campos combinados, sem nick nem valor de jogador.
+- **Integração:** setembro gera 1 código público e 4 de time (Corvos, Falcões, Lobos e Tubarões), todos diferentes; antes do cálculo não existe código; dois cálculos ao mesmo tempo geram um conjunto só; a página de setembro, campo a campo, com o cabeçalho `noindex`; nenhum dos 31 nicks nem valor de jogador na resposta; os 7 tipos de código errado dão o mesmo 404; a migration preenche os cálculos antigos.
+
+**Para a 7b:** a rota do link do time (`/time/:codigo`, com o extrato e o filtro por nick) e a tela da Maria com os links para copiar. Até lá, os códigos só existem no banco.
+
+---
+
 ## Stack e ferramentas
 
 | Decisão | Alternativa descartada | Por quê |
@@ -622,3 +651,4 @@ Decidido com a Adrielly em 15/10/2026: a etapa 6 termina no 6e. Estes ficam para
 | **"Jogou X de Y partidas" no resultado** | O cálculo passa a gravar, para cada jogador, em quantas partidas jogou por aquele time e quantas o time jogou; a tela mostra isso no lugar de deduzir "Reserva" pelos minutos (6e) | Exige uma coluna nova em `premios_jogador` e uma mudança no cálculo. Deduzir pelos minutos marcaria errado quem só saiu mais cedo numa partida (Bia.gg) |
 | **Controle de "Pago" por jogador** | Marcar, na tela do resultado, quem já recebeu, com a data; o resultado continua congelado, só o pagamento muda | Hoje a Maria paga com o CSV no Excel; o controle dentro do sistema é uma comodidade, não uma regra do desafio |
 | **Integração com Pix**, depois do "Pago" | Enviar o Pix pelo sistema | Continua fora do escopo pela D12: dinheiro enviado errado não volta, e exigiria a chave Pix de cada jogador |
+| **"Gerar novo link"** (decidido com a Adrielly na etapa 7a) | Trocar o código público ou o de um time, e o antigo para de funcionar | Serve para quando um link vaza (por exemplo, o de um time colado no canal geral do Discord). Hoje o código nasce no cálculo e não muda. Precisa decidir antes se a troca pede confirmação e como a Maria avisa o time do link novo |

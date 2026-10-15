@@ -59,17 +59,25 @@ export async function buscarTorneio(bd: Executor, id: number): Promise<Torneio |
 /** Um torneio na lista da página inicial. */
 export interface ResumoTorneio extends Torneio {
   quantidadeDePartidas: number;
+  /** A data da primeira partida da planilha ('aaaa-mm-dd'), ou null sem planilha: a lista agrupa por mês. */
+  primeiraPartidaEm: string | null;
 }
 
-/** Todos os torneios, o mais novo primeiro, com quantas partidas cada um tem. */
+/** Todos os torneios, o mais novo primeiro, com quantas partidas cada um tem e a data da primeira. */
 export async function listarTorneios(bd: Executor): Promise<ResumoTorneio[]> {
-  const linhas: (LinhaTorneio & { quantidade_de_partidas: number | string })[] = await bd('torneios as t')
+  const linhas: (LinhaTorneio & { quantidade_de_partidas: number | string; primeira_partida_em: string | null })[] = await bd('torneios as t')
     .select('t.*')
     .select(
       bd('partidas as p').count('*').where('p.torneio_id', bd.ref('t.id')).as('quantidade_de_partidas'),
+      // a menor data das linhas da planilha: o que a Maria digitou (D22: planilha nova, data nova)
+      bd('linhas_planilha as l').min('l.data').where('l.torneio_id', bd.ref('t.id')).as('primeira_partida_em'),
     )
     .orderBy('t.id', 'desc');
-  return linhas.map((l) => ({ ...paraTorneio(l), quantidadeDePartidas: Number(l.quantidade_de_partidas) }));
+  return linhas.map((l) => ({
+    ...paraTorneio(l),
+    quantidadeDePartidas: Number(l.quantidade_de_partidas),
+    primeiraPartidaEm: l.primeira_partida_em,
+  }));
 }
 
 /**
@@ -101,6 +109,11 @@ export async function registrarImportacao(
  */
 export async function marcarCalculado(bd: Executor, id: number, calculadoEm: Date): Promise<void> {
   await bd('torneios').where({ id }).update({ status: 'calculado', calculado_em: calculadoEm });
+}
+
+/** Apaga a linha do torneio (M2). Quem apaga as partidas e os Cientes antes, na ordem das travas, é o serviço. */
+export async function apagarTorneio(bd: Executor, id: number): Promise<void> {
+  await bd('torneios').where({ id }).del();
 }
 
 /** Guarda o clique em "tentar agora": começa o bloqueio de 30 s (etapa 4c). */

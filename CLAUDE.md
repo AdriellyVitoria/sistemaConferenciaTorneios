@@ -62,5 +62,7 @@ Projeto: desafio técnico da PowerRev (Desenvolvedora Full Stack Júnior). Siste
 - Etapa 7, pedaço 7b (`GET /time/:codigo` e `GET /torneios/:id/links`, só API): concluído.
 - Testes de integração com um relógio só (o do MySQL, `relogioDoBanco` em `api/test/integracao/banco-de-teste.ts`): concluído.
 - Etapa 7, pedaço 7c (tela da página pública, só web, rota `/publico/:codigo`): concluído. Rotas com `meta: { publica: true }` ficam sem menu, rodapé e links para as telas da Maria. Posição com 0% não conta como premiada (confirmado).
-- Etapa 7, pedaço 7d (tela do link do time em `/time/:codigo` e "Links para os times premiados" na tela do resultado, só web): pronto, aguardando aprovação. **Quando a Adrielly aprovar, marcar a etapa 7 no checklist do `plano.md`.**
-- Próximo passo: depois da aprovação do 7d, **Etapa 8** (documentação).
+- Etapa 7, pedaço 7d (tela do link do time em `/time/:codigo` e "Links para os times premiados" na tela do resultado, só web): concluído. Etapa 7 completa e marcada no checklist do `plano.md`.
+- Pacote de melhorias em duas partes. **Parte 1 (M1)**, lista por mês, filtros de mês e divisão, total do mês no cartão e coluna "Pago" no CSV: aprovada. Um conceito só de mês na tela toda: o mês do torneio (primeira partida; sem planilha, a criação).
+- **Parte 2 (M2)**, remover torneio não calculado (`DELETE /torneios/:id`, "Remover" na lista e no topo do torneio, com modal): aprovada.
+- Próximo passo: **Etapa 8** (documentação), quando a Adrielly pedir.

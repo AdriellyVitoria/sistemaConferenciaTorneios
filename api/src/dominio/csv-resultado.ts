@@ -8,6 +8,7 @@
  * - Sem linha de total: somar a coluna contaria o total duas vezes.
  * - Ordem: posição, depois o valor maior, depois o nick.
  * - Texto que começa com =, +, - ou @ ganha um apóstrofo: senão o Excel executa como fórmula.
+ * - Coluna "Pago" vazia no final, para a Maria marcar no Excel: o sistema não controla pagamento (D12).
  */
 
 import { compararAlfabetico, normalizarNome } from './texto';
@@ -22,7 +23,7 @@ export interface JogadorDoCsv {
   recebeuCentavo: boolean;
 }
 
-const CABECALHO = ['Posição', 'Time', 'Nick', 'Minutos', 'Kills', 'Valor (R$)', 'Centavo de arredondamento'];
+const CABECALHO = ['Posição', 'Time', 'Nick', 'Minutos', 'Kills', 'Valor (R$)', 'Centavo de arredondamento', 'Pago'];
 
 /** 6590 -> "65,90"; 100000 -> "1000,00". */
 function reais(centavos: number): string {
@@ -42,7 +43,7 @@ export function csvDoResultado(jogadores: JogadorDoCsv[]): string {
   const linhas = [
     CABECALHO.join(';'),
     ...ordenados.map((j) =>
-      [String(j.posicao), celula(j.time), celula(j.nick), String(j.minutos), String(j.kills), reais(j.premioCentavos), j.recebeuCentavo ? 'sim' : 'não'].join(';'),
+      [String(j.posicao), celula(j.time), celula(j.nick), String(j.minutos), String(j.kills), reais(j.premioCentavos), j.recebeuCentavo ? 'sim' : 'não', ''].join(';'),
     ),
   ];
   return `${linhas.join('\r\n')}\r\n`;

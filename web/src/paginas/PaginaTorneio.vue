@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue';
-import { RouterLink } from 'vue-router';
+import { RouterLink, useRouter } from 'vue-router';
 import AbaConferidas from '../componentes/AbaConferidas.vue';
+import RemoverTorneio from '../componentes/RemoverTorneio.vue';
+import { deixarAvisoParaALista } from '../utilitarios/aviso-da-lista';
 import AvisoDoCalculo from '../componentes/AvisoDoCalculo.vue';
 import DialogoConfirmacao from '../componentes/DialogoConfirmacao.vue';
 import PainelPendencias from '../componentes/PainelPendencias.vue';
@@ -36,6 +38,7 @@ import {
 } from '../servicos/api';
 
 const props = defineProps<{ id: number }>();
+const roteador = useRouter();
 
 const torneio = ref<TorneioComPartidas | null>(null);
 const pendencias = ref<ListaDePendencias | null>(null);
@@ -210,6 +213,13 @@ async function clicarTentarAgora() {
 }
 
 // ao sair da página, nada fica rodando
+/** Removido (M2): para de acompanhar e volta para a lista, que mostra "Torneio removido." */
+async function aoRemover() {
+  sondagem.parar();
+  deixarAvisoParaALista('Torneio removido.');
+  await roteador.push({ name: 'torneios' });
+}
+
 onUnmounted(() => {
   sondagem.parar();
   pararContagem();
@@ -283,7 +293,11 @@ async function enviar() {
     <template v-else>
       <div class="titulo-da-pagina">
         <div class="trilha"><RouterLink to="/">Torneios</RouterLink> / {{ torneio.nome }}</div>
-        <h1>{{ torneio.nome }}</h1>
+        <div class="titulo-e-remover">
+          <h1>{{ torneio.nome }}</h1>
+          <!-- discreto, e só antes do cálculo: depois, o resultado é o registro do pagamento (M2) -->
+          <RemoverTorneio v-if="torneio.status !== 'calculado'" :torneio="torneio" rotulo="Remover torneio" discreto @removido="aoRemover" />
+        </div>
         <div class="pilulas">
           <span class="pilula">Prêmio <strong class="mono valor">{{ formatarCentavos(torneio.premioCentavos) }}</strong></span>
           <span class="pilula">{{ resumoDosPercentuais(torneio.percentuais) }}</span>
@@ -495,6 +509,13 @@ async function enviar() {
 </template>
 
 <style scoped>
+.titulo-e-remover {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--espaco-2) var(--espaco-4);
+}
 /* o resumo do modal de cálculo: rótulo e valor em cada linha */
 .resumo-calculo {
   margin: 0;

@@ -87,6 +87,29 @@ describe('GET /torneios', () => {
     ]);
     expect(corpo[0].criadoEm).toEqual(expect.any(String));
   });
+
+  it('a data da primeira partida da planilha (a lista agrupa por mês); sem planilha, null', async () => {
+    const setembro = await criarSetembro();
+    await subir(setembro, planilha('torneio-setembro.csv'), 'torneio-setembro.csv');
+    const { corpo: semPlanilha } = await pedir('POST', '/torneios', { ...SETEMBRO, nome: 'Sem planilha' });
+
+    const { corpo } = await pedir('GET', '/torneios');
+    // a planilha de setembro vai de 05/09 a 19/09: a primeira partida é a de 05/09
+    expect(corpo.find((t: { id: number }) => t.id === setembro).primeiraPartidaEm).toBe('2026-09-05');
+    expect(corpo.find((t: { id: number }) => t.id === semPlanilha.id).primeiraPartidaEm).toBeNull();
+  });
+
+  it('a planilha nova (D22) muda a data da primeira partida', async () => {
+    const id = await criarSetembro();
+    await subir(id, planilha('torneio-setembro.csv'), 'torneio-setembro.csv');
+    // só as partidas da última rodada de setembro (19/09)
+    const [cabecalho, ...linhas] = planilha('torneio-setembro.csv').toString('utf8').split('\r\n');
+    const soA19 = Buffer.from([cabecalho, ...linhas.filter((l) => l.startsWith('19/09/2026'))].join('\r\n'), 'utf8');
+    expect((await subir(id, soA19, 'so-a-rodada-5.csv')).status).toBe(200);
+
+    const { corpo } = await pedir('GET', '/torneios');
+    expect(corpo[0].primeiraPartidaEm).toBe('2026-09-19');
+  });
 });
 
 describe('GET /torneios/:id', () => {

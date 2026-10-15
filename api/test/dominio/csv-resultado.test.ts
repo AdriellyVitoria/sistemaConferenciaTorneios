@@ -11,7 +11,7 @@ const linhas = (csv: string) => csv.split('\r\n');
 describe('csvDoResultado: a planilha para a Maria pagar no Excel', () => {
   it('separador ";", linhas CRLF e o cabeçalho em português', () => {
     const csv = csvDoResultado([j(1, 'Lobos', 'Lua_', 100_000)]);
-    expect(linhas(csv)[0]).toBe('Posição;Time;Nick;Minutos;Kills;Valor (R$);Centavo de arredondamento');
+    expect(linhas(csv)[0]).toBe('Posição;Time;Nick;Minutos;Kills;Valor (R$);Centavo de arredondamento;Pago');
     expect(csv.endsWith('\r\n')).toBe(true);
     expect(csv).not.toMatch(/[^\r]\n/);
   });
@@ -19,9 +19,9 @@ describe('csvDoResultado: a planilha para a Maria pagar no Excel', () => {
   it('valor no formato brasileiro, sem ponto de milhar (o Excel em português lê como número)', () => {
     const csv = csvDoResultado([j(1, 'Lobos', 'Lua_', 100_000), j(2, 'Corvos', 'Tuca', 6_590, { recebeuCentavo: true }), j(5, 'Panteras', 'Mel', 0)]);
     expect(linhas(csv).slice(1, 4)).toEqual([
-      '1;Lobos;Lua_;30;10;1000,00;não',
-      '2;Corvos;Tuca;30;10;65,90;sim',
-      '5;Panteras;Mel;30;10;0,00;não',
+      '1;Lobos;Lua_;30;10;1000,00;não;',
+      '2;Corvos;Tuca;30;10;65,90;sim;',
+      '5;Panteras;Mel;30;10;0,00;não;',
     ]);
   });
 
@@ -40,12 +40,19 @@ describe('csvDoResultado: a planilha para a Maria pagar no Excel', () => {
 
   it('times empatados na mesma posição ficam juntos e seguem o valor e o nick', () => {
     const csv = csvDoResultado([j(3, 'Tubarões', 'Gabs', 20_000), j(3, 'Falcões', 'Falk', 20_000)]);
-    expect(linhas(csv).slice(1, -1)).toEqual(['3;Falcões;Falk;30;10;200,00;não', '3;Tubarões;Gabs;30;10;200,00;não']);
+    expect(linhas(csv).slice(1, -1)).toEqual(['3;Falcões;Falk;30;10;200,00;não;', '3;Tubarões;Gabs;30;10;200,00;não;']);
+  });
+
+  it('coluna "Pago" vazia no final, para a Maria marcar no Excel (o sistema não controla pagamento, D12)', () => {
+    const csv = csvDoResultado([j(1, 'Lobos', 'Lua_', 100_000)]);
+    expect(linhas(csv)[0].split(';').at(-1)).toBe('Pago');
+    expect(linhas(csv)[1].split(';')).toHaveLength(8);
+    expect(linhas(csv)[1].split(';').at(-1)).toBe('');
   });
 
   it('texto com ";", aspas ou quebra de linha vai entre aspas', () => {
     const csv = csvDoResultado([j(1, 'Time;A', 'o "Bala"', 100)]);
-    expect(linhas(csv)[1]).toBe('1;"Time;A";"o ""Bala""";30;10;1,00;não');
+    expect(linhas(csv)[1]).toBe('1;"Time;A";"o ""Bala""";30;10;1,00;não;');
   });
 
   it('nick que começa com =, +, - ou @ não vira fórmula no Excel', () => {

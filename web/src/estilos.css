@@ -469,6 +469,53 @@ p {
   }
 }
 
+/*
+ * Tabelas do resultado e da página pública (protótipo 2-resultado): no celular, a tabela rola
+ * dentro da caixa (as colunas de número se leem melhor lado a lado); a página não alarga.
+ */
+.caixa-tabela {
+  overflow-x: auto;
+  min-width: 0;
+}
+.tabela-resultado {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+  overflow-wrap: normal;
+}
+.tabela-resultado thead th {
+  text-align: left;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  color: var(--texto-suave);
+  padding: 10px var(--espaco-2);
+  border-bottom: 1px solid var(--borda);
+  white-space: nowrap;
+}
+.tabela-resultado td,
+.tabela-resultado tbody th {
+  text-align: left;
+  font-weight: var(--peso-normal);
+  padding: var(--espaco-3) var(--espaco-2);
+  border-bottom: 1px solid var(--linha-tabela);
+  white-space: nowrap;
+}
+.tabela-resultado .numero {
+  text-align: right;
+}
+.tabela-resultado .forte {
+  font-weight: var(--peso-forte);
+}
+.tabela-resultado tr:last-child td,
+.tabela-resultado tr:last-child th {
+  border-bottom: none;
+}
+.tabela-resultado tr.sem_premio td,
+.tabela-resultado tr.sem_premio th {
+  color: var(--texto-suave);
+  font-weight: var(--peso-normal);
+}
+
 /* ---- abas sublinhadas (tela do torneio) */
 .abas {
   display: flex;

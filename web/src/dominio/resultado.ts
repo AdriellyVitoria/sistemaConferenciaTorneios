@@ -3,11 +3,21 @@
  * nada aqui é fixo para setembro, e nada de dinheiro é recalculado (só somado, em centavos).
  */
 
-import type { JogadorDoResultado, TimeDoResultado } from '../servicos/api';
+import type { JogadorDoResultado, TimeDaClassificacao } from '../servicos/api';
 import { formatarCentavos } from './dinheiro';
 
 const juntarComE = (itens: string[]) => (itens.length <= 1 ? itens.join('') : `${itens.slice(0, -1).join(', ')} e ${itens.at(-1)}`);
 const ordinal = (n: number) => `${n}º`;
+
+/** As posições que pagam algo: as de percentual maior que zero (uma posição com 0% não é premiada). */
+const posicoesPremiadas = (percentuais: number[]) => percentuais.map((p, i) => ({ posicao: i + 1, percentual: p })).filter((p) => p.percentual > 0);
+const contarPosicoes = (n: number) => `${n} ${n === 1 ? 'posição' : 'posições'}`;
+
+/** "Premia 3 posições: 1º 50% · 2º 30% · 3º 20%", no cabeçalho do resultado e nas regras da página pública. */
+export function descreverPosicoesPremiadas(percentuais: number[]): string {
+  const premiadas = posicoesPremiadas(percentuais);
+  return `Premia ${contarPosicoes(premiadas.length)}: ${premiadas.map((p) => `${ordinal(p.posicao)} ${p.percentual}%`).join(' · ')}`;
+}
 
 /** A fração de cada time num empate total: "metade", "um terço"... */
 function fracao(n: number): string {
@@ -23,8 +33,8 @@ function fracao(n: number): string {
  * (368) e ficou em 2º. Falcões e Tubarões empataram também em kills (310) e dividiram o prêmio do
  * 3º lugar: R$ 2.000,00, metade para cada time." Os percentuais dizem quais posições pagavam.
  */
-export function explicarEmpates(times: TimeDoResultado[], percentuais: number[]): string[] {
-  const porVitorias = new Map<number, TimeDoResultado[]>();
+export function explicarEmpates(times: TimeDaClassificacao[], percentuais: number[]): string[] {
+  const porVitorias = new Map<number, TimeDaClassificacao[]>();
   for (const t of times) porVitorias.set(t.vitorias, [...(porVitorias.get(t.vitorias) ?? []), t]);
 
   const frases: string[] = [];
@@ -33,7 +43,7 @@ export function explicarEmpates(times: TimeDoResultado[], percentuais: number[])
     const abertura = `${juntarComE(grupo.map((t) => t.time))} terminaram com ${vitorias} ${vitorias === 1 ? 'vitória' : 'vitórias'}`;
 
     // dentro do grupo, os times com as mesmas kills (empate total) e os desempatados
-    const porKills = new Map<number, TimeDoResultado[]>();
+    const porKills = new Map<number, TimeDaClassificacao[]>();
     for (const t of grupo) porKills.set(t.killsTime, [...(porKills.get(t.killsTime) ?? []), t]);
     const subgrupos = [...porKills.values()];
 
@@ -59,12 +69,13 @@ export function explicarEmpates(times: TimeDoResultado[], percentuais: number[])
 }
 
 /** "empataram também em kills (310) e dividiram o prêmio do 3º lugar: R$ 2.000,00, metade para cada time." */
-function empateTotal(times: TimeDoResultado[], percentuais: number[], depoisDaAbertura: boolean): string {
+function empateTotal(times: TimeDaClassificacao[], percentuais: number[], depoisDaAbertura: boolean): string {
   const kills = times[0].killsTime;
   const posicao = times[0].posicao;
   const total = times.reduce((soma, t) => soma + t.premioCentavos, 0);
   const inicio = depoisDaAbertura ? `empataram também em kills (${kills}) e` : `empataram também em kills (${kills}):`;
-  if (total === 0) return `${inicio} ficaram em ${ordinal(posicao)}, sem prêmio.`;
+  // o empate caiu fora das posições premiadas: diz quantas o torneio premia, para não parecer erro
+  if (total === 0) return `${inicio} ficaram em ${ordinal(posicao)}. Este torneio premia só ${contarPosicoes(posicoesPremiadas(percentuais).length)}.`;
 
   // as posições que o grupo ocupa e que pagavam algo
   const pagas = Array.from({ length: times.length }, (_, i) => posicao + i).filter((p) => (percentuais[p - 1] ?? 0) > 0);

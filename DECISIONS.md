@@ -666,6 +666,48 @@ Senhas são guardadas só como **hash**, um resumo de mão única: quem lê o ba
 
 ---
 
+## Tela da página pública (etapa 7c), 15/10/2026
+
+Só web, com a API do 7a (`GET /publico/:codigo`). Rota `/publico/:codigo` na web.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| A página mostra o **nome do torneio**, **"Calculado em DD/MM/AAAA"** (sem a hora), as **regras em texto simples** ("Como o prêmio foi dividido": prêmio total, percentual de cada posição, como o prêmio é dividido dentro do time e o desempate) e a **classificação** com a frase dos empates | Só a tabela | Sem as regras, o jogador ainda teria que perguntar à Maria por que o time ficou naquela posição |
+| As regras saem do que foi gravado no cálculo (`regrasEmTexto`, função pura com testes): "Os outros times não recebem prêmio." só aparece quando há mais times do que posições premiadas; com menos (D24), uma frase explica que o valor das posições sem time foi dividido igualmente; no modo kills, explica o caso de um time sem kills (D21) | Um texto fixo | Um texto fixo ficaria errado nesses casos, e a tabela pareceria não bater com as regras |
+| **A classificação virou um componente** (`TabelaClassificacao`), usado pela tela do resultado e pela página pública, e os estilos da tabela foram para o `estilos.css` | Copiar a tabela | As duas mostram a mesma classificação; copiada, uma mudança numa poderia não chegar à outra. Os testes do resultado continuam passando sem mudança |
+| **A frase dos empates cita os nomes dos times** (a mesma do 6e) | — | A classificação é pública; no link do time (7b), não |
+| **Página para jogadores:** a rota tem `meta: { publica: true }`, e o `App.vue` esconde o menu "Torneios" e o rodapé "API · Banco de dados", e mostra a marca como texto, não como link para a lista da Maria. A página pública **não consulta a saúde do sistema** | Uma página separada, fora do App | Uma marca na rota resolve com uma peça a menos, e o teste monta o app inteiro para verificar o cabeçalho e o rodapé |
+| **`/publico/` sem código** mostra "Página não encontrada" sem chamar a API: o código é opcional na rota | Deixar como estava | Antes, o endereço caía na regra "qualquer outra rota", que **leva à lista de torneios da Maria** (os testes que falharam antes da implementação mostraram isso) |
+| Código errado (404): **"Página não encontrada"** e "Confira se o link foi copiado inteiro.", sem a palavra "torneio" e sem links | "Torneio não encontrado" | A tela não pode dizer se existe um torneio por trás |
+| Servidor fora do ar ou outro erro: **"Não foi possível carregar"**, com "Tente de novo em alguns minutos." | Tratar como 404 | O jogador acharia que o link está errado e pediria outro à Maria |
+| **`<meta name="robots" content="noindex">` no `index.html`**, valendo para o app inteiro | Pôr o meta só nesta página, por JavaScript | No `index.html` vale também para buscadores que não executam JavaScript. Nenhuma tela do sistema deve aparecer em buscador: as da Maria não têm login |
+| O título da aba é **"Nome do torneio · Classificação"** | O título genérico do app | É o que aparece na aba e no histórico do jogador |
+| No celular, a tabela **rola dentro da caixa**, como no resultado (6e) | Empilhar as linhas | Mantém um jeito só de ler a classificação nas duas telas |
+| **Prêmio logo depois do Time**, nas duas telas (pedido da Adrielly na revisão do 7c) | Prêmio depois das kills | No celular, a primeira tela mostra posição, time e prêmio sem arrastar a tabela: é o que o jogador procura |
+| **"Premia 3 posições: 1º 50% · 2º 30% · 3º 20%"** no cabeçalho do resultado e nas regras da página pública (`descreverPosicoesPremiadas`) | Só os percentuais | Deixa claro quantas posições pagam, e por que um time em 3º pode ficar sem prêmio (num torneio 50/50) |
+| **Posição com 0% não conta como premiada** (50/50/0 = "Premia 2 posições") | Contar todas as posições configuradas | Os percentuais aceitam 0 (a validação só recusa negativos). Uma posição que não paga não é premiada; a frase dos empates já usava essa conta para saber quais posições pagavam. Muda só o texto, não o pagamento |
+| Empate fora das posições premiadas: **"Falcões e Tubarões empataram também em kills (310) e ficaram em 3º. Este torneio premia só 2 posições."** | "…ficaram em 3º, sem prêmio." | Sem dizer quantas posições pagam, o jogador acharia que o 3º lugar deveria receber |
+| O **"—"** do prêmio de um time sem prêmio fica escondido do leitor de tela (`aria-hidden`), que lê **"sem prêmio"** (texto `visualmente-oculto`) | `aria-label` no `<span>` | O leitor de tela diria "travessão". E um `aria-label` num `<span>` sem papel nem sempre é lido: o texto escondido funciona em todos |
+
+**Ajustes da revisão, testados** com setembro em 50/30/20 e em 50/50 (unidade e componente, nas duas telas), mostrando antes que falhavam (17 testes).
+
+**No Docker de verdade:** a API foi reconstruída, e a **migration 010 rodou no banco de desenvolvimento**, que tinha 5 torneios calculados antes dela. Os 5 ganharam o código público (32 caracteres) e um código por time premiado: 14 códigos, todos diferentes. A página pública abriu pelo link real de dois deles: o setembro (50/30/20) e um setembro calculado em 50/50, com "Premia 2 posições" e a frase nova do empate. Abriu também um código errado e a tela do resultado. Em 375 px e 1280 px, sem rolagem lateral, com `noindex` e sem links nas páginas públicas.
+
+**Testes:**
+- **Unidade das regras:** setembro, o modo kills, todos os times premiados e menos times do que posições.
+- **De componente, montando o app inteiro:**
+  - setembro com o 3º empatado, a frase do empate e o título da aba;
+  - a tabela com legenda e cabeçalhos;
+  - nenhum dos 31 nicks nem valor de jogador na tela;
+  - só o pedido da página pública à API;
+  - nenhum link, sem menu nem rodapé, e as telas da Maria continuam com os dois;
+  - o 404 sem a palavra "torneio", o endereço sem código e o servidor fora do ar;
+  - o `noindex` no `index.html`.
+
+**No navegador** (Edge sem janela, pelo protocolo de depuração, com o Vite local e uma API falsa que devolve o setembro, sem mexer no Docker): em 375 px e em 1280 px, sem rolagem lateral, com o `noindex`, nenhum link e o título da aba certo; o mesmo na página não encontrada.
+
+---
+
 ## Testes de integração com um relógio só, 15/10/2026
 
 **O problema:** um teste de `repositorios.test.ts` falhava de vez em quando. A partida nasce com o `NOW()` do MySQL, e o teste comparava esse horário com o `Date.now()` do Node. Os testes rodam no Windows e o MySQL no Docker, e os dois relógios chegam a ficar mais de 1 s diferentes. O mesmo padrão estava escondido em 8 arquivos: o "agora" do job era `Date.now() + 2 s`, e o job só pega a partida cuja próxima tentativa (gravada com o relógio do MySQL) já chegou. Com o MySQL mais de 2 s à frente, a partida não seria pega.

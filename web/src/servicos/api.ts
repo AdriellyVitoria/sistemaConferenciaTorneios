@@ -243,7 +243,8 @@ export async function corrigirIdPartida(
 }
 
 /** Um time na classificação gravada no cálculo (6c). */
-export interface TimeDoResultado {
+/** Um time na classificação gravada: o que a tela do resultado e a página pública mostram. */
+export interface TimeDaClassificacao {
   posicao: number;
   time: string;
   vitorias: number;
@@ -251,6 +252,9 @@ export interface TimeDoResultado {
   premioCentavos: number;
   /** Como foi gravado: "desempate por kills do time", "divisão igual (empate em vitórias e kills)"... */
   criterio: string | null;
+}
+
+export interface TimeDoResultado extends TimeDaClassificacao {
   recebeuCentavo: boolean;
 }
 
@@ -291,6 +295,36 @@ export async function buscarResultado(torneioId: number): Promise<{ tipo: 'ok'; 
 }
 
 export const enderecoDoCsv = (torneioId: number) => `/api/torneios/${torneioId}/resultado.csv`;
+
+/** A página pública do torneio (7a): só o que é do torneio e dos times, sem dado de jogador. */
+export interface PaginaPublica {
+  torneio: { nome: string };
+  calculadoEm: string;
+  regras: {
+    premioCentavos: number;
+    percentuais: number[];
+    modoDivisao: ModoDivisao;
+    criterioDeDesempate: string;
+  };
+  classificacao: TimeDaClassificacao[];
+}
+
+/** GET /publico/:codigo. "nao_encontrada" = 404 (código errado); "erro" = qualquer outra falha. */
+export async function buscarPaginaPublica(codigo: string): Promise<{ tipo: 'ok'; pagina: PaginaPublica } | { tipo: 'nao_encontrada' } | { tipo: 'erro' }> {
+  let resposta: Response;
+  try {
+    resposta = await fetch(`/api/publico/${encodeURIComponent(codigo)}`);
+  } catch {
+    return { tipo: 'erro' };
+  }
+  if (resposta.status === 404) return { tipo: 'nao_encontrada' };
+  if (!resposta.ok) return { tipo: 'erro' };
+  try {
+    return { tipo: 'ok', pagina: await resposta.json() };
+  } catch {
+    return { tipo: 'erro' };
+  }
+}
 
 /**
  * Calcula os prêmios (6b). "recusado" = 409: algo mudou entre a tela e o clique (um Ciente

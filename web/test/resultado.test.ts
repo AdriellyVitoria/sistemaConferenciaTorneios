@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buscarNoResultado,
+  descreverPosicoesPremiadas,
   explicarEmpates,
   observacaoDoJogador,
   percentualDoTime,
@@ -40,7 +41,28 @@ describe('explicarEmpates: a frase sai dos dados gravados, nada fixo no código'
     ];
     expect(explicarEmpates(times, [50, 30, 20])).toEqual([
       'Fênix e Leões terminaram com 3 vitórias e empataram também em kills (398): dividiram os prêmios do 2º e do 3º lugar, R$ 5.000,00, metade para cada time.',
-      'Lobos-Guará e Ursos terminaram com 2 vitórias e empataram também em kills (300): ficaram em 4º, sem prêmio.',
+      'Lobos-Guará e Ursos terminaram com 2 vitórias e empataram também em kills (300): ficaram em 4º. Este torneio premia só 3 posições.',
+    ]);
+  });
+
+  it('setembro em 50/50: o empate do 3º cai fora das posições premiadas', () => {
+    const times = [
+      time(1, 'Lobos', 5, 353, 500_000),
+      time(2, 'Corvos', 3, 368, 500_000, 'desempate por kills do time'),
+      time(3, 'Falcões', 3, 310, 0, 'empate em vitórias e kills'),
+      time(3, 'Tubarões', 3, 310, 0, 'empate em vitórias e kills'),
+      time(5, 'Panteras', 1, 269, 0),
+      time(6, 'Serpentes', 0, 249, 0),
+    ];
+    expect(explicarEmpates(times, [50, 50])).toEqual([
+      'Corvos, Falcões e Tubarões terminaram com 3 vitórias. Corvos fez mais kills (368) e ficou em 2º. Falcões e Tubarões empataram também em kills (310) e ficaram em 3º. Este torneio premia só 2 posições.',
+    ]);
+  });
+
+  it('premia uma posição só: "só 1 posição", no singular', () => {
+    const times = [time(1, 'A', 3, 90, 1_000_000), time(2, 'B', 1, 50, 0, 'empate em vitórias e kills'), time(2, 'C', 1, 50, 0, 'empate em vitórias e kills')];
+    expect(explicarEmpates(times, [100])).toEqual([
+      'B e C terminaram com 1 vitória e empataram também em kills (50): ficaram em 2º. Este torneio premia só 1 posição.',
     ]);
   });
 
@@ -57,6 +79,18 @@ describe('explicarEmpates: a frase sai dos dados gravados, nada fixo no código'
 
   it('sem empate em vitórias: nenhuma frase', () => {
     expect(explicarEmpates([time(1, 'A', 3, 10, 700_000), time(2, 'B', 2, 10, 300_000)], [70, 30])).toEqual([]);
+  });
+});
+
+describe('descreverPosicoesPremiadas: quantas posições o torneio premia', () => {
+  it('setembro, 50/50 e uma posição só', () => {
+    expect(descreverPosicoesPremiadas([50, 30, 20])).toBe('Premia 3 posições: 1º 50% · 2º 30% · 3º 20%');
+    expect(descreverPosicoesPremiadas([50, 50])).toBe('Premia 2 posições: 1º 50% · 2º 50%');
+    expect(descreverPosicoesPremiadas([100])).toBe('Premia 1 posição: 1º 100%');
+  });
+
+  it('posição com 0% não é premiada: não entra na conta', () => {
+    expect(descreverPosicoesPremiadas([50, 50, 0])).toBe('Premia 2 posições: 1º 50% · 2º 50%');
   });
 });
 

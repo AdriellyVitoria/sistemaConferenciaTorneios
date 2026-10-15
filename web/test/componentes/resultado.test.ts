@@ -31,7 +31,7 @@ function resultadoDeSetembro(modoDivisao: 'minutos' | 'kills' = 'minutos') {
   if (modoDivisao === 'kills') for (const j of jogadores) Object.assign(j, { base: j.kills, baseTime: 100, baseUsada: 'kills' });
   return {
     torneio: { id: 1, nome: 'Torneio de setembro' },
-    calculadoEm: '2026-10-15T13:05:00.000Z', premioCentavos: 1_000_000, percentuais: [50, 30, 20], modoDivisao,
+    calculadoEm: '2026-10-15T13:05:00.000Z', premioCentavos: 1_000_000, percentuais: [50, 30, 20] as number[], modoDivisao,
     times, jogadores,
   };
 }
@@ -56,7 +56,24 @@ async function montar(resposta: { status: number; corpo: unknown } = { status: 2
 }
 
 const tabela = (pagina: VueWrapper, legenda: string) => pagina.findAll('table').find((t) => t.find('caption').text() === legenda)!;
-const linhasDa = (pagina: VueWrapper, legenda: string) => tabela(pagina, legenda).findAll('tbody tr').map((tr) => tr.findAll('td, th').map((c) => c.text()));
+/** O texto que aparece na tela: sem o que é só para o leitor de tela (.visualmente-oculto). */
+const visivel = (celula: Element) => {
+  const copia = celula.cloneNode(true) as Element;
+  copia.querySelectorAll('.visualmente-oculto').forEach((n) => n.remove());
+  return (copia.textContent ?? '').trim();
+};
+const linhasDa = (pagina: VueWrapper, legenda: string) => tabela(pagina, legenda).findAll('tbody tr').map((tr) => tr.findAll('td, th').map((c) => visivel(c.element)));
+
+/** O setembro calculado em 50/50: Corvos fica com o 2º lugar; o empate do 3º fica sem prêmio. */
+function setembroEm5050() {
+  const resultado = resultadoDeSetembro();
+  resultado.percentuais = [50, 50];
+  for (const t of resultado.times) {
+    if (t.time === 'Corvos') t.premioCentavos = 500_000;
+    if (t.time === 'Falcões' || t.time === 'Tubarões') Object.assign(t, { premioCentavos: 0, criterio: 'empate em vitórias e kills' });
+  }
+  return resultado;
+}
 const filtrar = async (pagina: VueWrapper, texto: string) => {
   await pagina.find('input[type="search"]').setValue(texto);
 };
@@ -68,6 +85,7 @@ describe('tela do resultado: cabeçalho', () => {
     expect(texto).toMatch(/Calculado em 15\/10\/2026 às \d{2}:05/);
     expect(texto).toContain('Divisão por minutos jogados (travada)');
     expect(texto).toContain('Total distribuído: R$ 10.000,00');
+    expect(texto).toContain('Premia 3 posições: 1º 50% · 2º 30% · 3º 20%');
     const csv = pagina.findAll('a').find((a) => a.text() === 'Baixar CSV')!;
     expect(csv.attributes('href')).toBe('/api/torneios/1/resultado.csv');
   });
@@ -80,17 +98,34 @@ describe('tela do resultado: cabeçalho', () => {
 });
 
 describe('classificação', () => {
-  it('posições empatadas (1, 2, 3, 3, 5), com o critério e o prêmio', async () => {
+  it('posições empatadas (1, 2, 3, 3, 5), com o prêmio logo depois do time e o critério', async () => {
     const pagina = await montar();
     expect(linhasDa(pagina, 'Classificação')).toEqual([
-      ['1º', 'Lobos', '5', '353', 'R$ 5.000,00', '—'],
-      ['2º', 'Corvos', '3', '368', 'R$ 3.000,00', 'Desempate por kills'],
-      ['3º', 'Falcões', '3', '310', 'R$ 1.000,00', 'Empate total · prêmio dividido'],
-      ['3º', 'Tubarões', '3', '310', 'R$ 1.000,00', 'Empate total · prêmio dividido'],
-      ['5º', 'Panteras', '1', '269', '—', '—'],
-      ['6º', 'Serpentes', '0', '249', '—', '—'],
+      ['1º', 'Lobos', 'R$ 5.000,00', '5', '353', '—'],
+      ['2º', 'Corvos', 'R$ 3.000,00', '3', '368', 'Desempate por kills'],
+      ['3º', 'Falcões', 'R$ 1.000,00', '3', '310', 'Empate total · prêmio dividido'],
+      ['3º', 'Tubarões', 'R$ 1.000,00', '3', '310', 'Empate total · prêmio dividido'],
+      ['5º', 'Panteras', '—', '1', '269', '—'],
+      ['6º', 'Serpentes', '—', '0', '249', '—'],
     ]);
-    expect(tabela(pagina, 'Classificação').findAll('thead th[scope="col"]').map((t) => t.text())).toEqual(['Posição', 'Time', 'Vitórias', 'Kills do time', 'Prêmio', 'Critério']);
+    expect(tabela(pagina, 'Classificação').findAll('thead th[scope="col"]').map((t) => t.text())).toEqual(['Posição', 'Time', 'Prêmio', 'Vitórias', 'Kills do time', 'Critério']);
+  });
+
+  it('o "—" do prêmio de um time fora das posições premiadas é lido como "sem prêmio"', async () => {
+    const pagina = await montar();
+    const panteras = tabela(pagina, 'Classificação').findAll('tbody tr').find((tr) => tr.text().includes('Panteras'))!;
+    const premio = panteras.findAll('td')[1];
+    expect(premio.find('[aria-hidden="true"]').text()).toBe('—');
+    expect(premio.find('.visualmente-oculto').text()).toBe('sem prêmio');
+  });
+
+  it('50/50: "Premia 2 posições", o empate do 3º sem prêmio e a frase dizendo por quê', async () => {
+    const pagina = await montar({ status: 200, corpo: setembroEm5050() });
+    expect(pagina.text()).toContain('Premia 2 posições: 1º 50% · 2º 50%');
+    expect(linhasDa(pagina, 'Classificação').map((l) => l.slice(0, 3))).toEqual([
+      ['1º', 'Lobos', 'R$ 5.000,00'], ['2º', 'Corvos', 'R$ 5.000,00'], ['3º', 'Falcões', '—'], ['3º', 'Tubarões', '—'], ['5º', 'Panteras', '—'], ['6º', 'Serpentes', '—'],
+    ]);
+    expect(pagina.text()).toContain('Falcões e Tubarões empataram também em kills (310) e ficaram em 3º. Este torneio premia só 2 posições.');
   });
 
   it('a frase do empate, montada dos dados', async () => {

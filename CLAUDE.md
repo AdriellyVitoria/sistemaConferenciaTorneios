@@ -59,5 +59,7 @@ Projeto: desafio técnico da PowerRev (Desenvolvedora Full Stack Júnior). Siste
 - Etapa 6, pedaço 6d (botão Calcular com confirmação, só web): concluído.
 - Etapa 6, pedaço 6e (tela do resultado, só web): concluído. Etapa 6 completa e marcada no checklist. Sem 6f: PDF, "jogou X de Y partidas" e "Pago"/Pix estão em "Próximos passos" no `DECISIONS.md`.
 - Etapa 7, pedaço 7a (códigos de acesso e `GET /publico/:codigo`, só API, migration 010): concluído. Código de time não abre a página pública. "Gerar novo link" em "Próximos passos" no `DECISIONS.md`.
-- Etapa 7, pedaço 7b (`GET /time/:codigo` e `GET /torneios/:id/links`, só API): pronto, aguardando aprovação.
-- Próximo passo: **Etapa 7, pedaço 7c** (telas da página pública, do link do time e dos links para copiar), depois da aprovação do 7b.
+- Etapa 7, pedaço 7b (`GET /time/:codigo` e `GET /torneios/:id/links`, só API): concluído.
+- Testes de integração com um relógio só (o do MySQL, `relogioDoBanco` em `api/test/integracao/banco-de-teste.ts`): concluído.
+- Etapa 7, pedaço 7c (tela da página pública, só web, rota `/publico/:codigo`): pronto, aguardando aprovação. Rotas com `meta: { publica: true }` ficam sem menu, rodapé e links para as telas da Maria.
+- Próximo passo: depois da aprovação do 7c, as telas do link do time e dos links para a Maria copiar.

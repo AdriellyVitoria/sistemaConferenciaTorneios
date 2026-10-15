@@ -505,6 +505,32 @@ Os quatro cenários passaram a ser testados **centavo por centavo**, e passaram 
 
 ---
 
+## Ler o resultado e baixar o CSV (etapa 6c), 15/10/2026
+
+Só API: `GET /torneios/:id/resultado` e `GET /torneios/:id/resultado.csv`. Sem migration.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| As duas rotas leem **só o que foi gravado no cálculo** (`buscarResultado`): configuração usada, data, classificação e jogadores. **Nada é recalculado** (teste: mudar o prêmio e o modo no banco depois não muda o resultado) | Recalcular a cada leitura | O que foi pago precisa ser sempre o mesmo, mesmo que o código ou o banco mudem depois |
+| O **critério** de cada time vem como foi gravado: "desempate por kills do time", "divisão igual (empate em vitórias e kills)" ou "empate em vitórias e kills" (fora do pódio) | Reescrever o texto na leitura | Seria um texto diferente do que estava no cálculo; a tela pode escolher como mostrar |
+| A resposta traz também o **nome do torneio** | Só o id | A tela e o arquivo precisam do nome |
+| Antes do cálculo: **409** "O torneio ainda não foi calculado."; torneio inexistente: 404 | 404 nos dois | O torneio existe; o que ainda não existe é o cálculo |
+| **Sem filtro por nick na API** | `?nick=` | São poucos jogadores (até ~40); o filtro fica na tela |
+| CSV em **UTF-8 com BOM**, separador **";"** e linhas **CRLF** | UTF-8 sem BOM | Sem o BOM, o Excel em português abre "Falcões" como "FalcÃµes" |
+| Colunas: **posição, time, nick, minutos, kills, valor e "Centavo de arredondamento" (sim/não)**; **ordem**: posição, depois o valor maior, depois o nick | Ordem alfabética | A Maria paga do 1º para baixo; dentro do time, quem recebe mais primeiro |
+| Valor em reais com vírgula e **sem ponto de milhar** ("1000,00", "65,90"), feito só com inteiros | "1.000,00" | O Excel em português lê "1000,00" como número em qualquer configuração; a Maria consegue somar a coluna |
+| **Sem linha de total** no CSV | Uma linha "Total" no fim | Somar a coluna no Excel contaria o total duas vezes |
+| Texto que começa com **=, +, - ou @** ganha um **apóstrofo** | Deixar como veio | Um nick como "=SOMA(...)" seria executado como fórmula pelo Excel (injeção de CSV) |
+| Nome do arquivo com o nome do torneio: `filename` só com letras sem acento e hífen ("resultado-torneio-de-setembro-2026.csv") e `filename*` com os acentos (RFC 6266) | Só o nome com acentos | Navegadores antigos não entendem o `filename*`; os novos usam o nome bonito |
+| A função que gera o CSV é **pura** (`csvDoResultado`), com testes próprios; a rota só acrescenta o BOM e os cabeçalhos | Montar o CSV na rota | Ordem, formato do valor, aspas e a proteção contra fórmula testados sem banco |
+
+**Testes:**
+- **Setembro pela rota:** Tuca R$ 65,90 com o centavo; Falcões e Tubarões em 3º, com o critério.
+- **O CSV:** começa com o BOM, tem "Falcões" e "Tubarões" com os acentos, traz as 31 linhas na ordem certa, e a soma da coluna de valor dá exatamente 10.000,00.
+- **Antes do cálculo:** 409 nas duas rotas.
+
+---
+
 ## Stack e ferramentas
 
 | Decisão | Alternativa descartada | Por quê |

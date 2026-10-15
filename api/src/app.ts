@@ -3,6 +3,7 @@ import type { Knex } from 'knex';
 import { rotaSaude } from './rotas/saude';
 import { rotasCalculo } from './rotas/calculo';
 import { rotasPartidas } from './rotas/partidas';
+import { rotasResultado } from './rotas/resultado';
 import { rotasPendencias } from './rotas/pendencias';
 import { rotasTorneios } from './rotas/torneios';
 
@@ -22,6 +23,7 @@ export function criarApp({ bd, verificarBanco, agora = () => new Date() }: Depen
   app.use(rotasPendencias(bd, agora));
   app.use(rotasPartidas(bd, agora));
   app.use(rotasCalculo(bd, agora));
+  app.use(rotasResultado(bd));
   app.use(tratarErros);
   return app;
 }

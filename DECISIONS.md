@@ -844,6 +844,28 @@ Decisões da Adrielly (plano, seção 9): remover só antes do cálculo, com con
 
 ---
 
+## Correções do code review
+
+O code review de 15/10/2026 está em `code-review.md`. As correções entram em pedaços pequenos, cada um com testes vistos falhando antes.
+
+### R1a: limites na entrada da planilha (itens 2, 12 e 13), 15/10/2026
+
+**O problema:** a leitura aceitava texto de qualquer tamanho e números até 9×10¹⁵. O MySQL, em modo estrito, recusava o INSERT, e a Maria via "Erro inesperado no servidor. Tente de novo." (500), sem a linha do Excel. Tentar de novo não resolvia. O mesmo valia para a correção do ID. Os testes pela rota reproduziram o 500 antes da correção.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **Limites num lugar só** (`LIMITES`, em `api/src/dominio/planilha.ts`), usados pela leitura e pela correção do ID: nick e time até 80 caracteres, coluna Partida até 200, ID até 19 dígitos, minutos e kills de 0 a 100.000 | Validar só no banco e traduzir o erro do MySQL | O erro do banco chega depois da leitura: perderia a linha do Excel e a regra de juntar todos os erros (D18) |
+| A mesma frase das outras validações, com a linha e a coluna: "O nick pode ter até 80 caracteres. Este tem 81." | Uma frase genérica ("valor grande demais") | A Maria precisa saber o que mudar e onde |
+| Caracteres **contados como o MySQL conta** (por caractere, não pelo `.length` do JavaScript) | `texto.length` | Um emoji no nick conta 2 no JavaScript e 1 no MySQL: o limite não bateria com a coluna |
+| Número só com dígitos, mas acima do limite ou longo demais até para o JavaScript: **a frase do limite** | "Precisa ser um número inteiro" | "99999999999999999999" é um número inteiro; a frase confundiria |
+| **Rodada limitada à capacidade da coluna** (`INT UNSIGNED`, 4.294.967.295), com "A rodada é grande demais" | Um limite realista (ex.: 100 rodadas) | Não estava na lista de limites; um limite realista seria regra de negócio a decidir. O técnico só garante que nada vira 500 |
+| **Ano da data de 2000 a 2100**: "O ano da data precisa estar entre 2000 e 2100" | Aceitar qualquer ano de 4 dígitos | `01/01/0001` entrava no banco, e `01/09/0226` (um "2" no lugar errado) também passaria |
+| **Arquivo do Excel (.xlsx)**, reconhecido pelos 4 primeiros bytes (`PK`, 3, 4: todo .xlsx é um ZIP), recebe **uma frase só**: "Este arquivo é do Excel (.xlsx). No Excel, use Salvar como → CSV UTF-8 (separado por vírgulas)." | Deixar a leitura seguir | O .xlsx era lido como texto em Windows-1252 e dava nove "Falta a coluna", sem dizer o que fazer. É o erro mais provável de uma usuária não técnica |
+
+**Os testes:** um por limite e por caso, com os números escritos por extenso (mudar a constante sem querer faz o teste falhar), mais as bordas que precisam continuar passando (80 caracteres, 19 dígitos, 100.000, anos 2000 e 2100, um CSV que começa com as letras "PK"). Pela rota, cada caso responde 400 com a linha e nada é gravado, e a correção do ID com 30 dígitos responde 400 e mantém o ID antigo.
+
+---
+
 ## Stack e ferramentas
 
 | Decisão | Alternativa descartada | Por quê |

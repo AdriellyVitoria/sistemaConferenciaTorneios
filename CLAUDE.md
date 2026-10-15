@@ -65,4 +65,5 @@ Projeto: desafio técnico da PowerRev (Desenvolvedora Full Stack Júnior). Siste
 - Etapa 7, pedaço 7d (tela do link do time em `/time/:codigo` e "Links para os times premiados" na tela do resultado, só web): concluído. Etapa 7 completa e marcada no checklist do `plano.md`.
 - Pacote de melhorias em duas partes. **Parte 1 (M1)**, lista por mês, filtros de mês e divisão, total do mês no cartão e coluna "Pago" no CSV: aprovada. Um conceito só de mês na tela toda: o mês do torneio (primeira partida; sem planilha, a criação).
 - **Parte 2 (M2)**, remover torneio não calculado (`DELETE /torneios/:id`, "Remover" na lista e no topo do torneio, com modal): aprovada.
-- Próximo passo: **Etapa 8** (documentação), quando a Adrielly pedir.
+- Correções do code review (`code-review.md`), em pedaços: **R1a** (limites na entrada da planilha e na correção do ID; .xlsx; ano de 2000 a 2100) pronto, aguardando aprovação. Registro em "Correções do code review", no `DECISIONS.md`.
+- Próximo passo: os próximos pedaços do code review, quando a Adrielly pedir; depois, a **Etapa 8** (documentação).

@@ -191,6 +191,22 @@ As confirmações na tela (substituir a planilha, calcular) evitam um **clique p
 
 ---
 
+## Consulta ao site oficial (etapa 4a), 14/10/2026
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| O job vai conhecer só a interface **`SiteOficial`** (`consultarPartida`), com três resultados: **encontrada**, **não encontrada** e **indisponível** | O job chamar o `fetch` direto | Trocar o simulado pelo site real, ou a consulta direta por uma fila, mexeria na regra da conferência |
+| **Só o 404 não é tentado de novo.** Tudo o que não é 200 válido nem 404 é **indisponível**, com o motivo guardado: 503, tempo esgotado, erro de rede, **outro código (400, 500, 502...) e resposta fora do formato** | Tratar o 400 como erro definitivo, como o plano dizia | O sistema só manda IDs válidos (D18), então um 400 só aparece se o site mudar ou tiver um defeito. A partida não tem um estado "erro definitivo"; tentar de novo com intervalo crescente não sobrecarrega o site, e o motivo aparece na tela em "Aguardando o site" |
+| Resposta 200 **validada com Zod** antes de usar; fora do formato vira indisponível | Usar o que vier | Uma partida com minutos em texto ou sem jogadores viraria dinheiro errado. O sistema prefere esperar a usar dado pela metade |
+| O **tempo limite cobre a consulta inteira**, até o fim do corpo | Só até chegar o cabeçalho (o padrão de muitos clientes) | O site pode responder o cabeçalho e travar no meio: a consulta ficaria pendurada para sempre |
+| **Tempo limite de 15 s**, e a **API não sobe** se ele não passar da demora máxima do site (`SITE_DEMORA_MAX_MS`) | Um valor fixo | Abaixo da demora normal, toda consulta lenta mas certa viraria falha. Na demonstração os dois podem ser encurtados juntos |
+| O tempo limite usa um **cronômetro injetado** (`Cronometro`); o teste decide quando ele esgota | Esperar de verdade no teste, ou falsificar os timers do Node | Esperar 15 s deixaria os testes lentos. Os timers falsos do Vitest também afetam os do `fetch` por dentro. É o mesmo padrão da demora do site simulado (`esperar`) |
+| **Próxima tentativa** numa **função pura** (`proximaTentativa`): 1, 2, 5 e depois 10 min, **sem limite de tentativas**, com os intervalos em `CONFERENCIA_INTERVALOS_MS` | Desistir depois de N tentativas | Toda partida precisa ser conferida no site (D5): desistir deixaria o torneio travado sem a Maria saber por quê |
+
+**Não testado automaticamente:** o cronômetro de verdade (`setTimeout`, três linhas). Os testes usam o cronômetro injetado para não esperar.
+
+---
+
 ## Stack e ferramentas
 
 | Decisão | Alternativa descartada | Por quê |

@@ -292,9 +292,11 @@ premiacao-torneios   (um commit pequeno por passo de cada etapa)
 **Pronto quando:** subo a planilha de setembro e vejo 15 partidas aguardando o site; o cenário 06a é recusado com a coluna que falta.
 
 ### Etapa 4 — Conferência em segundo plano ⭐
+Em três pedaços. **4a:** as peças da consulta, sem o job: cliente HTTP do site oficial atrás de uma interface (encontrada, não encontrada ou indisponível, com tempo limite configurável e maior que a demora máxima do site) e a função pura da próxima tentativa (D10).
+
 - Job que acorda periodicamente e reserva partidas com `SELECT ... FOR UPDATE SKIP LOCKED`, marcando `em_consulta`.
 - Consulta o site, salva as participações oficiais, compara com a planilha (função da etapa 1) e gera os **itens de pendência**. "Não encontrada" e "times diferentes" marcam a partida e não entram nas novas tentativas: só uma correção de ID consulta de novo (D5, D16).
-- Falha → nova tentativa com intervalo crescente: 1, 2, 5 e depois 10 minutos (D10). Intervalos configuráveis, curtos no modo demonstração. **Conta como falha, e é tentada de novo:** resposta **503** e **site sem resposta** (tempo esgotado, o cliente precisa de um limite de tempo por consulta). 404 (não encontrada) e 400 não são tentados de novo.
+- Falha → nova tentativa com intervalo crescente: 1, 2, 5 e depois 10 minutos (D10). Intervalos configuráveis, curtos no modo demonstração. **Conta como falha, e é tentada de novo:** resposta **503**, **site sem resposta** (tempo esgotado, o cliente precisa de um limite de tempo por consulta) e erro de rede; também outro código de erro (400, 500, 502...) e resposta fora do formato, com o motivo guardado para a tela (4a). Só 404 (não encontrada) não é tentado de novo.
 - Botão **"tentar agora"** com espera entre cliques; não cria consulta paralela, só antecipa a próxima tentativa.
 - **Reenvio da planilha durante a conferência (D22):** a partida pode ser apagada enquanto o job espera o site. Ao gravar o resultado, o job confere se a partida ainda existe e descarta a resposta se não existir. Testar esse caso.
 - Tela de progresso: status por partida, "última tentativa às X, próxima às Y" (atualização por polling).
@@ -355,10 +357,19 @@ premiacao-torneios   (um commit pequeno por passo de cada etapa)
 - [x] Etapa 0 — Esqueleto
 - [x] Etapa 1 — Regras de negócio puras
 - [x] Etapa 2 — Site oficial simulado
-- [ ] Etapa 3 — Torneio e importação
+- [x] Etapa 3 — Torneio e importação
 - [ ] Etapa 4 — Conferência em segundo plano
 - [ ] Etapa 5 — Revisão das pendências
 - [ ] Etapa 6 — Cálculo e resultado
 - [ ] Etapa 7 — Página pública e links por time
 - [ ] Etapa 8 — Documentação
 - [ ] Etapa 9 — Revisão final
+
+---
+
+## 9. Melhorias pendentes
+
+Anotadas para depois, **sem implementar** por enquanto. Se não couberem no prazo, vão para o `DECISIONS.md` como "o que ficou de fora".
+
+- **Nova lista de torneios**, seguindo o protótipo `docs/prototipo/0-lista-torneios.html`.
+- **Excluir torneio.** Precisa definir antes, como regra de negócio: se pode excluir depois do cálculo (os links dos times já podem ter sido enviados) e se a tela pede confirmação.

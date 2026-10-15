@@ -33,6 +33,11 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE:-torneios}
       MYSQL_USER: ${MYSQL_USER:-torneios}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-torneios}
+      # consulta ao site oficial (etapa 4); o tempo limite precisa passar da demora máxima do site
+      SITE_URL: http://site-oficial:4000
+      SITE_DEMORA_MAX_MS: ${SITE_DEMORA_MAX_MS:-10000}
+      SITE_TEMPO_LIMITE_MS: ${SITE_TEMPO_LIMITE_MS:-15000}
+      CONFERENCIA_INTERVALOS_MS: ${CONFERENCIA_INTERVALOS_MS:-60000,120000,300000,600000}
     ports:
       - "3000:3000"
     depends_on:

@@ -43,9 +43,8 @@ describe('resposta incoerente do site, pelo job', () => {
   it('a #48450 com vencedor "lobos" fica aguardando o site, com o motivo; as outras são conferidas', async () => {
     const criado = await criarTorneio(bd, { nome: 'Setembro', premioCentavos: 1_000_000, percentuais: [50, 30, 20], modoDivisao: 'minutos' });
     if (!criado.ok) throw new Error('não criou o torneio');
-    await importarPlanilha(bd, criado.id, readFileSync(arquivo('torneio-setembro.csv')), 'torneio-setembro.csv');
-
     const agora = new Date((await horaDoBanco(bd)).getTime() + 2_000);
+    await importarPlanilha(bd, criado.id, readFileSync(arquivo('torneio-setembro.csv')), 'torneio-setembro.csv', agora);
     await executarRodada({
       bd,
       site: criarClienteSiteOficial({ urlBase: urlDoSite, tempoLimiteMs: 5_000 }),

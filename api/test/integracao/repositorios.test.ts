@@ -6,12 +6,14 @@ import { lerPlanilha, type LinhaPlanilha } from '../../src/dominio/planilha';
 import { inserirLinhas, listarLinhas } from '../../src/repositorios/linhas-planilha';
 import { inserirPartidas, listarPartidas, type NovaPartida } from '../../src/repositorios/partidas';
 import { buscarTorneio, criarTorneio, registrarImportacao, type NovoTorneio } from '../../src/repositorios/torneios';
-import { conectarAoBancoDeTeste, esvaziarTabelas, horaDoBanco } from './banco-de-teste';
+import { conectarAoBancoDeTeste, esvaziarTabelas } from './banco-de-teste';
 
 // A planilha original é só lida.
 const RAIZ = path.resolve(__dirname, '../../..');
 
 let bd: Knex;
+/** O "agora" da importação nos testes (R2a): a próxima tentativa nasce com este relógio. */
+const AGORA = new Date('2026-10-15T12:34:56.789Z');
 beforeAll(() => { bd = conectarAoBancoDeTeste(); });
 afterAll(() => bd.destroy());
 beforeEach(() => esvaziarTabelas(bd));
@@ -69,14 +71,15 @@ describe('repositório de torneios', () => {
 
   it('registra a importação: arquivo, horário, conversão de Windows-1252 e status "importado"', async () => {
     const id = await criarTorneio(bd, SETEMBRO);
-    await registrarImportacao(bd, id, { arquivo: 'torneio-setembro.csv', convertidoDeWindows1252: true });
+    await registrarImportacao(bd, id, { arquivo: 'torneio-setembro.csv', convertidoDeWindows1252: true, agora: AGORA });
     const torneio = await buscarTorneio(bd, id);
     expect(torneio).toMatchObject({
       status: 'importado',
       planilhaArquivo: 'torneio-setembro.csv',
       planilhaConvertidaDeWindows1252: true,
     });
-    expect(torneio!.planilhaImportadaEm).toBeInstanceOf(Date);
+    // o horário da importação também vem do "agora" que ela recebe (R2a)
+    expect(torneio!.planilhaImportadaEm).toEqual(new Date('2026-10-15T12:34:56.000Z'));
   });
 
   it('o banco recusa prêmio negativo e modo de divisão desconhecido', async () => {
@@ -88,9 +91,7 @@ describe('repositório de torneios', () => {
 describe('repositório de partidas (também a tabela de tarefas da conferência)', () => {
   it('insere as 15 partidas de setembro como "aguardando", prontas para a primeira consulta', async () => {
     const torneioId = await criarTorneio(bd, SETEMBRO);
-    const antes = await horaDoBanco(bd);
-    const ids = await inserirPartidas(bd, torneioId, partidasDasLinhas(linhasDeSetembro()));
-    const depois = await horaDoBanco(bd);
+    const ids = await inserirPartidas(bd, torneioId, partidasDasLinhas(linhasDeSetembro()), AGORA);
     expect(ids.size).toBe(15);
 
     const partidas = await listarPartidas(bd, torneioId);
@@ -111,22 +112,18 @@ describe('repositório de partidas (também a tabela de tarefas da conferência)
       emConsultaDesde: null,
       ultimoErro: null,
     });
-    // a primeira tentativa já pode acontecer: nasce com o NOW() do MySQL na hora da inserção.
-    // Comparado com o próprio relógio do MySQL (o do Node pode estar adiantado ou atrasado), sem
-    // folga: o NOW() sem casas decimais CORTA a fração do segundo, então o valor gravado fica entre
-    // o segundo cheio de antes da inserção e a hora de depois.
-    expect(p40923.proximaTentativaEm).toBeInstanceOf(Date);
-    expect(p40923.proximaTentativaEm!.getTime()).toBeGreaterThanOrEqual(Math.floor(antes.getTime() / 1000) * 1000);
-    expect(p40923.proximaTentativaEm!.getTime()).toBeLessThanOrEqual(depois.getTime());
+    // a primeira tentativa já pode acontecer: nasce com o "agora" da importação (R2a, um relógio só
+    // no código), em segundos inteiros, como o job grava. Sem depender do relógio do MySQL.
+    expect(p40923.proximaTentativaEm).toEqual(new Date('2026-10-15T12:34:56.000Z'));
   });
 
   it('o mesmo ID não entra duas vezes no mesmo torneio, mas pode existir em outro', async () => {
     const a = await criarTorneio(bd, SETEMBRO);
     const b = await criarTorneio(bd, { ...SETEMBRO, nome: 'Outro' });
     const partida: NovaPartida = { idPartida: '#45659', rodada: 1, data: '2026-09-05', timeA: 'Lobos', timeB: 'Serpentes' };
-    await inserirPartidas(bd, a, [partida]);
-    await expect(inserirPartidas(bd, a, [partida])).rejects.toThrow();
-    await expect(inserirPartidas(bd, b, [partida])).resolves.toBeDefined();
+    await inserirPartidas(bd, a, [partida], AGORA);
+    await expect(inserirPartidas(bd, a, [partida], AGORA)).rejects.toThrow();
+    await expect(inserirPartidas(bd, b, [partida], AGORA)).resolves.toBeDefined();
   });
 });
 
@@ -134,7 +131,7 @@ describe('repositório de linhas da planilha', () => {
   it('guarda as 152 linhas de setembro como foram digitadas, ligadas à partida', async () => {
     const torneioId = await criarTorneio(bd, SETEMBRO);
     const linhas = linhasDeSetembro();
-    const partidaIds = await inserirPartidas(bd, torneioId, partidasDasLinhas(linhas));
+    const partidaIds = await inserirPartidas(bd, torneioId, partidasDasLinhas(linhas), AGORA);
     await inserirLinhas(bd, torneioId, linhas, partidaIds);
 
     const lidas = await listarLinhas(bd, torneioId);
@@ -147,7 +144,7 @@ describe('repositório de linhas da planilha', () => {
   it('preserva acentos, maiúsculas e a duplicata: o banco não junta nem descarta nada', async () => {
     const torneioId = await criarTorneio(bd, SETEMBRO);
     const linhas = linhasDeSetembro();
-    await inserirLinhas(bd, torneioId, linhas, await inserirPartidas(bd, torneioId, partidasDasLinhas(linhas)));
+    await inserirLinhas(bd, torneioId, linhas, await inserirPartidas(bd, torneioId, partidasDasLinhas(linhas), AGORA));
 
     const nicks = (await listarLinhas(bd, torneioId)).map((l) => l.nick);
     expect(nicks).toContain('xxsniperxx');
@@ -165,7 +162,7 @@ describe('repositório de linhas da planilha', () => {
   it('a partida #40923 zerada é guardada como veio: 0 minutos, 0 kills e Venceu? vazio', async () => {
     const torneioId = await criarTorneio(bd, SETEMBRO);
     const linhas = linhasDeSetembro();
-    await inserirLinhas(bd, torneioId, linhas, await inserirPartidas(bd, torneioId, partidasDasLinhas(linhas)));
+    await inserirLinhas(bd, torneioId, linhas, await inserirPartidas(bd, torneioId, partidasDasLinhas(linhas), AGORA));
     const zerada = (await listarLinhas(bd, torneioId)).filter((l) => l.idPartida === '#40923');
     expect(zerada).toHaveLength(10);
     expect(zerada.every((l) => l.minutos === 0 && l.kills === 0 && l.venceu === null)).toBe(true);
@@ -174,7 +171,7 @@ describe('repositório de linhas da planilha', () => {
   it('apagar o torneio apaga as partidas e as linhas dele', async () => {
     const torneioId = await criarTorneio(bd, SETEMBRO);
     const linhas = linhasDeSetembro();
-    await inserirLinhas(bd, torneioId, linhas, await inserirPartidas(bd, torneioId, partidasDasLinhas(linhas)));
+    await inserirLinhas(bd, torneioId, linhas, await inserirPartidas(bd, torneioId, partidasDasLinhas(linhas), AGORA));
     await bd('torneios').where({ id: torneioId }).del();
     expect(await listarPartidas(bd, torneioId)).toEqual([]);
     expect(await listarLinhas(bd, torneioId)).toEqual([]);
@@ -185,7 +182,7 @@ describe('repositório de linhas da planilha', () => {
     const linhas = linhasDeSetembro();
     await expect(
       bd.transaction(async (trx) => {
-        const ids = await inserirPartidas(trx, torneioId, partidasDasLinhas(linhas));
+        const ids = await inserirPartidas(trx, torneioId, partidasDasLinhas(linhas), AGORA);
         await inserirLinhas(trx, torneioId, linhas, ids);
         throw new Error('falha no meio da importação');
       }),

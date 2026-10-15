@@ -126,7 +126,7 @@ export function rotasTorneios(bd: Knex, agora: () => Date = () => new Date()): R
         return;
       }
       const conteudo: Uint8Array = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
-      const resultado = await importarPlanilha(bd, id.data, conteudo, nomeDoArquivo(req.get('x-nome-arquivo')));
+      const resultado = await importarPlanilha(bd, id.data, conteudo, nomeDoArquivo(req.get('x-nome-arquivo')), agora());
 
       switch (resultado.tipo) {
         case 'importada': {

@@ -47,7 +47,16 @@ export function criarConexao(dados: DadosConexao): Knex {
         return campo.type === 'DATE' ? campo.string() : proximo();
       },
     },
-    pool: { min: 0, max: 10 },
+    pool: {
+      min: 0,
+      max: 10,
+      // R2a: o `timezone: 'Z'` acima só converte as datas do JavaScript; o NOW() e o CURRENT_TIMESTAMP
+      // usam o fuso da SESSÃO. Fixado em UTC em toda conexão nova: num MySQL configurado em -03:00,
+      // o horário de criação do torneio (o "mês do torneio" sem planilha) sairia 3 horas errado.
+      afterCreate(conexao: { query(sql: string, feito: (erro: unknown) => void): void }, pronto: (erro: unknown, conexao: unknown) => void) {
+        conexao.query("SET time_zone = '+00:00'", (erro) => pronto(erro, conexao));
+      },
+    },
     migrations: { migrationSource: fonteDeMigrations },
   });
 }

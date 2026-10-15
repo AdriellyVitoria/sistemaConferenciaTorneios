@@ -111,6 +111,15 @@ describe('classificação', () => {
     expect(tabela(pagina, 'Classificação').findAll('thead th[scope="col"]').map((t) => t.text())).toEqual(['Posição', 'Time', 'Prêmio', 'Vitórias', 'Kills do time', 'Critério']);
   });
 
+  it('"Premia 3 posições" fica na linha do título "Classificação", e aparece uma vez só na tela', async () => {
+    const pagina = await montar();
+    const secao = pagina.find('section[aria-labelledby="t-classificacao"]');
+    const cabecalho = secao.find('.cabecalho-classificacao');
+    expect(cabecalho.find('h2#t-classificacao').text()).toBe('Classificação');
+    expect(cabecalho.find('p.texto-suave').text()).toBe('Premia 3 posições: 1º 50% · 2º 30% · 3º 20%');
+    expect(pagina.text().split('Premia 3 posições')).toHaveLength(2);
+  });
+
   it('o "—" do prêmio de um time fora das posições premiadas é lido como "sem prêmio"', async () => {
     const pagina = await montar();
     const panteras = tabela(pagina, 'Classificação').findAll('tbody tr').find((tr) => tr.text().includes('Panteras'))!;

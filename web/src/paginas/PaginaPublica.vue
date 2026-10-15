@@ -63,8 +63,7 @@ const regras = computed(() => (pagina.value ? regrasEmTexto(pagina.value.regras,
       </section>
 
       <section class="cartao" aria-labelledby="t-classificacao">
-        <h2 id="t-classificacao">Classificação</h2>
-        <TabelaClassificacao :times="pagina.classificacao" :percentuais="pagina.regras.percentuais" />
+        <TabelaClassificacao :times="pagina.classificacao" :percentuais="pagina.regras.percentuais" id-do-titulo="t-classificacao" />
       </section>
     </template>
   </main>

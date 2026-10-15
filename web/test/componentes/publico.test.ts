@@ -122,6 +122,14 @@ describe('página pública: setembro', () => {
     expect(app.text()).toContain('Corvos, Falcões e Tubarões terminaram com 3 vitórias. Corvos fez mais kills (368) e ficou em 2º. Falcões e Tubarões empataram também em kills (310) e ficaram em 3º. Este torneio premia só 2 posições.');
   });
 
+  it('"Premia 3 posições" na linha do título "Classificação", e também nas regras', async () => {
+    const app = await abrir(`/publico/${CODIGO}`);
+    const cabecalho = app.find('section[aria-labelledby="t-classificacao"] .cabecalho-classificacao');
+    expect(cabecalho.find('h2#t-classificacao').text()).toBe('Classificação');
+    expect(cabecalho.find('p.texto-suave').text()).toBe('Premia 3 posições: 1º 50% · 2º 30% · 3º 20%');
+    expect(app.find('.regras').text()).toContain('Premia 3 posições: 1º 50% · 2º 30% · 3º 20%.');
+  });
+
   it('a frase do empate, montada dos dados, com os nomes dos times', async () => {
     const app = await abrir(`/publico/${CODIGO}`);
     expect(app.text()).toContain('Corvos, Falcões e Tubarões terminaram com 3 vitórias. Corvos fez mais kills (368) e ficou em 2º. Falcões e Tubarões empataram também em kills (310) e dividiram o prêmio do 3º lugar: R$ 2.000,00, metade para cada time.');

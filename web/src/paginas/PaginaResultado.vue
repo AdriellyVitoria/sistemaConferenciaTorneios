@@ -10,7 +10,7 @@ import { RouterLink } from 'vue-router';
 import TabelaClassificacao from '../componentes/TabelaClassificacao.vue';
 import { formatarHora } from '../dominio/conferencia';
 import { formatarCentavos } from '../dominio/dinheiro';
-import { buscarNoResultado, descreverPosicoesPremiadas, observacaoDoJogador, percentualDoTime } from '../dominio/resultado';
+import { buscarNoResultado, observacaoDoJogador, percentualDoTime } from '../dominio/resultado';
 import { formatarDataDeCriacao, rotuloDoModo } from '../dominio/torneio';
 import { buscarResultado, enderecoDoCsv, type ResultadoDoTorneio } from '../servicos/api';
 
@@ -69,9 +69,7 @@ const resumo = computed(() => {
       <div class="titulo-com-acao">
         <div class="titulo-da-pagina">
           <h1>Resultado: {{ resultado.torneio.nome }}</h1>
-          <p class="texto-suave">Calculado em {{ quando }} · {{ rotuloDoModo(resultado.modoDivisao) }} (travada)</p>
-          <p class="texto-suave">{{ descreverPosicoesPremiadas(resultado.percentuais) }}</p>
-        </div>
+          <p class="texto-suave">Calculado em {{ quando }} · {{ rotuloDoModo(resultado.modoDivisao) }} (travada)</p>        </div>
         <div class="acoes-topo">
           <span class="selo sucesso redondo total">Total distribuído: {{ formatarCentavos(totalDistribuido) }}</span>
           <a :href="enderecoDoCsv(id)" class="botao secundario" download>Baixar CSV</a>
@@ -79,8 +77,7 @@ const resumo = computed(() => {
       </div>
 
       <section class="cartao" aria-labelledby="t-classificacao">
-        <h2 id="t-classificacao">Classificação</h2>
-        <TabelaClassificacao :times="resultado.times" :percentuais="resultado.percentuais" />
+        <TabelaClassificacao :times="resultado.times" :percentuais="resultado.percentuais" id-do-titulo="t-classificacao" />
       </section>
 
       <section class="cartao" aria-labelledby="t-jogadores">

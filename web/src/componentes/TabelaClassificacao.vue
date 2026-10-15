@@ -6,15 +6,21 @@
  */
 import { computed } from 'vue';
 import { formatarCentavos } from '../dominio/dinheiro';
-import { explicarEmpates, rotuloDoCriterio } from '../dominio/resultado';
+import { descreverPosicoesPremiadas, explicarEmpates, rotuloDoCriterio } from '../dominio/resultado';
 import type { TimeDaClassificacao } from '../servicos/api';
 
-const props = defineProps<{ times: TimeDaClassificacao[]; percentuais: number[] }>();
+/** `idDoTitulo`: o id do título, que a seção da página usa no aria-labelledby. */
+const props = defineProps<{ times: TimeDaClassificacao[]; percentuais: number[]; idDoTitulo: string }>();
 
 const empates = computed(() => explicarEmpates(props.times, props.percentuais));
 </script>
 
 <template>
+  <!-- o título e, na mesma linha, quantas posições são premiadas; no celular, a frase desce -->
+  <div class="cabecalho-classificacao">
+    <h2 :id="idDoTitulo">Classificação</h2>
+    <p class="texto-suave">{{ descreverPosicoesPremiadas(percentuais) }}</p>
+  </div>
   <div class="caixa-tabela">
     <table class="tabela-resultado">
       <caption class="visualmente-oculto">Classificação</caption>
@@ -50,3 +56,26 @@ const empates = computed(() => explicarEmpates(props.times, props.percentuais));
   </div>
   <p v-for="frase in empates" :key="frase" class="quadro-suave">{{ frase }}</p>
 </template>
+
+<style scoped>
+.cabecalho-classificacao {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--espaco-2) var(--espaco-4);
+}
+.cabecalho-classificacao p {
+  margin: 0;
+  font-size: var(--texto-sm);
+  text-align: right;
+}
+@media (max-width: 640px) {
+  .cabecalho-classificacao {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .cabecalho-classificacao p {
+    text-align: left;
+  }
+}
+</style>

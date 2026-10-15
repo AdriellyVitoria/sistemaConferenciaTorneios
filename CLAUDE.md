@@ -47,5 +47,6 @@ Projeto: desafio técnico da PowerRev (Desenvolvedora Full Stack Júnior). Siste
 - Pedaço visual (base de tokens em `web/src/estilos.css` e nova lista de torneios): concluído.
 - Etapa 5, pedaço 5a (pendências e Ciente, só API): concluído.
 - Etapa 5, pedaço 5b (correção do ID, só API): concluído.
-- Etapa 5, pedaço 5c (pronto para calcular, só API): pronto, aguardando aprovação. Decisões no `DECISIONS.md`.
-- Próximo passo: **Etapa 5, tela de revisão**, depois da aprovação do 5c.
+- Etapa 5, pedaço 5c (pronto para calcular, só API): concluído.
+- Etapa 5, pedaço 5d (tela das pendências, só web): pronto, aguardando aprovação. Decisões no `DECISIONS.md`.
+- Próximo passo: **Etapa 5, pedaço 5e** (formulário de correção do ID na tela), depois da aprovação do 5d.

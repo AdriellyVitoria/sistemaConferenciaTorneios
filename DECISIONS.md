@@ -356,6 +356,38 @@ O cálculo em si (que trava o modo de divisão e a planilha) é da etapa 6. Ele 
 
 ---
 
+## Tela das pendências (etapa 5d), 15/10/2026
+
+Só web; a API é a do 5a a 5c.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| Abas da D17: **Conferidas, Pendências e Aguardando o site**. A aba provisória "Todas as partidas" (4c) saiu. Cada partida está em uma só | Manter "Todas" | A D17 pede que cada problema apareça uma vez; uma lista com tudo misturaria o resolvido com o pendente |
+| **Conferidas** = conferidas no site **sem nada faltando**: bateram com o site ("Bateu com o site") ou tiveram pendência que já recebeu Ciente ("Conferida com Ciente") | Todas as partidas com status "conferida" | Uma partida com pendência sem Ciente estaria nas duas abas |
+| A aba Pendências conta **as que ainda faltam**: bloqueantes + não bloqueantes sem Ciente, com o contador em destaque quando há | Contar todas | O número diz o que falta fazer; o que já tem Ciente não é trabalho |
+| A tela **abre onde há o que fazer**: Pendências se falta alguma, senão Aguardando o site, senão Conferidas | Sempre a mesma aba | A Maria vê de cara o que precisa dela |
+| A página carrega **o torneio e as pendências juntos**, também na atualização a cada 5 s | Só ao abrir a aba | A conferência que avança faz pendências aparecerem, e a contagem da aba precisa estar certa sem clique |
+| **Bloqueantes primeiro**, com selo vermelho, o lado a lado e o aviso "Corrija o ID desta partida", **sem botão de Ciente**. O formulário de correção é do 5e | Esconder o lado a lado | Ver "Lobos x Serpentes" × "Corvos x Panteras" ajuda a achar o ID certo |
+| Não bloqueantes com **planilha e site lado a lado** (D4), o site destacado em azul ("usado no cálculo"); **"Ciente" vira "Desfazer"**, com "Ciente às HH:MM:SS" | Caixa de seleção | O protótipo usa botão; o selo com a hora mostra que foi visto, e quando |
+| Valor vazio vira **frase**: "Não encontrada", "Não registra o jogador", "Não está na planilha" | Traço | Um traço não explica nada para a Maria |
+| **404 "os dados mudaram"** (5a): a lista é **recarregada** e a tela explica que a pendência mudou e que é preciso conferir de novo antes do Ciente | Mostrar só o erro | A pendência nova (com o valor novo) aparece na hora, sem a Maria precisar recarregar |
+| **"Ciente de todas"** abre um modal "Marcar Ciente em N pendências?", com N = não bloqueantes sem Ciente, e avisa que **as bloqueantes não entram**; depois mostra "N pendências marcadas com Ciente." | Marcar direto | Marcar várias de uma vez sem perguntar é fácil de fazer por engano |
+| **Depois do cálculo**: sem Ciente, Desfazer, Ciente de todas nem o modal; um aviso diz que a lista é só para consulta | Botões desabilitados | Botões que nunca podem ser usados são ruído |
+| Cada botão tem um **rótulo para leitor de tela** com a pendência ("Ciente: Nick escrito diferente, partida #48087"), e cada cartão também | Só "Ciente" | Numa lista de vários "Ciente", o leitor de tela precisa dizer qual |
+| No lado a lado, o **rótulo não quebra no meio**; um valor longo desce para a linha de baixo | — | No celular, "Pantera_X" quebrava em "Pant / era_ / X" |
+
+**Testes de componente** montam a página inteira contra uma **API falsa em memória** (`web/test/componentes/api-falsa.ts`), que guarda o estado: um Ciente marcado aparece marcado na próxima leitura, e a falsa pode responder "os dados mudaram" na próxima marcação. Cobrem:
+- as abas e as contagens;
+- a ordem, com as bloqueantes primeiro e sem botão de Ciente;
+- o lado a lado;
+- "Ciente" e "Desfazer";
+- o rótulo acessível;
+- o 404 com recarga;
+- o modal com a contagem certa, ao confirmar e ao cancelar;
+- a leitura depois do cálculo.
+
+---
+
 ## Stack e ferramentas
 
 | Decisão | Alternativa descartada | Por quê |

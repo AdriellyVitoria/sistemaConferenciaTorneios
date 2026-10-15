@@ -242,6 +242,18 @@ export async function corrigirIdPartida(
   return { tipo: 'erro', mensagem: corpo.erro ?? `Não foi possível corrigir o ID (erro ${resposta.status}).` };
 }
 
+/**
+ * Calcula os prêmios (6b). "recusado" = 409: algo mudou entre a tela e o clique (um Ciente
+ * desfeito, uma partida de volta na fila) ou o torneio já foi calculado; vem com a frase da API.
+ */
+export async function calcularPremios(torneioId: number): Promise<{ tipo: 'ok' } | { tipo: 'recusado'; mensagem: string } | { tipo: 'erro'; mensagem: string }> {
+  const resposta = await chamar(`/api/torneios/${torneioId}/calculo`, { method: 'POST' });
+  const corpo = await resposta.json().catch(() => ({}));
+  if (resposta.ok) return { tipo: 'ok' };
+  if (resposta.status === 409) return { tipo: 'recusado', mensagem: corpo.erro ?? 'Algo mudou: confira a página antes de calcular.' };
+  return { tipo: 'erro', mensagem: corpo.erro ?? `Não foi possível calcular (erro ${resposta.status}).` };
+}
+
 async function chamar(caminho: string, opcoes?: RequestInit): Promise<Response> {
   try {
     return await fetch(caminho, opcoes);

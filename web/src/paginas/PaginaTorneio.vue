@@ -25,6 +25,7 @@ import {
 import { criarSondagem } from '../utilitarios/sondagem';
 import {
   buscarTorneio,
+  calcularPremios,
   enviarPlanilha,
   listarPendencias,
   tentarAgora,
@@ -99,6 +100,36 @@ const somenteLeitura = computed(() => torneio.value?.status === 'calculado');
 type Aba = 'conferidas' | 'pendencias' | 'aguardando';
 const abaEscolhida = ref<Aba | null>(null);
 // sem escolha da Maria: abre onde há algo a fazer (pendências), depois no que depende do site
+// --- calcular os prêmios (6d, D22): o modal pergunta antes; a API confere de novo e trava
+const confirmandoCalculo = ref(false);
+const calculando = ref(false);
+const avisoDoCalculo = ref<{ tom: 'sucesso' | 'alerta' | 'erro'; texto: string } | null>(null);
+
+const resumoDaConferencia = computed(() => {
+  const n = torneio.value?.partidas.length ?? 0;
+  const cientes = pendencias.value?.resumo.comCiente ?? 0;
+  return `${n} ${n === 1 ? 'partida' : 'partidas'} · ${cientes} ${cientes === 1 ? 'Ciente' : 'Cientes'}`;
+});
+
+async function calcular() {
+  // a trava vem antes de qualquer espera: um segundo clique encontra o pedido já em andamento
+  if (calculando.value) return;
+  calculando.value = true;
+  confirmandoCalculo.value = false;
+  avisoDoCalculo.value = null;
+  try {
+    const resultado = await calcularPremios(props.id);
+    // em qualquer caso, a página mostra o estado novo: calculado, ou o que mudou (409)
+    await carregar();
+    if (resultado.tipo === 'ok') avisoDoCalculo.value = { tom: 'sucesso', texto: 'Prêmios calculados. O torneio está travado.' };
+    else avisoDoCalculo.value = { tom: resultado.tipo === 'recusado' ? 'alerta' : 'erro', texto: resultado.mensagem };
+  } catch (e) {
+    avisoDoCalculo.value = { tom: 'erro', texto: (e as Error).message };
+  } finally {
+    calculando.value = false;
+  }
+}
+
 /** Cada item do aviso "pronto para calcular" leva à aba onde se resolve, e o foco vai junto. */
 async function irParaAba(destino: Aba) {
   abaEscolhida.value = destino;
@@ -261,7 +292,35 @@ async function enviar() {
         </div>
       </div>
 
-      <AvisoDoCalculo :calculo="torneio.calculo" @ir-para="irParaAba" />
+      <AvisoDoCalculo
+        :torneio-id="torneio.id"
+        :calculo="torneio.calculo"
+        :calculando="calculando"
+        @ir-para="irParaAba"
+        @calcular="confirmandoCalculo = true"
+      />
+      <p v-if="avisoDoCalculo" class="aviso" :class="avisoDoCalculo.tom" :role="avisoDoCalculo.tom === 'sucesso' ? 'status' : 'alert'">
+        {{ avisoDoCalculo.texto }}
+      </p>
+
+      <DialogoConfirmacao
+        :aberto="confirmandoCalculo"
+        titulo="Calcular os prêmios?"
+        texto-confirmar="Calcular prêmios"
+        texto-cancelar="Voltar"
+        @confirmar="calcular"
+        @cancelar="confirmandoCalculo = false"
+      >
+        <dl class="resumo-calculo">
+          <div><dt>Prêmio total</dt><dd class="mono">{{ formatarCentavos(torneio.premioCentavos) }}</dd></div>
+          <div><dt>Por posição</dt><dd>{{ resumoDosPercentuais(torneio.percentuais) }}</dd></div>
+          <div><dt>Dentro do time</dt><dd>{{ rotuloDoModo(torneio.modoDivisao) }}</dd></div>
+          <div><dt>Conferido</dt><dd>{{ resumoDaConferencia }}</dd></div>
+        </dl>
+        <p class="aviso alerta">
+          <strong>O cálculo é definitivo. Depois dele não dá para dar Ciente, corrigir ID nem trocar a planilha.</strong>
+        </p>
+      </DialogoConfirmacao>
 
       <section class="cartao" aria-labelledby="t-planilha">
         <div class="titulo-com-acao">
@@ -436,6 +495,30 @@ async function enviar() {
 </template>
 
 <style scoped>
+/* o resumo do modal de cálculo: rótulo e valor em cada linha */
+.resumo-calculo {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+.resumo-calculo div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--espaco-1) var(--espaco-3);
+  border-bottom: 1px solid var(--linha-tabela);
+  padding-bottom: var(--espaco-2);
+}
+.resumo-calculo dt {
+  color: var(--texto-suave);
+}
+.resumo-calculo dd {
+  margin: 0;
+  color: var(--texto);
+  font-weight: var(--peso-medio);
+  text-align: right;
+}
 .valor {
   font-weight: var(--peso-medio);
 }

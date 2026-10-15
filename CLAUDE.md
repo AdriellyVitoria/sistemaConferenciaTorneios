@@ -55,5 +55,6 @@ Projeto: desafio técnico da PowerRev (Desenvolvedora Full Stack Júnior). Siste
 - `testes/gerar_cenarios.py --so-esperado` agora gera também os gabaritos de 02, 03, 07 e novembro.
 - Etapa 6, pedaço 6a (calcular e gravar o resultado, só API, sem rota): concluído.
 - Etapa 6, pedaço 6b (rota de cálculo, só API): concluído.
-- Etapa 6, pedaço 6c (ler o resultado e baixar o CSV, só API): pronto, aguardando aprovação. Decisões no `DECISIONS.md`.
-- Próximo passo: **Etapa 6, pedaço seguinte** (tela do resultado), depois da aprovação do 6c.
+- Etapa 6, pedaço 6c (ler o resultado e baixar o CSV, só API): concluído.
+- Etapa 6, pedaço 6d (botão Calcular com confirmação, só web): pronto, aguardando aprovação. Decisões no `DECISIONS.md`.
+- Próximo passo: **Etapa 6, pedaço 6e** (tela do resultado, com o filtro por nick), depois da aprovação do 6d.

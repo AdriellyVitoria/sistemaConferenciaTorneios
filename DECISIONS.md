@@ -531,6 +531,37 @@ Só API: `GET /torneios/:id/resultado` e `GET /torneios/:id/resultado.csv`. Sem 
 
 ---
 
+## Botão Calcular com confirmação (etapa 6d), 15/10/2026
+
+Só web; a API é a do 6b.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **"Calcular prêmios" no aviso do topo** (5e), sempre visível até o cálculo, **habilitado só quando `calculo.podeCalcular`**, e ligado ao texto do aviso por `aria-describedby` (o leitor de tela diz por que está desabilitado) | Esconder o botão enquanto não pode | Mostrar desabilitado, com o motivo ao lado, diz à Maria o que falta para chegar lá |
+| **Modal de confirmação (D22)** com o resumo do que vai ser calculado (prêmio total, percentuais por posição, forma de divisão, partidas e Cientes) e o aviso "O cálculo é definitivo. Depois dele não dá para dar Ciente, corrigir ID nem trocar a planilha." Botões **"Voltar"** e **"Calcular prêmios"** | Um "Tem certeza?" sem resumo | A Maria confere a regra (prêmio, percentuais, minutos ou kills) uma última vez antes de travar |
+| **O foco começa no "Voltar"**, a opção segura, posto explicitamente depois de abrir | Confiar no `autofocus` | Nem todo ambiente respeita o `autofocus` num `<dialog>`; um Enter por engano não pode calcular |
+| O `<dialog>` nativo (`showModal`) **prende o foco** e **fecha com Esc**; o **título tem um id só dele** (`useId`), usado no `aria-labelledby` | `id` fixo "titulo-dialogo" | A página do torneio tem três diálogos (substituir planilha, Ciente de todas, calcular); três `id` iguais quebravam o rótulo para o leitor de tela |
+| O componente do diálogo ganhou **`textoCancelar`** (padrão "Cancelar") | Um diálogo só para o cálculo | O mesmo diálogo, com o foco na opção segura, serve às três confirmações |
+| **Sem clique duplo:** a trava (`calculando`) é ligada **antes de qualquer espera**, e o botão fica desabilitado até a resposta. A API também trava (6b) | Só desabilitar o botão | Dois cliques no mesmo instante passariam antes de a tela redesenhar; o teste dispara os dois juntos e vê um pedido só |
+| **409** (algo mudou entre a tela e o clique): a tela **mostra a frase da API** e **recarrega** o torneio e as pendências, sem sair da página | Fechar a tela, ou só mostrar o erro | A Maria vê na hora o que mudou ("1 sem Ciente") e onde resolver |
+| **Depois do sucesso:** o aviso mostra "Calculado em dd/mm/aaaa às hh:mm." e o link **"Ver resultado"**, que leva à rota `/torneios/:id/resultado`, por enquanto "em construção", com o link do CSV (6c) | Ir direto para o resultado | A tela do resultado é a 6e; até lá, o CSV já permite pagar |
+
+**Testes de componente:**
+- o botão desabilitado quando não pode calcular, e habilitado quando pode;
+- o modal com o resumo certo e o rótulo único;
+- o foco no "Voltar";
+- "Voltar" e Esc fecham sem calcular;
+- o clique duplo gera um pedido só;
+- o botão desabilitado durante o pedido;
+- o 409 mostra a mensagem e recarrega;
+- o sucesso mostra a data e o link.
+
+**No navegador** (roteiro pelo protocolo de depuração do Edge, contra o Docker): o foco começa no "Voltar"; Tab e Shift+Tab não saem do modal; Esc fecha; o modal cabe em 375 px; o cálculo de verdade trava a tela.
+
+**Testes do 5d ajustados:** dois deles pegavam "o primeiro `<dialog>` da página", que agora é o do cálculo. Passaram a achar o do "Ciente de todas" pelo título.
+
+---
+
 ## Stack e ferramentas
 
 | Decisão | Alternativa descartada | Por quê |

@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
 import PaginaNovoTorneio from './paginas/PaginaNovoTorneio.vue';
+import PaginaResultado from './paginas/PaginaResultado.vue';
 import PaginaTorneio from './paginas/PaginaTorneio.vue';
 import PaginaTorneios from './paginas/PaginaTorneios.vue';
 
@@ -8,6 +9,7 @@ export const rotas: RouteRecordRaw[] = [
   { path: '/', name: 'torneios', component: PaginaTorneios },
   { path: '/torneios/novo', name: 'novo-torneio', component: PaginaNovoTorneio },
   { path: '/torneios/:id(\\d+)', name: 'torneio', component: PaginaTorneio, props: (rota) => ({ id: Number(rota.params.id) }) },
+  { path: '/torneios/:id(\\d+)/resultado', name: 'resultado', component: PaginaResultado, props: (rota) => ({ id: Number(rota.params.id) }) },
   { path: '/:caminho(.*)*', redirect: '/' },
 ];
 

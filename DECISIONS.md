@@ -388,6 +388,26 @@ Só web; a API é a do 5a a 5c.
 
 ---
 
+## Correção do ID e "pronto para calcular" na tela (etapa 5e), 15/10/2026
+
+Só web; a API é a do 5b e do 5c.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **"Corrigir ID" dentro do cartão da pendência bloqueante**, que abre um campo com o ID atual, com rótulo, texto de ajuda e o foco já no campo | Uma tela ou um modal à parte | A Maria corrige olhando o lado a lado (planilha × site) do mesmo cartão |
+| Os erros da API (formato, igual ao atual, ID de outra partida) aparecem **junto do campo, com a frase da API**, e o campo fica marcado como inválido (`aria-invalid` e `aria-describedby` apontando para o erro) | Mensagem genérica no topo | A frase da API já diz o que fazer; longe do campo, ela não é associada ao erro |
+| Depois de salvar, a tela **recarrega o torneio e as pendências**: a partida aparece em "Aguardando o site", e a **atualização a cada 5 s volta a rodar** | Religar a sondagem por fora | O `carregar` da página já liga a sondagem sempre que há partida aguardando; usar o mesmo caminho evita dois lugares para lembrar. Um teste com relógio falso prova: parada antes da correção, rodando depois |
+| Onde o ID aparece (título da pendência, Aguardando o site, Conferidas), uma partida corrigida mostra **"#52214 → #52241 (corrigido)"**, com o ID da planilha primeiro (`rotuloDoId`) | Só o ID novo | A Maria procura no Excel pelo ID que digitou |
+| **Aviso "pronto para calcular" no topo**, a partir do campo `calculo` (5c), com quatro estados: sem planilha ("Envie a planilha para começar."), faltando ("Falta para calcular:" e as contagens), pronto ("Tudo conferido. Pronto para calcular.") e calculado (a data e a hora) | Só um contador | Diz o que falta e onde resolver |
+| **Cada item que falta é um botão que leva à aba certa** (aguardando o site → "Aguardando o site"; bloqueio e sem Ciente → "Pendências"), com o foco indo para a aba; só aparecem os itens que existem | Texto corrido | Um clique leva ao trabalho; o foco junto ajuda quem usa teclado ou leitor de tela |
+| O botão **"Calcular" não existe ainda** | — | É da etapa 6 |
+
+**Teste do 5d ajustado:** "bloqueante sem botão de Ciente" verificava que o cartão não tinha nenhum botão. Agora ele tem o "Corrigir ID", então o teste confere que o único botão é esse (nada de Ciente nem Desfazer).
+
+**A API falsa dos testes** (`web/test/componentes/api-falsa.ts`) ganhou a rota de correção, com as mesmas regras e frases da API, e opções para montar os quatro estados do aviso (sem planilha, partidas aguardando, sem pendências, calculado).
+
+---
+
 ## Stack e ferramentas
 
 | Decisão | Alternativa descartada | Por quê |

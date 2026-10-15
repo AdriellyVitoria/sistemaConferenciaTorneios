@@ -29,7 +29,17 @@ const partida = (id: number, idPartida: string, rodada: number, timeA: string, t
 
 const chave = (letra: string) => letra.repeat(64);
 
-export function criarApiFalsa({ calculado = false } = {}) {
+export interface OpcoesApiFalsa {
+  calculado?: boolean;
+  /** Torneio criado, ainda sem planilha: nenhuma partida, nenhuma pendência. */
+  semPlanilha?: boolean;
+  /** Quantas partidas a mais estão aguardando o site. */
+  aguardando?: number;
+  /** Sem nenhuma pendência (tudo bateu com o site). */
+  semPendencias?: boolean;
+}
+
+export function criarApiFalsa({ calculado = false, semPlanilha = false, aguardando = 0, semPendencias = false }: OpcoesApiFalsa = {}) {
   const pendencias: Pendencia[] = [
     {
       chave: chave('a'), tipo: 'nao_encontrada', idPartida: '#52214', valorPlanilha: '#52214', valorSite: null, acao: 'corrigir_id',
@@ -52,13 +62,15 @@ export function criarApiFalsa({ calculado = false } = {}) {
       bloqueante: false, ciente: false, cienteEm: null,
     },
   ];
-  const partidas = [
+  const partidas = semPlanilha ? [] : [
     partida(1, '#45659', 1, 'Lobos', 'Serpentes'),
     partida(2, '#46065', 2, 'Lobos', 'Panteras'),
     partida(3, '#48087', 3, 'Lobos', 'Falcões'),
     partida(4, '#40923', 5, 'Falcões', 'Panteras'),
     partida(5, '#52214', 2, 'Águias', 'Lobos-Guará', 'nao_encontrada'),
+    ...Array.from({ length: aguardando }, (_, i) => partida(10 + i, `#6000${i}`, 4, 'Corvos', 'Tubarões', 'aguardando')),
   ];
+  if (semPlanilha || semPendencias) pendencias.splice(0);
   const estado = {
     calculado,
     /** A próxima marcação desta chave responde 404: os dados mudaram enquanto a Maria olhava. */
@@ -78,14 +90,16 @@ export function criarApiFalsa({ calculado = false } = {}) {
   };
   const torneio = () => {
     const { resumo } = lista();
+    const aguardandoSite = partidas.filter((p) => p.statusConferencia === 'aguardando' || p.statusConferencia === 'em_consulta').length;
     return {
       id: 1, nome: 'Torneio de setembro', premioCentavos: 1_000_000, percentuais: [50, 30, 20], modoDivisao: 'minutos',
       status: estado.calculado ? 'calculado' : 'importado', calculadoEm: estado.calculado ? '2026-10-15T13:00:00.000Z' : null,
-      planilhaArquivo: 'torneio-setembro.csv', planilhaImportadaEm: '2026-10-15T11:00:00.000Z', planilhaConvertidaDeWindows1252: false,
+      planilhaArquivo: semPlanilha ? null : 'torneio-setembro.csv', planilhaImportadaEm: '2026-10-15T11:00:00.000Z', planilhaConvertidaDeWindows1252: false,
       criadoEm: '2026-10-15T11:00:00.000Z', tentarAgoraEm: null, segundosParaTentarAgora: 0, partidas,
       calculo: {
-        podeCalcular: !estado.calculado && resumo.bloqueantes === 0 && resumo.semCiente === 0,
-        calculado: estado.calculado, calculadoEm: null, semPlanilha: false, aguardandoSite: 0, bloqueios: resumo.bloqueantes, semCiente: resumo.semCiente,
+        podeCalcular: !estado.calculado && !semPlanilha && aguardandoSite === 0 && resumo.bloqueantes === 0 && resumo.semCiente === 0,
+        calculado: estado.calculado, calculadoEm: estado.calculado ? '2026-10-15T13:00:00.000Z' : null, semPlanilha,
+        aguardandoSite, bloqueios: resumo.bloqueantes, semCiente: resumo.semCiente,
       },
     };
   };
@@ -130,9 +144,30 @@ export function criarApiFalsa({ calculado = false } = {}) {
       return json(200, { marcadas: semCiente.length });
     }
 
+    // correção do ID (5b), com as mesmas regras e frases da API de verdade
+    const correcao = /^\/api\/torneios\/1\/partidas\/(\d+)\/id-partida$/.exec(caminho);
+    if (correcao && metodo === 'PUT') {
+      if (estado.calculado) return json(409, { erro: 'O torneio já foi calculado: o ID da partida não pode mais mudar.' });
+      const p = partidas.find((x) => x.id === Number(correcao[1]));
+      if (!p) return json(404, { erro: 'Partida não encontrada neste torneio.' });
+      const texto = String(JSON.parse(String(opcoes.body ?? '{}')).idPartida ?? '').trim();
+      if (texto === '') return json(400, { erro: 'O ID da partida está vazio.' });
+      const digitos = texto.replace(/^#\s*/, '');
+      if (!/^\d+$/.test(digitos)) return json(400, { erro: `O ID da partida precisa ter só números, como #45659. Veio "${texto}".` });
+      const novo = `#${digitos}`;
+      if (novo === p.idPartida) return json(400, { erro: 'Esse já é o ID da partida.' });
+      if (partidas.some((x) => x.id !== p.id && x.idPartida === novo)) {
+        return json(409, { erro: `O ID ${novo} já é de outra partida deste torneio. Confira o ID: cada partida tem o seu.` });
+      }
+      // a partida volta para a fila; as pendências do ID antigo somem até o site responder
+      for (let i = pendencias.length - 1; i >= 0; i--) if (pendencias[i].idPartida === p.idPartida) pendencias.splice(i, 1);
+      Object.assign(p, { idPartida: novo, statusConferencia: 'aguardando', tentativas: 0, vencedor: null, ultimaTentativaEm: null, proximaTentativaEm: '2026-10-15T12:31:00.000Z' });
+      return json(200, p);
+    }
+
     return json(404, { erro: `rota falsa não encontrada: ${metodo} ${caminho}` });
   });
 
   vi.stubGlobal('fetch', fetchFalso);
-  return { estado, pendencias, chave };
+  return { estado, pendencias, partidas, chave };
 }

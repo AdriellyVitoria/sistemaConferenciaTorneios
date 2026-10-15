@@ -5,7 +5,7 @@
  * Quem carrega a lista é a página (ela também conta as abas); aqui só se age sobre ela e se pede
  * para recarregar.
  */
-import { computed, ref } from 'vue';
+import { computed, nextTick, ref } from 'vue';
 import DialogoConfirmacao from './DialogoConfirmacao.vue';
 import { formatarHora } from '../dominio/conferencia';
 import {
@@ -17,7 +17,7 @@ import {
   tituloDaPendencia,
   valorDoLado,
 } from '../dominio/pendencias';
-import { cienteDeTodas, definirCiente, type ListaDePendencias, type Partida, type Pendencia } from '../servicos/api';
+import { cienteDeTodas, corrigirIdPartida, definirCiente, type ListaDePendencias, type Partida, type Pendencia } from '../servicos/api';
 
 const props = defineProps<{
   torneioId: number;
@@ -75,6 +75,53 @@ async function confirmarTodas() {
 }
 
 const papelDoAviso = (tom: string) => (tom === 'sucesso' ? 'status' : 'alert');
+
+// --- correção do ID (5e, D5, D16): só nas bloqueantes; só o ID é editável
+const corrigindo = ref<string | null>(null);
+const idNovo = ref('');
+const erroDaCorrecao = ref<string | null>(null);
+const salvandoCorrecao = ref(false);
+
+/** A partida da pendência, pelo ID atual (o que a API usa na rota é o id interno). */
+const partidaDa = (p: Pendencia) => props.partidas.find((x) => x.idPartida === p.idPartida) ?? null;
+
+function abrirCorrecao(p: Pendencia) {
+  corrigindo.value = p.chave;
+  idNovo.value = p.idPartida ?? '';
+  erroDaCorrecao.value = null;
+  void nextTick(() => document.getElementById(`id-novo-${p.chave}`)?.focus());
+}
+
+function cancelarCorrecao() {
+  corrigindo.value = null;
+  erroDaCorrecao.value = null;
+}
+
+async function salvarCorrecao(p: Pendencia) {
+  const partida = partidaDa(p);
+  if (!partida) return;
+  salvandoCorrecao.value = true;
+  erroDaCorrecao.value = null;
+  aviso.value = null;
+  try {
+    const resultado = await corrigirIdPartida(props.torneioId, partida.id, idNovo.value);
+    if (resultado.tipo === 'erro') {
+      erroDaCorrecao.value = resultado.mensagem;
+      return;
+    }
+    corrigindo.value = null;
+    // recarregar religa a atualização a cada 5 s: a partida corrigida está aguardando o site
+    await props.recarregar();
+    aviso.value = {
+      tom: 'sucesso',
+      texto: `ID corrigido: a partida ${resultado.partida.idPartida} voltou para "Aguardando o site" e será consultada no site oficial.`,
+    };
+  } catch (e) {
+    erroDaCorrecao.value = (e as Error).message;
+  } finally {
+    salvandoCorrecao.value = false;
+  }
+}
 </script>
 
 <template>
@@ -122,6 +169,32 @@ const papelDoAviso = (tom: string) => (tom === 'sucesso' ? 'status' : 'alert');
         <strong>Corrija o ID desta partida.</strong>
         <span>Enquanto o ID não for corrigido, a partida não é conferida e o cálculo não libera.</span>
       </p>
+
+      <template v-if="!somenteLeitura && partidaDa(p)">
+        <form v-if="corrigindo === p.chave" class="correcao" novalidate @submit.prevent="salvarCorrecao(p)">
+          <div class="grupo">
+            <label class="rotulo" :for="`id-novo-${p.chave}`">ID correto da partida</label>
+            <input
+              :id="`id-novo-${p.chave}`"
+              v-model="idNovo"
+              class="campo mono"
+              inputmode="numeric"
+              autocomplete="off"
+              :aria-invalid="Boolean(erroDaCorrecao)"
+              :aria-describedby="`ajuda-id-${p.chave}${erroDaCorrecao ? ` erro-id-${p.chave}` : ''}`"
+            />
+            <span :id="`ajuda-id-${p.chave}`" class="ajuda">Como no jogo, por exemplo #45659. Só o ID muda; o site é consultado de novo.</span>
+            <span v-if="erroDaCorrecao" :id="`erro-id-${p.chave}`" class="mensagem-erro" role="alert">{{ erroDaCorrecao }}</span>
+          </div>
+          <div class="acoes-correcao">
+            <button type="button" class="botao neutro" @click="cancelarCorrecao">Cancelar</button>
+            <button type="submit" class="botao" :disabled="salvandoCorrecao">{{ salvandoCorrecao ? 'Salvando…' : 'Salvar e consultar de novo' }}</button>
+          </div>
+        </form>
+        <div v-else class="acoes">
+          <button type="button" class="botao" :aria-label="`Corrigir ID: ${descricaoCurta(p)}`" @click="abrirCorrecao(p)">Corrigir ID</button>
+        </div>
+      </template>
     </article>
 
     <article
@@ -269,9 +342,29 @@ const papelDoAviso = (tom: string) => (tom === 'sucesso' ? 'status' : 'alert');
   display: flex;
   justify-content: flex-end;
 }
+.correcao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  border-top: 1px solid var(--linha-tabela);
+  padding-top: var(--espaco-4);
+}
+.correcao .campo {
+  width: 220px;
+}
+.acoes-correcao {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--espaco-3);
+}
 @media (max-width: 640px) {
   .acoes .botao,
-  .introducao .botao {
+  .introducao .botao,
+  .acoes-correcao .botao {
+    width: 100%;
+  }
+  .correcao .campo {
     width: 100%;
   }
   .marcado {

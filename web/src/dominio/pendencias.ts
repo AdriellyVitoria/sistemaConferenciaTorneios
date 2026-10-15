@@ -1,6 +1,7 @@
 /** Regras e textos da revisão das pendências (etapa 5d, D17), sem Vue nem HTTP. */
 
 import type { ListaDePendencias, Partida, Pendencia, TipoPendencia } from '../servicos/api';
+import { rotuloDoId } from './torneio';
 
 const TIPOS: Record<TipoPendencia, string> = {
   nao_encontrada: 'Partida não encontrada no site',
@@ -30,7 +31,7 @@ export function tituloDaPendencia(p: Pendencia, partidas: Partida[]): string {
     return ids.length === 1 ? `Partida ${ids[0]}` : `Partidas ${ids.slice(0, -1).join(', ')} e ${ids.at(-1)}`;
   }
   const partida = partidas.find((x) => x.idPartida === p.idPartida);
-  return partida ? `Partida ${p.idPartida} · Rodada ${partida.rodada} · ${partida.timeA} x ${partida.timeB}` : `Partida ${p.idPartida}`;
+  return partida ? `Partida ${rotuloDoId(partida)} · Rodada ${partida.rodada} · ${partida.timeA} x ${partida.timeB}` : `Partida ${p.idPartida}`;
 }
 
 /** Para o rótulo acessível dos botões: "Nick escrito diferente, partida #48087". */

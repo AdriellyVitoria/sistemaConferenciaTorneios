@@ -57,7 +57,8 @@ describe('pendências', () => {
     const bloqueante = cartao(pagina, 'Partida não encontrada no site');
     expect(bloqueante.text()).toContain('Corrija o ID');
     expect(bloqueante.text()).toContain('#52214');
-    expect(bloqueante.findAll('button')).toHaveLength(0);
+    // o único botão é o de corrigir o ID (5e): nada de Ciente nem Desfazer
+    expect(bloqueante.findAll('button').map((b) => b.text())).toEqual(['Corrigir ID']);
   });
 
   it('não bloqueante: planilha e site lado a lado, com a partida e os times', async () => {

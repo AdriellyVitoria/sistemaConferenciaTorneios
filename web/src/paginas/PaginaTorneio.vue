@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, onUnmounted, ref, watch } from 'vue';
+import { computed, nextTick, onUnmounted, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
+import AvisoDoCalculo from '../componentes/AvisoDoCalculo.vue';
 import DialogoConfirmacao from '../componentes/DialogoConfirmacao.vue';
 import PainelPendencias from '../componentes/PainelPendencias.vue';
 import { partidasConferidas, pendenciasQueFaltam } from '../dominio/pendencias';
@@ -17,6 +18,7 @@ import {
   envioDaPlanilha,
   formatarData,
   linhasDoErro,
+  rotuloDoId,
   rotuloDoModo,
   rotuloDoStatus,
 } from '../dominio/torneio';
@@ -97,6 +99,13 @@ const somenteLeitura = computed(() => torneio.value?.status === 'calculado');
 type Aba = 'conferidas' | 'pendencias' | 'aguardando';
 const abaEscolhida = ref<Aba | null>(null);
 // sem escolha da Maria: abre onde há algo a fazer (pendências), depois no que depende do site
+/** Cada item do aviso "pronto para calcular" leva à aba onde se resolve, e o foco vai junto. */
+async function irParaAba(destino: Aba) {
+  abaEscolhida.value = destino;
+  await nextTick();
+  document.getElementById(`aba-${destino}`)?.focus();
+}
+
 function abaInicial(): Aba {
   if (faltam.value > 0) return 'pendencias';
   return naFila.value.length ? 'aguardando' : 'conferidas';
@@ -252,6 +261,8 @@ async function enviar() {
         </div>
       </div>
 
+      <AvisoDoCalculo :calculo="torneio.calculo" @ir-para="irParaAba" />
+
       <section class="cartao" aria-labelledby="t-planilha">
         <div class="titulo-com-acao">
           <div class="titulo-da-pagina">
@@ -388,7 +399,7 @@ async function enviar() {
             <li v-for="{ partida: p, situacao } in naFila" :key="p.id" class="item-fila">
               <div class="item-cabecalho">
                 <span class="selo" :class="situacao.selo.tom">{{ situacao.selo.texto }}</span>
-                <strong>Partida <span class="mono">{{ p.idPartida }}</span> · Rodada {{ p.rodada }} · {{ p.timeA }} x {{ p.timeB }}</strong>
+                <strong>Partida <span class="mono">{{ rotuloDoId(p) }}</span> · Rodada {{ p.rodada }} · {{ p.timeA }} x {{ p.timeB }}</strong>
               </div>
               <p v-if="situacao.motivo" class="texto-medio">{{ situacao.motivo }}</p>
               <p class="texto-suave">{{ situacao.horario }}</p>
@@ -410,7 +421,7 @@ async function enviar() {
             </thead>
             <tbody>
               <tr v-for="{ partida: p, comCiente } in conferidas" :key="p.id">
-                <td class="mono" data-rotulo="Partida">{{ p.idPartida }}</td>
+                <td class="mono" data-rotulo="Partida">{{ rotuloDoId(p) }}</td>
                 <td class="numero" data-rotulo="Rodada">{{ p.rodada }}</td>
                 <td class="numeral" data-rotulo="Data">{{ formatarData(p.data) }}</td>
                 <td data-rotulo="Times">{{ p.timeA }} x {{ p.timeB }}</td>

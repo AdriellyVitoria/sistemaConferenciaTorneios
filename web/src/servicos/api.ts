@@ -221,6 +221,25 @@ export async function cienteDeTodas(torneioId: number): Promise<{ tipo: 'ok'; ma
   return { tipo: 'erro', mensagem: corpo.erro ?? `Não foi possível marcar o Ciente (erro ${resposta.status}).` };
 }
 
+/**
+ * Corrige o ID da partida (5b, D16). A partida volta para a fila. Os erros (formato, ID igual,
+ * ID de outra partida) voltam com a frase da API, para a tela mostrar junto do campo.
+ */
+export async function corrigirIdPartida(
+  torneioId: number,
+  partidaId: number,
+  idPartida: string,
+): Promise<{ tipo: 'ok'; partida: Partida } | { tipo: 'erro'; mensagem: string }> {
+  const resposta = await chamar(`/api/torneios/${torneioId}/partidas/${partidaId}/id-partida`, {
+    method: 'PUT',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ idPartida }),
+  });
+  const corpo = await resposta.json().catch(() => ({}));
+  if (resposta.ok) return { tipo: 'ok', partida: corpo };
+  return { tipo: 'erro', mensagem: corpo.erro ?? `Não foi possível corrigir o ID (erro ${resposta.status}).` };
+}
+
 async function chamar(caminho: string, opcoes?: RequestInit): Promise<Response> {
   try {
     return await fetch(caminho, opcoes);

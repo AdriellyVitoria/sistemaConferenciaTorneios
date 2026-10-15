@@ -80,21 +80,35 @@ function jogadoresEsperados(nome: string) {
 const porChave = <T extends { time: string; nick: string }>(lista: T[]) =>
   [...lista].sort((a, b) => `${a.time}|${a.nick}`.localeCompare(`${b.time}|${b.nick}`));
 
+/** 02: antes de calcular, a Maria corrige o ID que o site não conhece (#52214 → #52241). */
+async function corrigirO02(id: number) {
+  const errada = await bd('partidas').where({ torneio_id: id, id_partida: '#52214' }).first();
+  expect((await corrigirId(bd, id, errada.id, '#52241')).tipo).toBe('corrigida');
+  await conferirTudo(id);
+}
+
 describe('calcular e gravar: os cenários contra testes/esperado/, centavo por centavo', () => {
   it.each([
-    ['01-limpa', 'testes/planilhas/01-limpa.csv'],
-    ['04-empate-em-kills', 'testes/planilhas/04-empate-em-kills.csv'],
-    ['05-oito-times', 'testes/planilhas/05-oito-times.csv'],
-    ['torneio-outubro', 'testes/planilhas/torneio-outubro.csv'],
-    ['torneio-setembro', 'torneio-setembro.csv'],
-  ])('%s', async (nome, planilha) => {
+    ['01-limpa', 'testes/planilhas/01-limpa.csv', undefined],
+    ['02-id-inexistente', 'testes/planilhas/02-id-inexistente.csv', corrigirO02],
+    ['03-divergencias', 'testes/planilhas/03-divergencias.csv', undefined],
+    ['04-empate-em-kills', 'testes/planilhas/04-empate-em-kills.csv', undefined],
+    ['05-oito-times', 'testes/planilhas/05-oito-times.csv', undefined],
+    ['07-jogador-em-dois-times', 'testes/planilhas/07-jogador-em-dois-times.csv', undefined],
+    ['torneio-outubro', 'testes/planilhas/torneio-outubro.csv', undefined],
+    ['torneio-novembro', 'testes/planilhas/torneio-novembro.csv', undefined],
+    ['torneio-setembro', 'torneio-setembro.csv', undefined],
+  ])('%s', async (nome, planilha, antes) => {
     const id = await torneioConferido(planilha);
+    await antes?.(id);
     await calcularEGravar(bd, id, new Date('2026-10-15T13:00:00.000Z'));
     const gravado = (await buscarResultado(bd, id))!;
 
     expect(gravado.times.map(({ posicao, time, vitorias, killsTime, premioCentavos, criterio }) => ({ posicao, time, vitorias, killsTime, premioCentavos, criterio })))
       .toEqual(classificacaoEsperada(nome));
-    expect(porChave(gravado.jogadores.map(({ time, nick, minutos, baseTime, premioCentavos }) => ({ time, nick, minutos, baseTime, premioCentavos }))))
+    // os gabaritos listam só os jogadores dos times premiados; os sem prêmio têm o seu teste
+    const premiados = gravado.jogadores.filter((j) => gravado.times.find((t) => t.time === j.time)!.premioCentavos > 0);
+    expect(porChave(premiados.map(({ time, nick, minutos, baseTime, premioCentavos }) => ({ time, nick, minutos, baseTime, premioCentavos }))))
       .toEqual(porChave(jogadoresEsperados(nome)));
   }, 60_000);
 });
@@ -126,14 +140,27 @@ describe('setembro gravado', () => {
     expect(await buscarResultado(bd, id)).toMatchObject({ calculadoEm: quando, premioCentavos: 1_000_000, percentuais: [50, 30, 20], modoDivisao: 'minutos' });
   });
 
-  it('cada jogador guarda time, nick, minutos, kills, base, valor e se recebeu centavo', async () => {
+  it('cada jogador guarda time, a posição do time, nick, minutos, kills, base, valor e se recebeu centavo', async () => {
     const id = await torneioConferido('torneio-setembro.csv');
     await calcularEGravar(bd, id);
     const { jogadores } = (await buscarResultado(bd, id))!;
     expect(jogadores.find((j) => j.nick === 'xXSniperXx')).toEqual({
-      time: 'Lobos', nick: 'xXSniperXx', minutos: 211, kills: 89, base: 211, baseTime: 1055, baseUsada: 'minutos',
+      time: 'Lobos', posicao: 1, nick: 'xXSniperXx', minutos: 211, kills: 89, base: 211, baseTime: 1055, baseUsada: 'minutos',
       premioCentavos: 100_000, recebeuCentavo: false, explicacao: null,
     });
+  });
+
+  it('jogadores dos times sem prêmio ficam gravados com R$ 0, a posição do time e os números deles (6b)', async () => {
+    const id = await torneioConferido('torneio-setembro.csv');
+    await calcularEGravar(bd, id);
+    const { jogadores } = (await buscarResultado(bd, id))!;
+    const panteras = jogadores.filter((j) => j.time === 'Panteras');
+    expect(panteras).toHaveLength(5);
+    expect(panteras.every((j) => j.posicao === 5 && j.premioCentavos === 0 && j.recebeuCentavo === false)).toBe(true);
+    // Pantera_X, duplicado na planilha, aparece uma vez, com os números do site (D6)
+    expect(panteras.filter((j) => j.nick === 'Pantera_X')).toEqual([expect.objectContaining({ minutos: expect.any(Number), kills: expect.any(Number), premioCentavos: 0 })]);
+    expect(jogadores.filter((j) => j.time === 'Serpentes').every((j) => j.posicao === 6 && j.premioCentavos === 0)).toBe(true);
+    expect(jogadores).toHaveLength(31);
   });
 
   it('modo kills (D1): os valores dos Lobos do contexto.md, seção 8', async () => {
@@ -170,22 +197,20 @@ describe('as somas fecham em todos os cenários que dá para calcular', () => {
 
   it('cenário 02, depois de corrigir o ID: as somas fecham', async () => {
     const id = await torneioConferido('testes/planilhas/02-id-inexistente.csv');
-    const errada = await bd('partidas').where({ torneio_id: id, id_partida: '#52214' }).first();
-    expect((await corrigirId(bd, id, errada.id, '#52241')).tipo).toBe('corrigida');
-    await conferirTudo(id);
+    await corrigirO02(id);
     await calcularEGravar(bd, id);
     const { jogadores } = (await buscarResultado(bd, id))!;
     expect(jogadores.reduce((s, j) => s + j.premioCentavos, 0)).toBe(1_000_000);
   }, 60_000);
 
-  it('cenário 07 (D13): Garra recebe separado por cada time premiado em que jogou', async () => {
+  it('cenário 07 (D13): Garra tem uma linha por time em que jogou, cada uma com os minutos daquele time', async () => {
     const id = await torneioConferido('testes/planilhas/07-jogador-em-dois-times.csv');
     await calcularEGravar(bd, id);
-    const { times, jogadores } = (await buscarResultado(bd, id))!;
-    const premiados = new Set(times.filter((t) => t.premioCentavos > 0).map((t) => t.time));
-    const timesDoGarra = jogadores.filter((j) => j.nick === 'Garra').map((j) => j.time);
-    expect(timesDoGarra.length).toBeGreaterThan(0);
-    expect(timesDoGarra.every((t) => premiados.has(t))).toBe(true);
-    expect(new Set(timesDoGarra).size).toBe(timesDoGarra.length); // uma linha por time
+    const { jogadores } = (await buscarResultado(bd, id))!;
+    const garra = jogadores.filter((j) => j.nick === 'Garra');
+    expect(garra.map((j) => j.time).sort()).toEqual(['Leões', 'Ursos']);
+    // por Ursos ele jogou só a rodada 4, no lugar de Pardo: menos minutos que por Leões
+    const porTime = Object.fromEntries(garra.map((j) => [j.time, j.minutos]));
+    expect(porTime['Ursos']).toBeLessThan(porTime['Leões']);
   }, 60_000);
 });

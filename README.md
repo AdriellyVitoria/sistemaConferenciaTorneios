@@ -65,6 +65,10 @@ curl -X POST   localhost:3000/torneios/1/pendencias/ciente-de-todas
 # ela volta para a fila e o job consulta o ID novo
 curl -X PUT localhost:3000/torneios/1/partidas/17/id-partida -H 'content-type: application/json' \
   -d '{"idPartida":"#52241"}'
+
+# calcular os prêmios (só quando o campo "calculo" do torneio diz podeCalcular: true);
+# depois disso, o torneio fica travado
+curl -X POST localhost:3000/torneios/1/calculo
 ```
 
 ## Ver o banco

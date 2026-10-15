@@ -455,7 +455,53 @@ O que ficou de fora dos testes:
 - **06b** só testa o separador: os IDs dela não existem no site simulado, então não há o que calcular.
 - **02, 03, 07 e novembro** não têm arquivo em `testes/esperado/`. Gerar esses arquivos (`gerar_cenarios.py --so-esperado`) é uma melhoria para depois.
 
-**Para o 6b decidir:** com menos times do que posições premiadas (por exemplo, 2 times e percentuais 50/30/20), o domínio lança "Há mais posições premiadas do que times". A criação do torneio não impede isso hoje.
+**Decidido no 6b (D24):** com menos times do que posições premiadas, o valor das posições sem time é dividido igualmente entre todos os times; antes, o domínio lançava "Há mais posições premiadas do que times".
+
+---
+
+## Rota de cálculo (etapa 6b), 15/10/2026
+
+Só API. `POST /torneios/:id/calculo`. Sem migration nova: o resultado usa as tabelas do 6a.
+
+### D24 (regra de negócio nova, decidida pela Adrielly): menos times do que posições premiadas
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| O valor das **posições sem time é dividido igualmente entre todos os times**, pelo maior resto, com o **centavo primeiro ao mais bem colocado**. R$ 10.000 em 50/30/20 com 2 times: 1º R$ 6.000, 2º R$ 4.000 | Dar tudo ao 1º colocado; ou recusar o cálculo (o domínio lançava erro até o 6a) | **Nenhum dinheiro fica sem dono.** Dar tudo ao 1º premiaria demais uma posição; recusar travaria um torneio já pronto, sem como mudar os percentuais depois da criação |
+
+### A rota
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **Uma transação**, que **trava o torneio primeiro** (`SELECT ... FOR UPDATE`), na mesma ordem das outras gravações (torneio → partidas → participações) | Travar só no fim | Lição do deadlock do 4b: a mesma ordem em todas as gravações. Dois cálculos ao mesmo tempo esperam um pelo outro, e o segundo encontra o torneio já calculado (teste: três ao mesmo tempo → um 200 e dois 409, gravado uma vez) |
+| **Confere de novo, dentro da transação**, se pode calcular (a mesma situação do 5c), **sem confiar na tela** | Confiar no `podeCalcular` que a tela recebeu | Entre a tela e o clique, um Ciente pode ter sido desfeito (teste) ou uma partida pode ter voltado para a fila |
+| Não pode: **409** com uma frase ("Ainda não dá para calcular: 2 aguardando o site, 1 bloqueio, 3 sem Ciente.") e as contagens | 400 | Não é um pedido mal feito: é o estado do torneio que ainda não permite |
+| Já calculado: **409** "O torneio já foi calculado.", sem mudar nada | Recalcular | D1, D22: depois do cálculo, nada muda |
+| Calculado: grava o resultado (6a) e **marca o torneio como calculado**, na mesma transação. Daí em diante, Ciente, desfazer, Ciente de todas, correção de ID, nova planilha e "tentar agora" respondem 409 (teste) | — | Já estavam prontas para isso desde as etapas 3 a 5; o teste confirma todas juntas |
+| O **modo de divisão** fica travado porque **não existe rota para mudá-lo**: ele é escolhido na criação e lido no cálculo, que é feito uma vez só | Uma rota de edição com 409 depois do cálculo | Uma rota a mais sem uso; a D1 diz que o modo é escolhido antes da planilha |
+| A hora do cálculo é gravada em **segundos inteiros**, igual em `calculos` e em `torneios` | Milissegundos em `calculos` | `torneios.calculado_em` guarda segundos, e o MySQL arredonda a fração: a mesma hora sairia diferente nos dois lugares |
+
+### Os jogadores dos times sem prêmio
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **Gravados também**, com R$ 0, os minutos e as kills deles e a base do modo; a **posição do time** vem de `premios_time` (pela ligação), em cada jogador lido | Gravar só os premiados (como no 6a) | O filtro por nick (6e) precisa achar qualquer jogador, e "por que meu time não ganhou?" se responde com o que estava no cálculo |
+
+### Os gabaritos de 02, 03, 07 e novembro
+
+O `gerar_cenarios.py --so-esperado` **não gerava** esses quatro gabaritos: o script montava os cenários, mas só chamava `salvar_esperado` para 01, 04, 05, outubro e setembro. Foram acrescentadas quatro chamadas:
+- **02:** o resultado depois de corrigir o ID, porque o site tem a partida certa;
+- **03:** as divergências só existem na planilha, e o cálculo usa o site;
+- **07:** Garra em dois times, confirmado pelo site;
+- **novembro:** o nick e a duplicata só existem na planilha.
+
+O script rodou num contêiner `python:3.12-slim`, com `testes/planilhas` montado somente leitura. Os checksums dos 23 arquivos que já existiam (planilhas, gabaritos antigos, `site-oficial.json` e a planilha original de setembro) ficaram **idênticos**. Mudou só o `resumo-geracao.json`, que o script sempre regrava.
+
+Os quatro cenários passaram a ser testados **centavo por centavo**, e passaram de primeira: o domínio já calculava igual ao script de referência.
+
+**Cenários só de erro, sem cálculo:**
+- **06a:** coluna faltando, recusada na importação;
+- **06b:** só o separador; os IDs dela não existem no site simulado.
 
 ---
 

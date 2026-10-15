@@ -10,6 +10,7 @@ import { classificar } from './classificacao';
 import type { PartidaSite } from './comparacao';
 import { premiarTimes, type PremioTime } from './premio';
 import { ratearEntreJogadores, type ModoDivisao, type PremioJogador } from './rateio';
+import { compararAlfabetico } from './texto';
 
 export interface EntradaDoResultado {
   partidas: PartidaSite[];
@@ -27,17 +28,39 @@ export interface JogadorDoResultado extends PremioJogador {
 export interface Resultado {
   /** Todos os times, na ordem da classificação; os sem prêmio com 0. */
   times: PremioTime[];
-  /** Os jogadores dos times premiados, um por time em que jogou. */
+  /**
+   * Todos os jogadores, um por time em que jogou: os dos times premiados com o rateio, e os dos
+   * times sem prêmio com R$ 0 e os números deles (6b), para o filtro por nick e para responder
+   * "por que meu time não ganhou?" com o que estava no cálculo.
+   */
   jogadores: JogadorDoResultado[];
 }
 
 export function montarResultado({ partidas, premioCentavos, percentuais, modoDivisao }: EntradaDoResultado): Resultado {
   const times = premiarTimes(classificar(partidas), premioCentavos, percentuais);
   const totais = totaisPorJogador(partidas);
-  const jogadores = ratearEntreJogadores(times, partidas, modoDivisao).map((j) => {
-    const { minutos, kills } = totais.get(chave(j.time, j.nick))!;
-    return { ...j, minutos, kills };
-  });
+  const rateados = ratearEntreJogadores(times, partidas, modoDivisao);
+
+  const jogadores: JogadorDoResultado[] = [];
+  for (const time of times) {
+    if (time.premioCentavos > 0) {
+      for (const j of rateados.filter((r) => r.time === time.time)) {
+        const { minutos, kills } = totais.get(chave(j.time, j.nick))!;
+        jogadores.push({ ...j, minutos, kills });
+      }
+      continue;
+    }
+    // time sem prêmio: os jogadores entram com R$ 0, com a base do modo do torneio
+    const doTime = [...totais.entries()].filter(([k]) => k.startsWith(`${time.time}\u0000`)).map(([k, t]) => ({ nick: k.split('\u0000')[1], ...t }));
+    const baseTime = doTime.reduce((soma, j) => soma + j[modoDivisao], 0);
+    for (const j of doTime.sort((a, b) => compararAlfabetico(a.nick, b.nick))) {
+      jogadores.push({
+        time: time.time, nick: j.nick, minutos: j.minutos, kills: j.kills,
+        base: j[modoDivisao], baseTime, baseUsada: modoDivisao,
+        premioCentavos: 0, recebeuCentavo: false, explicacao: null,
+      });
+    }
+  }
   return { times, jogadores };
 }
 

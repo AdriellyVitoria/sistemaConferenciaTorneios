@@ -24,7 +24,10 @@ export interface TimeGravado {
 export type JogadorGravado = Pick<
   JogadorDoResultado,
   'time' | 'nick' | 'minutos' | 'kills' | 'base' | 'baseTime' | 'baseUsada' | 'premioCentavos' | 'recebeuCentavo' | 'explicacao'
->;
+> & {
+  /** A posição do time na classificação do cálculo (vem de premios_time). */
+  posicao: number;
+};
 
 export interface ResultadoGravado extends ConfiguracaoUsada {
   calculadoEm: Date;
@@ -98,7 +101,7 @@ export async function buscarResultado(bd: Executor, torneioId: number): Promise<
     })
     .where('j.calculo_id', calculo.id)
     .orderBy([{ column: 't.ordem' }, { column: 'j.id' }])
-    .select('j.*');
+    .select('j.*', 't.posicao');
 
   return {
     calculadoEm: calculo.calculado_em,
@@ -116,6 +119,7 @@ export async function buscarResultado(bd: Executor, torneioId: number): Promise<
     })),
     jogadores: jogadores.map((j) => ({
       time: j.time,
+      posicao: j.posicao,
       nick: j.nick,
       minutos: j.minutos,
       kills: j.kills,

@@ -48,8 +48,18 @@ describe('montarResultado: o resultado completo a partir dos dados do site', () 
   it('cada jogador traz os minutos e as kills somados por aquele time, e o nick como no site (D7)', () => {
     expect(jogador(r, 'Lobos', 'xXSniperXx')).toMatchObject({ minutos: 211, kills: 89, base: 211, baseTime: 1055, baseUsada: 'minutos' });
     expect(r.jogadores.some((j) => j.nick === 'xxsniperxx')).toBe(false);
+  });
+
+  it('jogadores dos times sem prêmio também entram, com R$ 0 e os números deles (6b)', () => {
     // Pantera_X, duplicado na planilha, conta uma vez: os dados são os do site (D6)
-    expect(r.jogadores.find((j) => j.nick === 'Pantera_X')).toBeUndefined(); // Panteras não tem prêmio
+    const panteraX = r.jogadores.filter((j) => j.nick === 'Pantera_X');
+    expect(panteraX).toHaveLength(1);
+    expect(panteraX[0]).toMatchObject({ time: 'Panteras', premioCentavos: 0, recebeuCentavo: false, baseUsada: 'minutos' });
+    expect(panteraX[0].minutos).toBeGreaterThan(0);
+    expect(r.jogadores.filter((j) => j.time === 'Serpentes')).toHaveLength(5);
+    expect(r.jogadores.filter((j) => j.time === 'Serpentes').every((j) => j.premioCentavos === 0)).toBe(true);
+    // todo jogador do site aparece uma vez por time em que jogou
+    expect(r.jogadores).toHaveLength(31);
   });
 
   it('a soma de todos os jogadores é o prêmio total, e a de cada time é o valor do time', () => {

@@ -95,6 +95,14 @@ export async function registrarImportacao(
   });
 }
 
+/**
+ * Marca o torneio como calculado (6b). Daqui em diante, o modo de divisão e a planilha ficam
+ * travados (D1, D22), e todas as gravações que mudam a conferência respondem 409.
+ */
+export async function marcarCalculado(bd: Executor, id: number, calculadoEm: Date): Promise<void> {
+  await bd('torneios').where({ id }).update({ status: 'calculado', calculado_em: calculadoEm });
+}
+
 /** Guarda o clique em "tentar agora": começa o bloqueio de 30 s (etapa 4c). */
 export async function registrarTentarAgora(bd: Executor, id: number, agora: Date): Promise<void> {
   await bd('torneios').where({ id }).update({ tentar_agora_em: agora });

@@ -322,7 +322,9 @@ def main():
         if l["ID Partida"] == id_real:
             l["ID Partida"] = id_errado
     salvar_csv("02-id-inexistente.csv", linhas02)
-    resumo["02"] = {"id_real": id_real, "id_errado": id_errado}
+    # o esperado é o resultado depois de a Maria corrigir o ID: o site tem a partida certa
+    resumo["02"] = {"id_real": id_real, "id_errado": id_errado,
+                    "classificacao": salvar_esperado("02-id-inexistente", p02)}
 
     # 03 — divergências de kills e minutos entre planilha e site
     rng = random.Random(3)
@@ -339,7 +341,8 @@ def main():
                 divergencias.append({"partida": l["ID Partida"], "nick": nick, "campo": campo,
                                      "planilha": l[campo], "site": str(site)})
     salvar_csv("03-divergencias.csv", linhas03)
-    resumo["03"] = divergencias
+    # as divergências só existem na planilha; o cálculo usa os dados do site (D3)
+    resumo["03"] = {"divergencias": divergencias, "classificacao": salvar_esperado("03-divergencias", p03)}
 
     # 04 — empate em vitórias E em kills no 2º/3º lugar -> divisão igual
     rng = random.Random(4)
@@ -391,6 +394,7 @@ def main():
                     j["nick"] = "Garra"
     salvar_csv("07-jogador-em-dois-times.csv", para_linhas(p07))
     registrar_no_site(p07)
+    resumo["07"] = salvar_esperado("07-jogador-em-dois-times", p07)
 
     # Importação extra 1 — outubro: torneio realista, uma substituição, sem erros
     rng = random.Random(10)
@@ -423,7 +427,8 @@ def main():
     dup = next(i for i, l in enumerate(linhas_nov) if l["Rodada"] == "4" and l["Nick"] == "Rapina")
     linhas_nov.insert(dup + 1, dict(linhas_nov[dup]))
     salvar_csv("torneio-novembro.csv", linhas_nov)
-    resumo["novembro"] = {"instaveis": instaveis}
+    # o nick e a duplicata só existem na planilha; o site tem os dados certos (D6, D7)
+    resumo["novembro"] = {"instaveis": instaveis, "classificacao": salvar_esperado("torneio-novembro", p_nov)}
 
     # Setembro — a planilha da Maria Clara; só o esperado (os dados do site entram na etapa 2)
     resumo["setembro"] = salvar_esperado("torneio-setembro", partidas_setembro())

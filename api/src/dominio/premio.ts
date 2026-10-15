@@ -5,6 +5,8 @@
  * (ex.: [50, 30, 20]) e devolve o prêmio de cada time.
  * - Cada posição recebe o seu percentual; posições além da lista recebem 0%. Os percentuais
  *   precisam somar 100, e o prêmio é dividido entre as posições pelo maior resto (D20).
+ * - Menos times do que posições premiadas: o valor das posições sem time é dividido igual entre
+ *   todos os times (D24).
  * - Times empatados na mesma posição somam os valores das posições que ocupam e dividem
  *   igual entre si, pelo maior resto com o nome do time (D2, D9).
  */
@@ -70,21 +72,35 @@ export function erroDosPercentuais(percentuais: number[]): string | null {
  * Valor em centavos de cada posição (1ª = percentuais[0]). D20: o prêmio é dividido entre as
  * posições pelo maior resto, com os percentuais como pesos, e a soma fecha no prêmio. Empate na
  * fração: o centavo vai para a melhor colocada.
+ *
+ * D24: com menos times do que posições premiadas, o valor das posições sem time é dividido igual
+ * entre todos os times (posições 1 a N), pelo maior resto, com o centavo indo primeiro ao mais bem
+ * colocado. Ex.: R$ 10.000 em 50/30/20 com 2 times: 1º R$ 6.000, 2º R$ 4.000. Nenhum dinheiro fica
+ * sem dono.
  */
 function valoresPorPosicao(premio: number, percentuais: number[], quantidadeDeTimes: number): (posicao: number) => number {
   const erro = erroDosPercentuais(percentuais);
   if (erro) throw new Error(erro);
-
-  // uma posição premiada sem time ficaria com dinheiro que ninguém recebe
-  const ultimaPremiada = percentuais.reduce((ultima, pct, i) => (pct > 0 ? i + 1 : ultima), 0);
-  if (ultimaPremiada > quantidadeDeTimes) {
-    throw new Error(`Há mais posições premiadas (${ultimaPremiada}) do que times (${quantidadeDeTimes}).`);
-  }
+  if (quantidadeDeTimes === 0) throw new Error('Não há times para receber o prêmio.');
 
   const partes = dividirMaiorResto(
     premio,
     percentuais.map((pct, i) => ({ nome: `${i + 1}º lugar`, peso: pct })),
     { desempate: 'ordem_da_lista' },
-  );
-  return (posicao) => partes[posicao - 1]?.valor ?? 0;
+  ).map((p) => p.valor);
+
+  // D24: o que sobra nas posições além do último time vai, dividido igual, para os times
+  const semTime = partes.slice(quantidadeDeTimes).reduce((soma, v) => soma + v, 0);
+  const valores = partes.slice(0, quantidadeDeTimes);
+  if (semTime > 0) {
+    const divididos = dividirMaiorResto(
+      semTime,
+      valores.map((_, i) => ({ nome: `${i + 1}º lugar`, peso: 1 })),
+      { desempate: 'ordem_da_lista' },
+    );
+    divididos.forEach((parte, i) => {
+      valores[i] += parte.valor;
+    });
+  }
+  return (posicao) => valores[posicao - 1] ?? 0;
 }

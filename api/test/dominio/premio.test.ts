@@ -168,7 +168,44 @@ describe('premiarTimes — casos pequenos', () => {
     expect(premios.map((p) => p.premioCentavos)).toEqual([61_729, 30_864, 30_864]);
   });
 
-  it('mais posições premiadas do que times: erro claro', () => {
-    expect(() => premiarTimes([time(1, 'A'), time(2, 'B')], PREMIO, PERCENTUAIS)).toThrow('mais posições premiadas');
+});
+
+describe('premiarTimes — menos times do que posições premiadas (D24)', () => {
+  it('R$ 10.000 em 50/30/20 com 2 times: os 20% sem time são divididos igual: 1º R$ 6.000, 2º R$ 4.000', () => {
+    const premios = premiarTimes([time(1, 'A'), time(2, 'B')], PREMIO, PERCENTUAIS);
+    expect(premios.map((p) => p.premioCentavos)).toEqual([600_000, 400_000]);
+  });
+
+  it('nenhum dinheiro fica sem dono: a soma é sempre o prêmio', () => {
+    for (const premio of [1, 7, 99, 1_000_001, 123_457]) {
+      const premios = premiarTimes([time(1, 'A'), time(2, 'B')], premio, [40, 30, 20, 10]);
+      expect(premios.reduce((s, p) => s + p.premioCentavos, 0)).toBe(premio);
+    }
+  });
+
+  it('a sobra que não divide exato vai, centavo por centavo, primeiro ao mais bem colocado', () => {
+    // R$ 10,00 em 40/30/20/10 com 3 times: posições 400, 300, 200 e 100 sem time;
+    // os 100 centavos divididos por 3 = 33 cada e sobra 1, que vai ao 1º: 434, 333, 233
+    const premios = premiarTimes([time(1, 'A'), time(2, 'B'), time(3, 'C')], 1_000, [40, 30, 20, 10]);
+    expect(premios.map((p) => [p.time, p.premioCentavos])).toEqual([['A', 434], ['B', 333], ['C', 233]]);
+  });
+
+  it('times empatados continuam somando as posições que ocupam, já com a sobra', () => {
+    // 2 times empatados em 1º com 50/30/20: 6.000 + 4.000 = 10.000, divididos igual
+    const premios = premiarTimes(
+      [time(1, 'A', 'empate em vitórias e kills'), time(1, 'B', 'empate em vitórias e kills')],
+      PREMIO,
+      PERCENTUAIS,
+    );
+    expect(premios.map((p) => p.premioCentavos)).toEqual([500_000, 500_000]);
+  });
+
+  it('com times suficientes, nada muda', () => {
+    const premios = premiarTimes([time(1, 'A'), time(2, 'B'), time(3, 'C')], PREMIO, PERCENTUAIS);
+    expect(premios.map((p) => p.premioCentavos)).toEqual([500_000, 300_000, 200_000]);
+  });
+
+  it('nenhum time: erro claro (não há a quem pagar)', () => {
+    expect(() => premiarTimes([], PREMIO, PERCENTUAIS)).toThrow('Não há times');
   });
 });

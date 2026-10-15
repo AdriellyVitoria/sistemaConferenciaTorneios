@@ -573,7 +573,7 @@ Só web, seguindo o protótipo 2-resultado, no lugar da página "em construção
 | Classificação com as **posições empatadas** (1, 2, 3, 3, 5) e o critério gravado como selo ("Desempate por kills", "Empate total · prêmio dividido", "Empate total") | Reescrever o critério | O texto gravado continua sendo a fonte; a tela só encurta |
 | **A frase dos empates é montada dos dados** (`explicarEmpates`): os grupos com as mesmas vitórias, quem desempatou por kills, e os empatados também em kills, com as posições que pagavam (pelos percentuais gravados), o valor somado e a fração de cada time ("metade", "um terço") | Uma frase escrita para setembro | Vale para qualquer torneio; testado com setembro, com o cenário 04 (dois empates, um sem prêmio) e com casos pequenos |
 | Prêmio por jogador: time, nick, **minutos ou kills conforme o modo** ("173 de 865"), **% do time** (arredondado só com inteiros), valor e observação | — | Como o protótipo |
-| **A observação mostra só o que está gravado:** "+R$ 0,01 de arredondamento" (D9) e a explicação do cálculo (D21). **Sem a etiqueta "Reserva"** do protótipo | Deduzir "reserva" pelos minutos | O resultado não guarda em quantas partidas cada jogador jogou. Pelos minutos, Bia.gg (154, saiu mais cedo numa partida) também seria marcada como reserva. Para mostrar "Reserva" com dado de verdade, o cálculo precisaria gravar as partidas jogadas: fica como melhoria, se a Adrielly quiser |
+| **A observação mostra só o que está gravado:** "+R$ 0,01 de arredondamento" (D9) e a explicação do cálculo (D21). **Sem a etiqueta "Reserva"** do protótipo | Deduzir "reserva" pelos minutos | O resultado não guarda em quantas partidas cada jogador jogou. Pelos minutos, Bia.gg (154, saiu mais cedo numa partida) também seria marcada como reserva. Para mostrar "Reserva" com dado de verdade, o cálculo precisaria gravar as partidas jogadas: está em "Próximos passos" ("jogou X de Y partidas") |
 | Rodapé: "21 jogadores premiados · soma: R$ 10.000,00", com a soma calculada dos dados; com filtro, "1 de 21 jogadores premiados". **Anunciado ao leitor de tela** (`aria-live`) | Texto fixo | O número muda com o filtro |
 | **Filtro por nick** parcial, sem diferenciar maiúsculas e acentos ("sniper" acha xXSniperXx; "vibora" acha Víbora). Sem busca, a tabela mostra os premiados | Busca exata | A Maria lembra do nick pela metade, e os jogadores digitam sem acento |
 | Nick de time sem prêmio: **"Víbora jogou pelo time Serpentes, que ficou em 6º, sem prêmio."** | "jogou pelos Panteras, que ficaram…" | O artigo depende do nome do time ("pelas Águias", "pelos Lobos"), e o sistema não sabe o gênero de cada nome |
@@ -609,3 +609,16 @@ Só web, seguindo o protótipo 2-resultado, no lugar da página "em construção
 | A API aplica as migrations ao subir | Passo manual de migração antes de subir | `docker compose up` deixa tudo pronto num comando só. Se a migration falhar, a API não sobe e o erro aparece no log |
 | A rota `/saude` recebe a verificação do banco por parâmetro | Importar a conexão direto na rota | Permite testar a rota sem MySQL, inclusive o caso de banco fora do ar (503) |
 | Front servido por `vite preview` com proxy `/api` | nginx | Serve o build de produção e repassa `/api` para a API sem CORS, com uma peça a menos. nginx fica como evolução se houver deploy real |
+
+---
+
+## Próximos passos
+
+Decidido com a Adrielly em 15/10/2026: a etapa 6 termina no 6e. Estes ficam para depois, **sem implementar** por enquanto.
+
+| Próximo passo | O que é | Por que ficou para depois |
+|---|---|---|
+| **PDF do resultado** | Pela impressão do navegador ("Salvar como PDF"), com um CSS de impressão na tela do resultado: sem cabeçalho do sistema, sem filtro e sem botões, com as tabelas inteiras | O CSV já permite pagar (6c); o PDF é para guardar ou enviar. Pela impressão do navegador, não precisa de biblioteca nova nem de rota na API |
+| **"Jogou X de Y partidas" no resultado** | O cálculo passa a gravar, para cada jogador, em quantas partidas jogou por aquele time e quantas o time jogou; a tela mostra isso no lugar de deduzir "Reserva" pelos minutos (6e) | Exige uma coluna nova em `premios_jogador` e uma mudança no cálculo. Deduzir pelos minutos marcaria errado quem só saiu mais cedo numa partida (Bia.gg) |
+| **Controle de "Pago" por jogador** | Marcar, na tela do resultado, quem já recebeu, com a data; o resultado continua congelado, só o pagamento muda | Hoje a Maria paga com o CSV no Excel; o controle dentro do sistema é uma comodidade, não uma regra do desafio |
+| **Integração com Pix**, depois do "Pago" | Enviar o Pix pelo sistema | Continua fora do escopo pela D12: dinheiro enviado errado não volta, e exigiria a chave Pix de cada jogador |

@@ -247,6 +247,15 @@ function lerRodada(texto: string): Lido<number> {
 }
 
 /** Aceita "#45659" ou "45659" e devolve sempre "#45659". */
+/**
+ * O ID da partida com as mesmas regras da importação (D18): aceita "#45659", "45659" e espaços
+ * em volta; devolve sempre "#45659". Usado também na correção do ID (5b).
+ */
+export function validarIdPartida(texto: string): { ok: true; idPartida: string } | { ok: false; mensagem: string } {
+  const lido = lerIdPartida(texto.trim());
+  return lido.ok ? { ok: true, idPartida: lido.valor } : { ok: false, mensagem: lido.mensagem };
+}
+
 function lerIdPartida(texto: string): Lido<string> {
   if (texto === '') return invalido('O ID da partida está vazio.');
   const digitos = texto.replace(/^#\s*/, '');

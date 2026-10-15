@@ -1,7 +1,11 @@
 <script setup lang="ts">
-import { computed, onUnmounted, ref, watch } from 'vue';
+import { computed, nextTick, onUnmounted, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
+import AbaConferidas from '../componentes/AbaConferidas.vue';
+import AvisoDoCalculo from '../componentes/AvisoDoCalculo.vue';
 import DialogoConfirmacao from '../componentes/DialogoConfirmacao.vue';
+import PainelPendencias from '../componentes/PainelPendencias.vue';
+import { partidasConferidas, pendenciasQueFaltam } from '../dominio/pendencias';
 import {
   estadoDoTentarAgora,
   precisaAcompanhar,
@@ -13,9 +17,8 @@ import { formatarCentavos } from '../dominio/dinheiro';
 import { resumoDosPercentuais } from '../dominio/percentuais';
 import {
   envioDaPlanilha,
-  formatarData,
   linhasDoErro,
-  rotuloDaConferencia,
+  rotuloDoId,
   rotuloDoModo,
   rotuloDoStatus,
 } from '../dominio/torneio';
@@ -23,16 +26,18 @@ import { criarSondagem } from '../utilitarios/sondagem';
 import {
   buscarTorneio,
   enviarPlanilha,
+  listarPendencias,
   tentarAgora,
   type ErroPlanilha,
+  type ListaDePendencias,
   type PlanilhaImportada,
-  type StatusConferencia,
   type TorneioComPartidas,
 } from '../servicos/api';
 
 const props = defineProps<{ id: number }>();
 
 const torneio = ref<TorneioComPartidas | null>(null);
+const pendencias = ref<ListaDePendencias | null>(null);
 const erroAoCarregar = ref<string | null>(null);
 /** Falha ao atualizar uma tela que já tem dados: avisa, sem apagar o que está na tela. */
 const semConexao = ref(false);
@@ -50,8 +55,10 @@ const sondagem = criarSondagem({
 
 async function carregar() {
   try {
-    const recebido = await buscarTorneio(props.id);
+    // o torneio e as pendências juntos: a conferência que avança também faz pendências aparecerem
+    const [recebido, recebidas] = await Promise.all([buscarTorneio(props.id), listarPendencias(props.id)]);
     torneio.value = recebido;
+    pendencias.value = recebidas;
     erroAoCarregar.value = null;
     semConexao.value = false;
     agora.value = Date.now();
@@ -84,10 +91,36 @@ const naFila = computed(() =>
     .filter((p) => p.statusConferencia === 'aguardando' || p.statusConferencia === 'em_consulta')
     .map((p) => ({ partida: p, situacao: situacaoNaFila(p, new Date(agora.value)) })),
 );
-type Aba = 'aguardando' | 'todas';
+// as três abas da D17: cada partida está em uma só
+const conferidas = computed(() => (pendencias.value ? partidasConferidas(partidas.value, pendencias.value) : []));
+const faltam = computed(() => (pendencias.value ? pendenciasQueFaltam(pendencias.value) : 0));
+const somenteLeitura = computed(() => torneio.value?.status === 'calculado');
+
+type Aba = 'conferidas' | 'pendencias' | 'aguardando';
 const abaEscolhida = ref<Aba | null>(null);
-// sem escolha da Maria, abre em "Aguardando o site" enquanto houver partida lá
-const aba = computed<Aba>(() => abaEscolhida.value ?? (naFila.value.length ? 'aguardando' : 'todas'));
+// sem escolha da Maria: abre onde há algo a fazer (pendências), depois no que depende do site
+/** Cada item do aviso "pronto para calcular" leva à aba onde se resolve, e o foco vai junto. */
+async function irParaAba(destino: Aba) {
+  abaEscolhida.value = destino;
+  await nextTick();
+  document.getElementById(`aba-${destino}`)?.focus();
+}
+
+function abaInicial(): Aba {
+  if (faltam.value > 0) return 'pendencias';
+  return naFila.value.length ? 'aguardando' : 'conferidas';
+}
+const aba = computed<Aba>(() => abaEscolhida.value ?? abaInicial());
+const ABAS: { id: Aba; rotulo: string }[] = [
+  { id: 'conferidas', rotulo: 'Conferidas' },
+  { id: 'pendencias', rotulo: 'Pendências' },
+  { id: 'aguardando', rotulo: 'Aguardando o site' },
+];
+const contagemDaAba = computed<Record<Aba, number>>(() => ({
+  conferidas: conferidas.value.length,
+  pendencias: faltam.value,
+  aguardando: naFila.value.length,
+}));
 
 // --- "tentar agora": a contagem do bloqueio de 30 s vem da API e corre aqui a cada segundo
 let liberaEm = 0;
@@ -207,14 +240,6 @@ async function enviar() {
   }
 }
 
-const tomDaConferencia: Record<StatusConferencia, string> = {
-  aguardando: 'neutro',
-  em_consulta: 'info',
-  conferida: 'sucesso',
-  nao_encontrada: 'alerta',
-  times_diferentes: 'alerta',
-};
-
 </script>
 
 <template>
@@ -235,6 +260,8 @@ const tomDaConferencia: Record<StatusConferencia, string> = {
           <span class="pilula">{{ rotuloDoStatus(torneio.status) }}</span>
         </div>
       </div>
+
+      <AvisoDoCalculo :calculo="torneio.calculo" @ir-para="irParaAba" />
 
       <section class="cartao" aria-labelledby="t-planilha">
         <div class="titulo-com-acao">
@@ -341,36 +368,38 @@ const tomDaConferencia: Record<StatusConferencia, string> = {
       <section v-if="partidas.length" class="cartao" aria-label="Partidas">
         <div role="tablist" aria-label="Situação das partidas" class="abas">
           <button
-            id="aba-aguardando"
+            v-for="a in ABAS"
+            :id="`aba-${a.id}`"
+            :key="a.id"
             type="button"
             role="tab"
-            :aria-selected="aba === 'aguardando'"
-            aria-controls="painel-aguardando"
+            :aria-selected="aba === a.id"
+            :aria-controls="`painel-${a.id}`"
             class="aba"
-            @click="abaEscolhida = 'aguardando'"
+            @click="abaEscolhida = a.id"
           >
-            Aguardando o site <span class="contador">{{ naFila.length }}</span>
-          </button>
-          <button
-            id="aba-todas"
-            type="button"
-            role="tab"
-            :aria-selected="aba === 'todas'"
-            aria-controls="painel-todas"
-            class="aba"
-            @click="abaEscolhida = 'todas'"
-          >
-            Todas as partidas <span class="contador">{{ partidas.length }}</span>
+            {{ a.rotulo }} <span class="contador" :class="{ destaque: a.id === 'pendencias' && contagemDaAba[a.id] > 0 }">{{ contagemDaAba[a.id] }}</span>
           </button>
         </div>
 
-        <div v-if="aba === 'aguardando'" id="painel-aguardando" role="tabpanel" aria-labelledby="aba-aguardando">
+        <div v-if="aba === 'pendencias'" id="painel-pendencias" role="tabpanel" aria-labelledby="aba-pendencias">
+          <PainelPendencias
+            v-if="pendencias"
+            :torneio-id="torneio.id"
+            :lista="pendencias"
+            :partidas="partidas"
+            :somente-leitura="somenteLeitura"
+            :recarregar="carregar"
+          />
+        </div>
+
+        <div v-else-if="aba === 'aguardando'" id="painel-aguardando" role="tabpanel" aria-labelledby="aba-aguardando">
           <p v-if="naFila.length === 0" class="texto-medio vazio-aba">Nenhuma partida esperando o site oficial.</p>
           <ul v-else class="fila">
             <li v-for="{ partida: p, situacao } in naFila" :key="p.id" class="item-fila">
               <div class="item-cabecalho">
                 <span class="selo" :class="situacao.selo.tom">{{ situacao.selo.texto }}</span>
-                <strong>Partida <span class="mono">{{ p.idPartida }}</span> · Rodada {{ p.rodada }} · {{ p.timeA }} x {{ p.timeB }}</strong>
+                <strong>Partida <span class="mono">{{ rotuloDoId(p) }}</span> · Rodada {{ p.rodada }} · {{ p.timeA }} x {{ p.timeB }}</strong>
               </div>
               <p v-if="situacao.motivo" class="texto-medio">{{ situacao.motivo }}</p>
               <p class="texto-suave">{{ situacao.horario }}</p>
@@ -378,27 +407,13 @@ const tomDaConferencia: Record<StatusConferencia, string> = {
           </ul>
         </div>
 
-        <div v-else id="painel-todas" role="tabpanel" aria-labelledby="aba-todas" class="rolagem">
-          <table class="tabela partidas empilhavel">
-            <thead>
-              <tr>
-                <th>Partida</th>
-                <th class="numero">Rodada</th>
-                <th>Data</th>
-                <th>Times</th>
-                <th>Situação</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="p in partidas" :key="p.id">
-                <td class="mono" data-rotulo="Partida">{{ p.idPartida }}</td>
-                <td class="numero" data-rotulo="Rodada">{{ p.rodada }}</td>
-                <td class="numeral" data-rotulo="Data">{{ formatarData(p.data) }}</td>
-                <td data-rotulo="Times">{{ p.timeA }} x {{ p.timeB }}</td>
-                <td data-rotulo="Situação"><span class="selo" :class="tomDaConferencia[p.statusConferencia]">{{ rotuloDaConferencia(p.statusConferencia) }}</span></td>
-              </tr>
-            </tbody>
-          </table>
+        <div v-else id="painel-conferidas" role="tabpanel" aria-labelledby="aba-conferidas">
+          <AbaConferidas
+            :torneio-id="torneio.id"
+            :conferidas="conferidas"
+            :somente-leitura="somenteLeitura"
+            :recarregar="carregar"
+          />
         </div>
       </section>
 

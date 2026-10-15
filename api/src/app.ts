@@ -1,6 +1,8 @@
 import express, { type NextFunction, type Request, type Response } from 'express';
 import type { Knex } from 'knex';
 import { rotaSaude } from './rotas/saude';
+import { rotasPartidas } from './rotas/partidas';
+import { rotasPendencias } from './rotas/pendencias';
 import { rotasTorneios } from './rotas/torneios';
 
 export interface Dependencias {
@@ -16,6 +18,8 @@ export function criarApp({ bd, verificarBanco, agora = () => new Date() }: Depen
   app.use(express.json());
   app.use(rotaSaude(verificarBanco));
   app.use(rotasTorneios(bd, agora));
+  app.use(rotasPendencias(bd, agora));
+  app.use(rotasPartidas(bd, agora));
   app.use(tratarErros);
   return app;
 }

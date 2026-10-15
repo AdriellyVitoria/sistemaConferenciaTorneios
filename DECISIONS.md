@@ -285,6 +285,152 @@ O cartão "Prêmios calculados" está na tela, com o que a API já tem (status e
 
 ---
 
+## Pendências e Ciente (etapa 5a), 15/10/2026
+
+Só API, sem tela.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **As pendências não são gravadas:** saem sempre da comparação atual (`compararComSite`, D19) entre `linhas_planilha` e o que o job gravou do site (`partidas` + `participacoes`). **Só o Ciente é gravado** (tabela `cientes`, migration 008), pela chave da pendência | Tabela `pendencias` gerada na conferência, como no rascunho do banco | Uma cópia gravada fica desatualizada quando algo muda (correção de ID, nova consulta) e precisaria ser regenerada, levando os Cientes junto sem errar. Calcular na hora é sempre o estado atual; para 15 a 28 partidas, custa milissegundos |
+| **O Ciente vale para a pendência exata**, identificada por uma **chave**: tipo, partida, jogador, campo e os dois valores (planilha e site). Se algum valor muda, a chave muda e o Ciente antigo não se aplica | Ciente por partida, ou por tipo e jogador | Um Ciente dado a "18 × 8 kills" não pode valer para "18 × 9": a Maria não viu esse valor |
+| Itens do torneio todo (jogador em dois times, nome de time) usam a **lista de partidas**, ordenada, no lugar da partida | Deixar a partida vazia na chave | Se o jogador aparecer em mais uma partida, é outra situação: o Ciente precisa ser dado de novo |
+| **A mensagem fica fora da chave** | Usar a mensagem | Reescrever uma frase no código apagaria os Cientes já dados |
+| A chave é o **SHA-256** dos campos em JSON, com a **versão do formato** na frente | Os campos em texto, separados por um caractere | O JSON não confunde campos vizinhos ("a\|b" + "c" ≠ "a" + "b\|c"); o tamanho fixo (64) cabe num índice único; a versão permite mudar o formato sem confundir chaves antigas |
+| **Bloqueantes** (não encontrada, times diferentes) não aceitam Ciente: **409**; se resolvem corrigindo o ID (5b). As **não bloqueantes** aceitam Ciente, mas **também seguram o cálculo** enquanto não o recebem (D17) | — | "Não bloqueante" quer dizer "não precisa de correção", e não "não segura o cálculo" |
+| Marcar o Ciente de novo **não muda nada** (vale a hora do primeiro); desfazer o que não tem Ciente também não é erro | Responder erro | Dois cliques, ou duas abas, não podem dar erro na tela |
+| Ciente numa chave que **não é de nenhuma pendência atual**: **404** "os dados mudaram, atualize a lista" | Aceitar e gravar | Seria um Ciente dado a algo que a Maria não está vendo |
+| Ciente, desfazer e Ciente de todas **travam o torneio** (`SELECT ... FOR UPDATE`) | Sem trava | Um Ciente não pode correr junto com uma planilha nova (D22) nem com o cálculo |
+| **Planilha nova (D22) apaga os Cientes** do torneio | Manter os que coincidirem | A D22 diz que a conferência recomeça do zero; um Ciente da planilha antiga não é um Ciente da nova |
+| Os **dois times do site** são os times dos jogadores em `participacoes`, na ordem em que aparecem | Uma migration para guardar os times da resposta do site | No formato do site, todo jogador é de um dos dois times da partida; dá o mesmo resultado sem mais uma coluna |
+| As linhas são comparadas com o **ID atual** da partida (pela chave `partida_id`) | O ID digitado em cada linha | Quando a Maria corrigir o ID (5b), as linhas vão junto com a partida |
+
+**Comportamento esperado:** um Ciente cuja pendência mudou fica guardado, sem efeito. Se os valores voltarem exatamente aos de antes, ele volta a valer, porque é a mesma pendência que a Maria já viu.
+
+---
+
+## Correção do ID da partida (etapa 5b), 15/10/2026
+
+Só API, sem tela. **Sem migration:** `partidas.id_partida_planilha` (gravado na importação e nunca alterado) guarda o ID da planilha, e `partidas.id_partida` guarda o atual.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| `PUT /torneios/:id/partidas/:partidaId/id-partida`, pelo **id interno** da partida | Pelo ID do jogo ("#52214") na URL | O ID do jogo é o que muda; o id interno é estável. E o "#" na URL vira fragmento (o mesmo problema do site simulado) |
+| **Só o ID é editável** (D16). Validado com **as mesmas regras e frases da importação** (`validarIdPartida`, D18): aceita "52241" e espaços; recusa letras e vazio (400) | Regras próprias | A Maria vê a mesma explicação nos dois lugares |
+| Corrigir de novo: **o original continua sendo o da planilha** | Guardar o ID anterior a cada correção | O que importa para a história é o que a Maria digitou; as linhas da planilha não mudam |
+| A partida **volta para a fila do zero**: "aguardando", próxima tentativa agora, **tentativas zeradas**, sem vencedor, sem erro e **sem as participações do ID antigo** | Manter as tentativas | É um ID novo: outra história com o site |
+| **ID que já é de outra partida do torneio: 409** | Juntar as duas | Juntaria 4 times numa partida (D23) |
+| O mesmo ID que já está: **400** "Esse já é o ID da partida" | Aceitar e consultar de novo | Não é correção; para consultar de novo existe o "tentar agora" |
+| **Depois do cálculo: 409** | — | D1, D22: a base do resultado não muda |
+| Torneio e partida **travados**, na mesma ordem da importação e do job (torneio → partidas → participações) | Sem trava | Duas correções, ou uma correção e uma planilha nova, não podem se misturar; a mesma ordem evita deadlock |
+| **Partida em consulta pode ser corrigida:** o recibo do job (4b) deixa de valer e o resultado do ID antigo é descartado. Um teste prova isso: a consulta do ID antigo termina depois da correção e não grava nada | Esperar a consulta acabar | A Maria não precisa saber que havia uma consulta em andamento |
+
+**A chave do Ciente (5a) depois da correção.** O 5a usava o ID do jogo na chave de toda pendência. Com a correção, a duplicata perderia o Ciente. Agora:
+
+| Pendência | Identifica a partida por | Depois de corrigir o ID |
+|---|---|---|
+| **Linha duplicada** (vem da planilha) | **id interno** da partida, que não muda | O Ciente **continua**, se o site mostrar o mesmo valor para o jogador. Se mostrar outro, pede Ciente de novo: a duplicata é o único lugar onde a Maria vê esse valor (a D19 não gera divergência de valor para jogador duplicado). Decidido com a Adrielly |
+| **As que dependem do site** (valores, nick, vencedor, sem dados, jogador só de um lado, nome de time, dois times, não encontrada, times diferentes) | ID consultado no site | **Voltam sem Ciente**: é outra consulta ao site |
+
+A lista de partidas dos itens do torneio todo é ordenada pelo código de cada caractere, e não por `localeCompare`: a chave não pode mudar com a versão das regras de idioma do Node. Cientes de duplicata dados antes desta mudança ficam sem efeito (o formato da chave da duplicata mudou); só havia dados de desenvolvimento.
+
+---
+
+## Pronto para calcular (etapa 5c), 15/10/2026
+
+Só API. O `GET /torneios/:id` ganhou o campo `calculo`:
+
+```json
+{ "podeCalcular": false, "calculado": false, "calculadoEm": null, "semPlanilha": false,
+  "aguardandoSite": 2, "bloqueios": 1, "semCiente": 3 }
+```
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| Só pode calcular com **todas as partidas conferidas** (aguardando e em consulta contam como "aguardando o site"), **nenhum bloqueio** (não encontrada, times diferentes) e **todas as não bloqueantes com Ciente** (D17) | — | "Nada é pago sem a Maria ter visto" |
+| Também não pode **sem planilha** (`semPlanilha`) | Deixar passar | Sem partidas, todas as contagens dão zero e pareceria pronto |
+| **Calculado na hora** (`situacaoDoCalculo`, função pura), com as mesmas pendências do 5a | Gravar no `status` do torneio ("pronto") | Ficaria desatualizado a cada Ciente desfeito, ID corrigido ou partida que cai de volta na fila. O valor `pronto` do status continua sem uso |
+| **Sempre os mesmos campos**, com todas as contagens, mesmo quando pode calcular ou já calculou | Só os motivos que impedem | A tela mostra "faltam 2 partidas, 1 ID e 3 Cientes" sem montar o objeto; um formato só é mais fácil de usar |
+| Depois do cálculo: `calculado: true`, `calculadoEm` e `podeCalcular: false` | — | Não se calcula de novo (D1, D22) |
+
+O cálculo em si (que trava o modo de divisão e a planilha) é da etapa 6. Ele vai conferir de novo esta mesma situação dentro da transação, sem confiar no que a tela viu.
+
+---
+
+## Tela das pendências (etapa 5d), 15/10/2026
+
+Só web; a API é a do 5a a 5c.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| Abas da D17: **Conferidas, Pendências e Aguardando o site**. A aba provisória "Todas as partidas" (4c) saiu. Cada partida está em uma só | Manter "Todas" | A D17 pede que cada problema apareça uma vez; uma lista com tudo misturaria o resolvido com o pendente |
+| **Conferidas** = conferidas no site **sem nada faltando**: bateram com o site ("Bateu com o site") ou tiveram pendência que já recebeu Ciente ("Conferida com Ciente") | Todas as partidas com status "conferida" | Uma partida com pendência sem Ciente estaria nas duas abas |
+| A aba Pendências conta **as que ainda faltam**: bloqueantes + não bloqueantes sem Ciente, com o contador em destaque quando há | Contar todas | O número diz o que falta fazer; o que já tem Ciente não é trabalho |
+| A tela **abre onde há o que fazer**: Pendências se falta alguma, senão Aguardando o site, senão Conferidas | Sempre a mesma aba | A Maria vê de cara o que precisa dela |
+| A página carrega **o torneio e as pendências juntos**, também na atualização a cada 5 s | Só ao abrir a aba | A conferência que avança faz pendências aparecerem, e a contagem da aba precisa estar certa sem clique |
+| **Bloqueantes primeiro**, com selo vermelho, o lado a lado e o aviso "Corrija o ID desta partida", **sem botão de Ciente**. O formulário de correção é do 5e | Esconder o lado a lado | Ver "Lobos x Serpentes" × "Corvos x Panteras" ajuda a achar o ID certo |
+| Não bloqueantes com **planilha e site lado a lado** (D4), o site destacado em azul ("usado no cálculo"); **"Ciente" vira "Desfazer"**, com "Ciente às HH:MM:SS" | Caixa de seleção | O protótipo usa botão; o selo com a hora mostra que foi visto, e quando |
+| Valor vazio vira **frase**: "Não encontrada", "Não registra o jogador", "Não está na planilha" | Traço | Um traço não explica nada para a Maria |
+| **404 "os dados mudaram"** (5a): a lista é **recarregada** e a tela explica que a pendência mudou e que é preciso conferir de novo antes do Ciente | Mostrar só o erro | A pendência nova (com o valor novo) aparece na hora, sem a Maria precisar recarregar |
+| **"Ciente de todas"** abre um modal "Marcar Ciente em N pendências?", com N = não bloqueantes sem Ciente, e avisa que **as bloqueantes não entram**; depois mostra "N pendências marcadas com Ciente." | Marcar direto | Marcar várias de uma vez sem perguntar é fácil de fazer por engano |
+| **Depois do cálculo**: sem Ciente, Desfazer, Ciente de todas nem o modal; um aviso diz que a lista é só para consulta | Botões desabilitados | Botões que nunca podem ser usados são ruído |
+| Cada botão tem um **rótulo para leitor de tela** com a pendência ("Ciente: Nick escrito diferente, partida #48087"), e cada cartão também | Só "Ciente" | Numa lista de vários "Ciente", o leitor de tela precisa dizer qual |
+| No lado a lado, o **rótulo não quebra no meio**; um valor longo desce para a linha de baixo | — | No celular, "Pantera_X" quebrava em "Pant / era_ / X" |
+
+**Testes de componente** montam a página inteira contra uma **API falsa em memória** (`web/test/componentes/api-falsa.ts`), que guarda o estado: um Ciente marcado aparece marcado na próxima leitura, e a falsa pode responder "os dados mudaram" na próxima marcação. Cobrem:
+- as abas e as contagens;
+- a ordem, com as bloqueantes primeiro e sem botão de Ciente;
+- o lado a lado;
+- "Ciente" e "Desfazer";
+- o rótulo acessível;
+- o 404 com recarga;
+- o modal com a contagem certa, ao confirmar e ao cancelar;
+- a leitura depois do cálculo.
+
+---
+
+## Correção do ID e "pronto para calcular" na tela (etapa 5e), 15/10/2026
+
+Só web; a API é a do 5b e do 5c.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **"Corrigir ID" dentro do cartão da pendência bloqueante**, que abre um campo com o ID atual, com rótulo, texto de ajuda e o foco já no campo | Uma tela ou um modal à parte | A Maria corrige olhando o lado a lado (planilha × site) do mesmo cartão |
+| Os erros da API (formato, igual ao atual, ID de outra partida) aparecem **junto do campo, com a frase da API**, e o campo fica marcado como inválido (`aria-invalid` e `aria-describedby` apontando para o erro) | Mensagem genérica no topo | A frase da API já diz o que fazer; longe do campo, ela não é associada ao erro |
+| Depois de salvar, a tela **recarrega o torneio e as pendências**: a partida aparece em "Aguardando o site", e a **atualização a cada 5 s volta a rodar** | Religar a sondagem por fora | O `carregar` da página já liga a sondagem sempre que há partida aguardando; usar o mesmo caminho evita dois lugares para lembrar. Um teste com relógio falso prova: parada antes da correção, rodando depois |
+| Onde o ID aparece (título da pendência, Aguardando o site, Conferidas), uma partida corrigida mostra **"#52214 → #52241 (corrigido)"**, com o ID da planilha primeiro (`rotuloDoId`) | Só o ID novo | A Maria procura no Excel pelo ID que digitou |
+| **Aviso "pronto para calcular" no topo**, a partir do campo `calculo` (5c), com quatro estados: sem planilha ("Envie a planilha para começar."), faltando ("Falta para calcular:" e as contagens), pronto ("Tudo conferido. Pronto para calcular.") e calculado (a data e a hora) | Só um contador | Diz o que falta e onde resolver |
+| **Cada item que falta é um botão que leva à aba certa** (aguardando o site → "Aguardando o site"; bloqueio e sem Ciente → "Pendências"), com o foco indo para a aba; só aparecem os itens que existem | Texto corrido | Um clique leva ao trabalho; o foco junto ajuda quem usa teclado ou leitor de tela |
+| O botão **"Calcular" não existe ainda** | — | É da etapa 6 |
+
+**Teste do 5d ajustado:** "bloqueante sem botão de Ciente" verificava que o cartão não tinha nenhum botão. Agora ele tem o "Corrigir ID", então o teste confere que o único botão é esse (nada de Ciente nem Desfazer).
+
+**A API falsa dos testes** (`web/test/componentes/api-falsa.ts`) ganhou a rota de correção, com as mesmas regras e frases da API, e opções para montar os quatro estados do aviso (sem planilha, partidas aguardando, sem pendências, calculado).
+
+---
+
+## Aba Conferidas (etapa 5f), 15/10/2026
+
+Web, com **uma mudança pequena na API, decidida com a Adrielly:** o `GET /torneios/:id` traz, em cada partida conferida, `killsSite: { timeA, timeB }`, a soma das kills de cada time segundo as participações do site (`null` enquanto o site não respondeu). O nome do time é comparado sem acentos e maiúsculas, como na D19.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **Kills por time na tabela**, com uma mudança pequena na API | Tirar a coluna para ficar só no web | As kills ajudam a Maria a reconhecer a partida e são os números que entram no desempate (D2) |
+| Conferidas como o protótipo 1b: **agrupadas por rodada** ("Rodada 1 · 05/09"), com **ID, times, kills e vencedor do site** e a situação. Tabela com legenda e cabeçalhos para leitor de tela (`caption`, `scope="col"`, `scope="rowgroup"`) | A tabela de antes, sem agrupar | São 15 a 28 partidas; por rodada é como a Maria pensa no torneio |
+| **Filtros "Todas", "Bateram com o site" e "Com Ciente"**, com contagem, como botões de alternância (`aria-pressed`); a rodada sem partida no filtro some | Abas dentro da aba | Abas aninhadas confundem; filtros deixam claro que é a mesma lista |
+| Nas com Ciente: **qual era a diferença** numa linha ("Nick escrito diferente: xxsniperxx → xXSniperXx"), a **hora do Ciente** e **"Ver a diferença"**, que abre o lado a lado (`aria-expanded`, `aria-controls`) com o **Desfazer** | Mostrar o lado a lado sempre | A lista ficaria longa; o detalhe é para quando a Maria quer rever |
+| **Depois do Ciente, a pendência sai de Pendências** e a partida vai para Conferidas. O aviso "Ciente registrado: a partida #46065 foi para Conferidas." tem um **Desfazer**, para o arrependimento imediato. Decidido com a Adrielly | Deixar o cartão nos dois lugares (como no 5d) | Contraria a D17: o mesmo problema aparecia duas vezes. Os protótipos mostram a pendência com Ciente só em Conferidas |
+| Se a partida ainda tem outra pendência, o aviso diz "A partida ainda tem pendência aqui" | Dizer sempre "foi para Conferidas" | Seria falso para uma partida com duas diferenças |
+| Pendências sem nada faltando, mas com Cientes: "Nada faltando: as N pendências com Ciente estão em Conferidas." | "Nenhuma pendência" | A Maria precisa saber onde foram parar |
+| **Depois do cálculo:** "Ver a diferença" continua; sem Desfazer; um aviso diz que é só consulta | Esconder as diferenças | O registro do que foi visto antes de pagar continua útil |
+| O lado a lado virou um **componente só** (`LadoALado.vue`), usado em Pendências e em Conferidas | Copiar o trecho | As duas abas mostram a mesma diferença do mesmo jeito |
+| **No celular, a tabela rola dentro da caixa**; a página não alarga. Dentro da tabela, as palavras não quebram no meio, e as colunas curtas ficam numa linha | Empilhar a tabela, como em Pendências | Com a rolagem na caixa, a tabela fica legível; o padrão da página (`overflow-wrap: anywhere`) quebrava "#46065" em "#460 / 65" |
+
+**Defeito confirmado (ponto 2 do pedido):** antes do 5f, o Desfazer não se perdia (ele continuava em Pendências), mas **não existia pela aba Conferidas**, onde a partida passava a aparecer. O teste "Ciente dado em Pendências: a partida vai para Conferidas e lá dá para ver a diferença e desfazer" falhou antes da correção e passa agora.
+
+**Teste do 5d ajustado:** "Ciente vira Desfazer" virou "Ciente tira o cartão de Pendências; o Desfazer do aviso traz de volta", por causa da decisão acima.
+
+---
+
 ## Stack e ferramentas
 
 | Decisão | Alternativa descartada | Por quê |

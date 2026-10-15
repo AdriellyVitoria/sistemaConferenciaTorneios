@@ -17,7 +17,7 @@ export function conectarAoBancoDeTeste(): Knex {
 
 /** Esvazia as tabelas entre um teste e outro (filhas primeiro, por causa das chaves estrangeiras). */
 export async function esvaziarTabelas(bd: Knex) {
-  for (const tabela of ['participacoes', 'linhas_planilha', 'partidas', 'torneios']) {
+  for (const tabela of ['cientes', 'participacoes', 'linhas_planilha', 'partidas', 'torneios']) {
     await bd(tabela).del();
   }
 }

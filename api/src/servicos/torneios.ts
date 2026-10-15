@@ -7,8 +7,12 @@ import type { Knex } from 'knex';
 import { montarPartidas } from '../dominio/importacao';
 import { lerPlanilha, type ErroLeitura } from '../dominio/planilha';
 import { erroDosPercentuais } from '../dominio/premio';
+import { situacaoDoCalculo, type SituacaoDoCalculo } from '../dominio/pronto-para-calcular';
 import { segundosParaTentarAgora } from '../dominio/tentar-agora';
 import { anteciparAguardando, contarAguardando } from '../repositorios/conferencia';
+import { normalizarNome } from '../dominio/texto';
+import { apagarCientesDoTorneio, listarParticipacoes, type ParticipacaoGuardada } from '../repositorios/pendencias';
+import { calcularPendencias } from './pendencias';
 import { inserirLinhas } from '../repositorios/linhas-planilha';
 import { apagarPartidasDoTorneio, inserirPartidas, listarPartidas, type Partida } from '../repositorios/partidas';
 import {
@@ -36,17 +40,41 @@ export function listarTorneios(bd: Knex): Promise<ResumoTorneio[]> {
   return buscarTodosOsTorneios(bd);
 }
 
-export type TorneioComPartidas = Torneio & { partidas: Partida[]; segundosParaTentarAgora: number };
+/** A partida com as kills de cada time segundo o site (5f); null enquanto o site não respondeu. */
+export type PartidaComKills = Partida & { killsSite: { timeA: number; timeB: number } | null };
+
+export type TorneioComPartidas = Torneio & { partidas: PartidaComKills[]; segundosParaTentarAgora: number; calculo: SituacaoDoCalculo };
 
 export async function consultarTorneio(bd: Knex, id: number, agora = new Date()): Promise<TorneioComPartidas | null> {
   const torneio = await buscarTorneio(bd, id);
   if (!torneio) return null;
+  const [partidas, { resumo }, participacoes] = await Promise.all([listarPartidas(bd, id), calcularPendencias(bd, id), listarParticipacoes(bd, id)]);
   return {
     ...torneio,
-    partidas: await listarPartidas(bd, id),
+    partidas: partidas.map((p) => ({ ...p, killsSite: killsDosTimes(p, participacoes) })),
     // a tela mostra a contagem a partir daqui, sem depender do relógio do navegador
     segundosParaTentarAgora: segundosParaTentarAgora(torneio.tentarAgoraEm, agora),
+    // calculado na hora, como as pendências: um Ciente desfeito ou um ID corrigido muda na hora (5c)
+    calculo: situacaoDoCalculo({
+      status: torneio.status,
+      calculadoEm: torneio.calculadoEm,
+      quantidadeDePartidas: partidas.length,
+      aguardandoSite: resumo.aguardandoSite,
+      bloqueios: resumo.bloqueantes,
+      semCiente: resumo.semCiente,
+    }),
   };
+}
+
+/**
+ * As kills do time A e do time B da partida (na ordem da planilha), somadas das participações do
+ * site. O nome do time é comparado como na D19, sem acentos e maiúsculas: "Falcoes" é Falcões.
+ */
+function killsDosTimes(partida: Partida, participacoes: ParticipacaoGuardada[]): PartidaComKills['killsSite'] {
+  if (partida.statusConferencia !== 'conferida') return null;
+  const daPartida = participacoes.filter((j) => j.partidaId === partida.id);
+  const soma = (time: string) => daPartida.filter((j) => normalizarNome(j.time) === normalizarNome(time)).reduce((total, j) => total + j.kills, 0);
+  return { timeA: soma(partida.timeA), timeB: soma(partida.timeB) };
 }
 
 export type ResultadoTentarAgora =
@@ -111,6 +139,8 @@ export async function importarPlanilha(
     if (torneio.status === 'calculado') return { tipo: 'torneio_calculado' } as const;
 
     const substituiuPlanilhaAnterior = (await apagarPartidasDoTorneio(trx, torneioId)) > 0;
+    // a conferência recomeça do zero, e os Cientes dados na planilha anterior também (D22)
+    await apagarCientesDoTorneio(trx, torneioId);
     const partidaIds = await inserirPartidas(trx, torneioId, montagem.partidas);
     await inserirLinhas(trx, torneioId, leitura.linhas, partidaIds);
     await registrarImportacao(trx, torneioId, { arquivo, convertidoDeWindows1252 });

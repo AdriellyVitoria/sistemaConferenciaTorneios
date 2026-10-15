@@ -52,6 +52,19 @@ curl localhost:3000/torneios
 
 # ver o torneio, com as partidas e o status de cada uma (também pelo navegador)
 curl localhost:3000/torneios/1
+
+# pendências (depois de o job conferir as partidas); cada uma tem uma "chave"
+curl localhost:3000/torneios/1/pendencias
+
+# dar Ciente numa pendência, desfazer, ou dar Ciente em todas as não bloqueantes
+curl -X PUT    localhost:3000/torneios/1/pendencias/CHAVE/ciente
+curl -X DELETE localhost:3000/torneios/1/pendencias/CHAVE/ciente
+curl -X POST   localhost:3000/torneios/1/pendencias/ciente-de-todas
+
+# corrigir o ID de uma partida (17 = o "id" interno da partida, de GET /torneios/1);
+# ela volta para a fila e o job consulta o ID novo
+curl -X PUT localhost:3000/torneios/1/partidas/17/id-partida -H 'content-type: application/json' \
+  -d '{"idPartida":"#52241"}'
 ```
 
 ## Ver o banco

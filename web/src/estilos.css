@@ -260,6 +260,11 @@ p {
   background: var(--erro-fundo);
   color: var(--erro);
 }
+/* contador com algo a fazer (a aba Pendências com itens faltando) */
+.contador.destaque {
+  background: var(--alerta-fundo);
+  color: var(--alerta);
+}
 /* contador ao lado de uma aba ou filtro */
 .contador {
   display: inline-block;

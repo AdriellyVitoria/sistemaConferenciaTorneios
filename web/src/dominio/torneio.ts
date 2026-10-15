@@ -1,6 +1,6 @@
 /** Regras e textos da tela do torneio, sem Vue nem HTTP, para serem testados sozinhos. */
 
-import type { ErroPlanilha, ModoDivisao, StatusConferencia, StatusTorneio, Torneio } from '../servicos/api';
+import type { ErroPlanilha, ModoDivisao, Partida, StatusConferencia, StatusTorneio, Torneio } from '../servicos/api';
 
 export type EnvioDaPlanilha = 'primeira' | 'substituir' | 'travada';
 
@@ -11,6 +11,16 @@ export type EnvioDaPlanilha = 'primeira' | 'substituir' | 'travada';
 export function envioDaPlanilha(torneio: Pick<Torneio, 'status' | 'planilhaArquivo'>): EnvioDaPlanilha {
   if (torneio.status === 'calculado') return 'travada';
   return torneio.planilhaArquivo === null ? 'primeira' : 'substituir';
+}
+
+/**
+ * O ID da partida para mostrar. Corrigido pela Maria (D16): "#40932 → #40923 (corrigido)", com o
+ * ID da planilha primeiro, porque é o que ela vê no Excel.
+ */
+export function rotuloDoId(partida: Pick<Partida, 'idPartida' | 'idPartidaPlanilha'>): string {
+  return partida.idPartidaPlanilha === partida.idPartida
+    ? partida.idPartida
+    : `${partida.idPartidaPlanilha} → ${partida.idPartida} (corrigido)`;
 }
 
 /** As linhas do Excel onde procurar o erro: todas, quando o problema é de uma partida inteira (D23). */

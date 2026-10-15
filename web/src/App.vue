@@ -1,7 +1,12 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
-import { RouterLink, RouterView } from 'vue-router';
+import { computed, onMounted, ref } from 'vue';
+import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router';
 import { buscarSaude } from './servicos/api';
+
+// Páginas para jogadores (D11): sem o menu, sem a marca como link e sem o rodapé, que são da Maria.
+const rota = useRoute();
+const roteador = useRouter();
+const publica = computed(() => rota.meta.publica === true);
 
 // O rodapé mostra se a API e o banco estão no ar (o que a página inicial da etapa 0 fazia).
 type Estado = 'verificando' | 'ok' | 'erro';
@@ -9,6 +14,9 @@ const api = ref<Estado>('verificando');
 const banco = ref<Estado>('verificando');
 
 onMounted(async () => {
+  // a primeira rota só é conhecida depois disso; numa página pública, o rodapé nem aparece
+  await roteador.isReady();
+  if (publica.value) return;
   try {
     const saude = await buscarSaude();
     api.value = 'ok';
@@ -24,21 +32,21 @@ const rotulo: Record<Estado, string> = { verificando: 'verificando…', ok: 'no 
 
 <template>
   <header class="cabecalho">
-    <RouterLink to="/" class="marca">
+    <component :is="publica ? 'span' : RouterLink" v-bind="publica ? {} : { to: '/' }" class="marca">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z" />
         <path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3" />
       </svg>
       <span>Premiação de torneios</span>
-    </RouterLink>
-    <nav>
+    </component>
+    <nav v-if="!publica">
       <RouterLink to="/">Torneios</RouterLink>
     </nav>
   </header>
 
   <RouterView />
 
-  <footer class="rodape">
+  <footer v-if="!publica" class="rodape">
     <span :class="api">API {{ rotulo[api] }}</span>
     <span aria-hidden="true">·</span>
     <span :class="banco">Banco de dados {{ rotulo[banco] }}</span>

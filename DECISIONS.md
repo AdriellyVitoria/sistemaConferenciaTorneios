@@ -573,7 +573,7 @@ Só web, seguindo o protótipo 2-resultado, no lugar da página "em construção
 | Classificação com as **posições empatadas** (1, 2, 3, 3, 5) e o critério gravado como selo ("Desempate por kills", "Empate total · prêmio dividido", "Empate total") | Reescrever o critério | O texto gravado continua sendo a fonte; a tela só encurta |
 | **A frase dos empates é montada dos dados** (`explicarEmpates`): os grupos com as mesmas vitórias, quem desempatou por kills, e os empatados também em kills, com as posições que pagavam (pelos percentuais gravados), o valor somado e a fração de cada time ("metade", "um terço") | Uma frase escrita para setembro | Vale para qualquer torneio; testado com setembro, com o cenário 04 (dois empates, um sem prêmio) e com casos pequenos |
 | Prêmio por jogador: time, nick, **minutos ou kills conforme o modo** ("173 de 865"), **% do time** (arredondado só com inteiros), valor e observação | — | Como o protótipo |
-| **A observação mostra só o que está gravado:** "+R$ 0,01 de arredondamento" (D9) e a explicação do cálculo (D21). **Sem a etiqueta "Reserva"** do protótipo | Deduzir "reserva" pelos minutos | O resultado não guarda em quantas partidas cada jogador jogou. Pelos minutos, Bia.gg (154, saiu mais cedo numa partida) também seria marcada como reserva. Para mostrar "Reserva" com dado de verdade, o cálculo precisaria gravar as partidas jogadas: fica como melhoria, se a Adrielly quiser |
+| **A observação mostra só o que está gravado:** "+R$ 0,01 de arredondamento" (D9) e a explicação do cálculo (D21). **Sem a etiqueta "Reserva"** do protótipo | Deduzir "reserva" pelos minutos | O resultado não guarda em quantas partidas cada jogador jogou. Pelos minutos, Bia.gg (154, saiu mais cedo numa partida) também seria marcada como reserva. Para mostrar "Reserva" com dado de verdade, o cálculo precisaria gravar as partidas jogadas: está em "Próximos passos" ("jogou X de Y partidas") |
 | Rodapé: "21 jogadores premiados · soma: R$ 10.000,00", com a soma calculada dos dados; com filtro, "1 de 21 jogadores premiados". **Anunciado ao leitor de tela** (`aria-live`) | Texto fixo | O número muda com o filtro |
 | **Filtro por nick** parcial, sem diferenciar maiúsculas e acentos ("sniper" acha xXSniperXx; "vibora" acha Víbora). Sem busca, a tabela mostra os premiados | Busca exata | A Maria lembra do nick pela metade, e os jogadores digitam sem acento |
 | Nick de time sem prêmio: **"Víbora jogou pelo time Serpentes, que ficou em 6º, sem prêmio."** | "jogou pelos Panteras, que ficaram…" | O artigo depende do nome do time ("pelas Águias", "pelos Lobos"), e o sistema não sabe o gênero de cada nome |
@@ -596,6 +596,178 @@ Só web, seguindo o protótipo 2-resultado, no lugar da página "em construção
 
 ---
 
+## Códigos de acesso e página pública (etapa 7a), 15/10/2026
+
+Só API. Decisões da Adrielly (D11): os códigos nascem no cálculo, um público e um por time premiado, e a página pública mostra só o que é do torneio e dos times. Migration nova: `010_cria_codigos_de_acesso`.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **Os códigos são gerados no cálculo, na mesma transação do 6b** (dentro de `gravarResultado`): **um público do torneio** e **um para cada time premiado** (prêmio maior que zero). Times sem prêmio não recebem código: veem a página pública | Gerar ao abrir a tela de links | Nasce junto com o resultado: não existe cálculo sem link nem link sem cálculo. Dois cálculos ao mesmo tempo continuam esperando um pelo outro (6b), então sai um conjunto só (testado com três pedidos juntos) |
+| **24 bytes do gerador criptográfico do Node** (`crypto.randomBytes`, 192 bits) em **base64url**: exatamente **32 caracteres** de letras, números, "-" e "_", que vão na URL sem escape | id do torneio, número sequencial ou `Math.random` | Sem login, o código é a única proteção: quem tem o link vê. Um número em sequência deixaria qualquer um tentar o próximo; `Math.random` não é feito para ser imprevisível |
+| **Código público na própria tabela `calculos`** (`codigo_publico`, obrigatório e único); os dos times numa tabela **`codigos_time`**, ligada à linha do time no cálculo (`premios_time`), também única | Uma tabela só, com o tipo "público" ou "time" | Na tabela única, a coluna do time ficaria vazia no público, e o MySQL não impede dois públicos para o mesmo cálculo com chave única sobre coluna vazia. Assim, o próprio banco garante um público por cálculo e um código por time |
+| Os códigos ficam com **collation binária** (`utf8mb4_bin`) | A collation padrão do banco | Em base64url, "a" e "A" são caracteres diferentes. A padrão ignora maiúsculas: "abc" acharia "ABC", e a chave única recusaria códigos que são diferentes |
+| **Torneios calculados antes desta mudança ganham os códigos na própria migration**: a coluna nasce aceitando vazio, a migration preenche cada cálculo e cada time premiado, e só depois a coluna vira obrigatória | Um script à parte, ou gerar na primeira leitura | Ninguém precisa lembrar de rodar nada, e nenhum cálculo fica sem link. Testado: a migration é desfeita, um cálculo "antigo" é gravado sem código, ela é refeita, e o público e os dois times premiados aparecem |
+| A migration **repete a geração do código** (3 linhas) em vez de importar do domínio | Importar `gerarCodigoDeAcesso` | Uma migration é uma foto: precisa fazer sempre a mesma coisa, mesmo que o domínio mude depois |
+| **`GET /publico/:codigo`**: nome do torneio, data do cálculo, **regras** (prêmio total, percentuais por posição, modo de divisão e o **critério de desempate em texto simples**) e a **classificação** (posição, time, vitórias, kills, prêmio do time e critério) | Devolver o resultado inteiro e a tela esconder os jogadores | A API não pode mandar o que a página não pode mostrar: qualquer um abriria a resposta no navegador e veria os valores (D11) |
+| A página é montada **campo a campo** (`montarPaginaPublica`, função pura), e não "o resultado sem a lista de jogadores" | Tirar `jogadores` do objeto | Se um dia o resultado ganhar um campo novo com dado de jogador, ele não vaza para a página pública sem alguém decidir |
+| **Sem o id interno do torneio** na resposta | Devolver o id | Com o id, dá para chegar às rotas da Maria, que não têm login (limitação da etapa 3b). A página pública não precisa dele |
+| **Só o resultado congelado:** nada é recalculado (teste: mudar o prêmio, os percentuais e o modo no banco depois não muda a página) | — | Mesmo princípio do 6c |
+| **Qualquer erro dá o mesmo 404**, com a mesma frase "Página não encontrada.": código que não existe, fora do formato, com uma letra trocada de maiúscula, o código de um time e o id do torneio. Fora do formato, **nem consulta o banco** | 400 para formato inválido, 409 para "não calculado" | A resposta não pode ajudar quem tenta adivinhar: não diz se o torneio existe nem se o código "quase" acertou |
+| O **código de um time não abre a página pública** | Aceitar os dois | Cada código tem um papel; o link do time é da etapa 7b |
+| Toda resposta de `/publico` leva **`X-Robots-Tag: noindex`**, inclusive o 404 | Só a página de sucesso | Para buscadores não indexarem o link, se ele for colado num lugar público |
+| O **nome** vem do torneio, não do cálculo | Gravar o nome no cálculo | Não existe tela para mudar o nome do torneio; se um dia existir, a decisão volta |
+
+**Testes:**
+- **Domínio:** o código tem 32 caracteres seguros para URL, 10 mil códigos sem repetição, e o formato aceito pela rota; a página pública tem exatamente os campos combinados, sem nick nem valor de jogador.
+- **Integração:** setembro gera 1 código público e 4 de time (Corvos, Falcões, Lobos e Tubarões), todos diferentes; antes do cálculo não existe código; dois cálculos ao mesmo tempo geram um conjunto só; a página de setembro, campo a campo, com o cabeçalho `noindex`; nenhum dos 31 nicks nem valor de jogador na resposta; os 7 tipos de código errado dão o mesmo 404; a migration preenche os cálculos antigos.
+
+**Para a 7b:** a rota do link do time (`/time/:codigo`, com o extrato e o filtro por nick) e a tela da Maria com os links para copiar. Até lá, os códigos só existem no banco.
+
+**Confirmado pela Adrielly:** o código de um time não abre a página pública.
+
+---
+
+## Link do time e lista de links (etapa 7b), 15/10/2026
+
+Só API, seguindo o protótipo `docs/prototipo/3-link-do-time.html`. Sem migration: os códigos são os do 7a.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **`GET /time/:codigo`**, sem login, só do resultado congelado: nome do torneio, data do cálculo, o time (colocação, prêmio, total de minutos ou kills), **"como foi calculado"** (prêmio total, percentual da posição, critério gravado e modo de divisão), **cada jogador deste time** (nick, minutos ou kills, percentual, valor, centavo de arredondamento e explicação), o **total do time** e o **código público** (para "Ver a classificação completa") | Devolver o resultado inteiro e a tela filtrar | A API não pode mandar o que o link não pode mostrar (D11) |
+| **Nada de outros times**, nem o id interno do torneio. Do empate, só **quantos times dividiram** e **quais posições foram somadas** (Falcões: 3º e 4º, 20% e 0%, 2 times) | A frase do protótipo, "Corvos empatou com Falcões e Tubarões…" | Os nomes dos outros times estão na página pública, a um clique, pelo código público. Assim o link do time não precisa de exceção à regra "nada de outros times" |
+| **Percentual de cada jogador em centésimos de ponto percentual, inteiro** (`centesimosDePercentual`: 220 = 2,20%), com o mesmo arredondamento da tela do resultado (6e) | Mandar o percentual com casas decimais (float) | Sem float de ponta a ponta; a tela só formata |
+| Jogadores **por valor, do maior para o menor, e por nick** no mesmo valor (ordem do protótipo) | A ordem em que o cálculo grava | Quem abre o link procura o próprio nome; a ordem do protótipo é a mais fácil de ler |
+| **Jogador em dois times (D13):** o link de cada time mostra só a linha daquele time, com os minutos e a parte daquele time | Somar as partes | É assim que o cálculo grava (uma linha por time); no 07, Garra aparece nos Leões com 178 minutos e R$ 400,00, e os Ursos, sem prêmio, não têm link |
+| **Mesmas regras do 7a:** qualquer erro dá o mesmo 404 "Página não encontrada.", código fora do formato não consulta o banco, `X-Robots-Tag: noindex`. **O código público não abre a página do time**, nem o de um time abre a pública | Um código que abre as duas | Cada código tem um papel |
+| **`GET /torneios/:id/links`** (tela da Maria): o código público e o de cada time premiado, com posição e prêmio, na ordem da classificação. Antes do cálculo: **409** "O torneio ainda não foi calculado."; torneio inexistente: 404 (as mesmas respostas do 6c) | Montar o endereço completo na API | A API não sabe em que endereço a tela está (localhost na demonstração, um domínio num deploy). A tela monta o link com o próprio endereço |
+| Os códigos são **sempre os mesmos** a cada leitura | Gerar a cada vez | A Maria pode copiar de novo a qualquer momento, e os links já enviados continuam valendo |
+
+### Guardar o código em texto, e não só o hash
+
+Senhas são guardadas só como **hash**, um resumo de mão única: quem lê o banco não descobre a senha, e o sistema confere comparando o resumo. Para os códigos dos links, **escolhi guardar o texto**, porque a Maria precisa **copiar o link de novo a qualquer momento** (perdeu a mensagem, um jogador novo pediu). Com só o hash, o sistema não conseguiria mostrar o link de novo; a única saída seria gerar outro e invalidar o que já foi enviado.
+
+**Por que é aceitável aqui:**
+- **O link é de consulta**: ele só mostra valores que já foram divulgados ao time. Não paga, não muda nada e não dá acesso a outra parte do sistema.
+- **Não é reaproveitado**: uma senha vazada costuma abrir outros sites onde a pessoa usa a mesma senha. O código foi gerado pelo sistema e só serve para este link.
+- **Quem lê o banco já vê tudo**: os valores de todos os jogadores estão nas tabelas do resultado. O código não protege nada que o banco não mostre de outro jeito.
+- **O risco que sobra é o link vazar** (colado no canal geral, por exemplo). Ele se resolve com o "gerar novo link", que está em "Próximos passos".
+
+**Testes:**
+- **Domínio:** a página dos Corvos campo a campo; nenhum nome nem nick de outro time; Falcões com o empate (3º e 4º, 2 times) sem citar Tubarões; time sem prêmio sem página; o percentual só com inteiros.
+- **Integração:**
+  - os Corvos com os 6 jogadores, Tuca com R$ 65,90 e o centavo, e o total de R$ 3.000,00;
+  - nenhum dos 20 nicks e 5 times de fora, nem o id;
+  - Falcões com o empate dividido e 5 × R$ 200,00;
+  - Garra nos Leões só com a parte dos Leões, no cenário 07;
+  - o código público e 6 tipos de código errado dão o mesmo 404;
+  - a lista de links na ordem, os mesmos códigos a cada leitura e o 409 antes do cálculo.
+
+**Para a 7c:** as telas (a página pública, a do link do time com o filtro por nick e os links para a Maria copiar).
+
+---
+
+## Tela da página pública (etapa 7c), 15/10/2026
+
+Só web, com a API do 7a (`GET /publico/:codigo`). Rota `/publico/:codigo` na web.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| A página mostra o **nome do torneio**, **"Calculado em DD/MM/AAAA"** (sem a hora), as **regras em texto simples** ("Como o prêmio foi dividido": prêmio total, percentual de cada posição, como o prêmio é dividido dentro do time e o desempate) e a **classificação** com a frase dos empates | Só a tabela | Sem as regras, o jogador ainda teria que perguntar à Maria por que o time ficou naquela posição |
+| As regras saem do que foi gravado no cálculo (`regrasEmTexto`, função pura com testes): "Os outros times não recebem prêmio." só aparece quando há mais times do que posições premiadas; com menos (D24), uma frase explica que o valor das posições sem time foi dividido igualmente; no modo kills, explica o caso de um time sem kills (D21) | Um texto fixo | Um texto fixo ficaria errado nesses casos, e a tabela pareceria não bater com as regras |
+| **A classificação virou um componente** (`TabelaClassificacao`), usado pela tela do resultado e pela página pública, e os estilos da tabela foram para o `estilos.css` | Copiar a tabela | As duas mostram a mesma classificação; copiada, uma mudança numa poderia não chegar à outra. Os testes do resultado continuam passando sem mudança |
+| **A frase dos empates cita os nomes dos times** (a mesma do 6e) | — | A classificação é pública; no link do time (7b), não |
+| **Página para jogadores:** a rota tem `meta: { publica: true }`, e o `App.vue` esconde o menu "Torneios" e o rodapé "API · Banco de dados", e mostra a marca como texto, não como link para a lista da Maria. A página pública **não consulta a saúde do sistema** | Uma página separada, fora do App | Uma marca na rota resolve com uma peça a menos, e o teste monta o app inteiro para verificar o cabeçalho e o rodapé |
+| **`/publico/` sem código** mostra "Página não encontrada" sem chamar a API: o código é opcional na rota | Deixar como estava | Antes, o endereço caía na regra "qualquer outra rota", que **leva à lista de torneios da Maria** (os testes que falharam antes da implementação mostraram isso) |
+| Código errado (404): **"Página não encontrada"** e "Confira se o link foi copiado inteiro.", sem a palavra "torneio" e sem links | "Torneio não encontrado" | A tela não pode dizer se existe um torneio por trás |
+| Servidor fora do ar ou outro erro: **"Não foi possível carregar"**, com "Tente de novo em alguns minutos." | Tratar como 404 | O jogador acharia que o link está errado e pediria outro à Maria |
+| **`<meta name="robots" content="noindex">` no `index.html`**, valendo para o app inteiro | Pôr o meta só nesta página, por JavaScript | No `index.html` vale também para buscadores que não executam JavaScript. Nenhuma tela do sistema deve aparecer em buscador: as da Maria não têm login |
+| O título da aba é **"Nome do torneio · Classificação"** | O título genérico do app | É o que aparece na aba e no histórico do jogador |
+| No celular, a tabela **rola dentro da caixa**, como no resultado (6e) | Empilhar as linhas | Mantém um jeito só de ler a classificação nas duas telas |
+| **Prêmio logo depois do Time**, nas duas telas (pedido da Adrielly na revisão do 7c) | Prêmio depois das kills | No celular, a primeira tela mostra posição, time e prêmio sem arrastar a tabela: é o que o jogador procura |
+| **"Premia 3 posições: 1º 50% · 2º 30% · 3º 20%"** (`descreverPosicoesPremiadas`) **na linha do título "Classificação"**, à direita, em texto secundário (no celular, desce para baixo do título). O título e a frase ficam dentro do componente compartilhado, então valem nas duas telas, e a frase aparece uma vez só na tela do resultado. Na página pública, aparece também nas regras | Só os percentuais; a frase no cabeçalho da página do resultado | Deixa claro quantas posições pagam, e por que um time em 3º pode ficar sem prêmio (num torneio 50/50). Junto da tabela, fica onde o jogador olha para entender o prêmio |
+| **Posição com 0% não conta como premiada** (50/50/0 = "Premia 2 posições") | Contar todas as posições configuradas | Os percentuais aceitam 0 (a validação só recusa negativos). Uma posição que não paga não é premiada; a frase dos empates já usava essa conta para saber quais posições pagavam. Muda só o texto, não o pagamento. **Confirmado pela Adrielly** |
+| Empate fora das posições premiadas: **"Falcões e Tubarões empataram também em kills (310) e ficaram em 3º. Este torneio premia só 2 posições."** | "…ficaram em 3º, sem prêmio." | Sem dizer quantas posições pagam, o jogador acharia que o 3º lugar deveria receber |
+| O **"—"** do prêmio de um time sem prêmio fica escondido do leitor de tela (`aria-hidden`), que lê **"sem prêmio"** (texto `visualmente-oculto`) | `aria-label` no `<span>` | O leitor de tela diria "travessão". E um `aria-label` num `<span>` sem papel nem sempre é lido: o texto escondido funciona em todos |
+
+**Ajustes da revisão, testados** com setembro em 50/30/20 e em 50/50 (unidade e componente, nas duas telas), mostrando antes que falhavam (17 testes).
+
+**No Docker de verdade:** a API foi reconstruída, e a **migration 010 rodou no banco de desenvolvimento**, que tinha 5 torneios calculados antes dela. Os 5 ganharam o código público (32 caracteres) e um código por time premiado: 14 códigos, todos diferentes. A página pública abriu pelo link real de dois deles: o setembro (50/30/20) e um setembro calculado em 50/50, com "Premia 2 posições" e a frase nova do empate. Abriu também um código errado e a tela do resultado. Em 375 px e 1280 px, sem rolagem lateral, com `noindex` e sem links nas páginas públicas.
+
+**Testes:**
+- **Unidade das regras:** setembro, o modo kills, todos os times premiados e menos times do que posições.
+- **De componente, montando o app inteiro:**
+  - setembro com o 3º empatado, a frase do empate e o título da aba;
+  - a tabela com legenda e cabeçalhos;
+  - nenhum dos 31 nicks nem valor de jogador na tela;
+  - só o pedido da página pública à API;
+  - nenhum link, sem menu nem rodapé, e as telas da Maria continuam com os dois;
+  - o 404 sem a palavra "torneio", o endereço sem código e o servidor fora do ar;
+  - o `noindex` no `index.html`.
+
+**No navegador** (Edge sem janela, pelo protocolo de depuração, com o Vite local e uma API falsa que devolve o setembro, sem mexer no Docker): em 375 px e em 1280 px, sem rolagem lateral, com o `noindex`, nenhum link e o título da aba certo; o mesmo na página não encontrada.
+
+---
+
+## Link do time e links na tela do resultado (etapa 7d), 15/10/2026
+
+Só web, com a API do 7b (`GET /time/:codigo` e `GET /torneios/:id/links`). Rota `/time/:codigo` na web, seguindo o protótipo `3-link-do-time`.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| A página do time é **para jogadores, como a pública** (`meta: { publica: true }`): sem menu, sem rodapé, e o **único link é "Ver a classificação completa do torneio"**, para `/publico/:codigoPublico` | — | Mesma regra do 7c (D11) |
+| Topo: "Torneio · link do time" e o nome do time; **resumo** (o quadro escuro do protótipo, com as cores do cabeçalho) com colocação, prêmio do time e total de minutos (ou kills) do time | — | Como o protótipo |
+| **"Como o valor foi calculado" em passos montados dos dados** (`passosDoCalculo`, função pura): prêmio total e percentual da posição; o critério; a divisão dentro do time; o arredondamento | A frase do protótipo, "Corvos empatou com Falcões e Tubarões…" | A API não manda os outros times (7b). Os nomes estão na página pública, a um clique |
+| O **valor da posição** ("O 2º lugar leva 30%: R$ 3.000,00") só aparece quando é mesmo o prêmio do time: o percentual cortado no centavo, ou um centavo a mais (o maior resto entre as posições, D20). Se o time recebeu mais, o torneio teve menos times do que posições (D24), e o passo explica | Mostrar sempre o percentual vezes o prêmio | Com D24, "leva 50%: R$ 5.000,00" seria falso: o time recebeu R$ 6.000,00 |
+| No **empate dividido**: "Falcões empatou em vitórias e em kills com mais 1 time: os prêmios do 3º e do 4º lugar (20% e 0%) foram somados e divididos igualmente entre os 2 times. O prêmio do time ficou em R$ 1.000,00." | "R$ 1.000,00 para cada" | Um time empatado pode ter recebido um centavo a mais que o outro (D9); a frase fala só do prêmio deste time |
+| No **desempate por kills**: "Houve empate em vitórias; o desempate foi pelas kills do time, e Corvos ficou em 2º." | "Ficou em 2º por ter feito mais kills" | Todos os times do grupo recebem esse critério, quem ficou na frente e quem ficou atrás; a frase é verdadeira para os dois |
+| No **modo kills com um time sem kills** (D21), o passo diz que o prêmio foi dividido pelos minutos | — | O cartão de cada jogador também traz a explicação gravada |
+| **Um cartão por jogador**, do maior valor para o menor (a ordem da API), com a conta "173 de 865 minutos (20,00%) × R$ 3.000,00" (ou kills) e o valor; quem recebeu o centavo tem o cartão destacado e o texto "Recebeu R$ 0,01 de arredondamento: era o jogador do time mais perto de receber o centavo que sobrou." | O "= R$ 65,895 → R$ 65,90" do protótipo | O valor exato não vem da API; recalcular na tela seria fazer conta de dinheiro fora do cálculo |
+| **Sem a etiqueta "Reserva"** e sem "dividiu a partida da rodada 2 com Tuca" | Deduzir pelos minutos | O cálculo não grava as partidas de cada jogador (ver "Próximos passos": "jogou X de Y partidas") |
+| **"Procurar meu nick"** parcial, sem diferenciar maiúsculas e acentos, com o resultado anunciado ao leitor de tela ("1 de 6 jogadores"); "Total do time" continua sendo o do time inteiro | Somar só os filtrados | O total é o prêmio do time, não da busca |
+| Código errado ou vazio: **o mesmo "Página não encontrada" do 7c** (componente `AvisoDaPaginaPorLink`, usado pelas duas páginas) | Copiar o texto | As duas páginas falam do mesmo jeito |
+| **"Links para os times premiados"** no fim da tela do resultado: o link da página pública e um por time premiado (nome, posição e prêmio), com o endereço completo montado com `window.location.origin` | Montar o endereço na API | A API não sabe em que endereço a tela está (7b) |
+| **"Copiar link"** usa a área de transferência do navegador; cada botão tem um nome acessível próprio ("Copiar link do time Corvos"). Ao copiar, **"Link copiado"** aparece ao lado do botão, numa região que o leitor de tela anuncia, e some depois de alguns segundos | Um aviso só no topo da seção | Fica junto do que foi copiado |
+| **Se a área de transferência falhar** (o navegador nega, ou nem oferece, como num endereço sem https fora do localhost), o link aparece **num campo já selecionado e com o foco**, com "copie com Ctrl+C (no celular, toque e segure)" | Só mostrar um erro | A Maria consegue mandar o link mesmo assim. No Edge sem janela, o navegador negou a cópia (o clique veio de um script), e o campo apareceu como esperado |
+| O endereço também é **um link que abre em outra aba** | Só texto | A Maria confere a página antes de mandar |
+
+**Testes:**
+- **Unidade das regras:**
+  - os passos de Corvos, Falcões e Lobos;
+  - o valor da posição com o maior resto, o caso D24 e o modo kills (com e sem kills no time);
+  - a conta de cada cartão, o filtro e o endereço do link.
+- **Componente do link do time** (montando o app inteiro):
+  - os 6 jogadores dos Corvos na ordem, Tuca com R$ 65,90 e o texto do centavo, e o total de R$ 3.000,00;
+  - o filtro parcial com o anúncio, e o nick de fora do time;
+  - o único link, para a página pública, sem menu nem rodapé;
+  - o 404 e o endereço sem código.
+- **Componente da tela do resultado:**
+  - os 5 links com o endereço completo e um nome acessível para cada botão;
+  - "Copiar link" copia o endereço certo e mostra "Link copiado" só naquele item;
+  - a falha e a falta da área de transferência mostram o campo selecionado e com foco;
+  - a falha ao carregar os links não derruba a tela.
+
+**No navegador** (Edge sem janela, pelos links reais do Docker): o link dos Corvos e o dos Falcões, em 375 px e 1280 px, sem rolagem lateral, com `noindex` e um link só; o código público usado como código de time dá "Página não encontrada"; a seção dos links na tela do resultado, com o campo para copiar à mão. A primeira foto mostrou o botão "Copiar link" desalinhado no celular, com o espaço vazio do aviso empurrando o botão; agora o aviso só ocupa espaço quando tem texto, e no celular o botão fica sempre abaixo do nome.
+
+---
+
+## Testes de integração com um relógio só, 15/10/2026
+
+**O problema:** um teste de `repositorios.test.ts` falhava de vez em quando. A partida nasce com o `NOW()` do MySQL, e o teste comparava esse horário com o `Date.now()` do Node. Os testes rodam no Windows e o MySQL no Docker, e os dois relógios chegam a ficar mais de 1 s diferentes. O mesmo padrão estava escondido em 8 arquivos: o "agora" do job era `Date.now() + 2 s`, e o job só pega a partida cuja próxima tentativa (gravada com o relógio do MySQL) já chegou. Com o MySQL mais de 2 s à frente, a partida não seria pega.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **Nos testes, tudo que conversa com horários do banco usa o relógio do MySQL:** `horaDoBanco` (`SELECT NOW(3)`) para comparar, e `relogioDoBanco`, que mede uma vez quanto o MySQL está à frente ou atrás do Node e anda junto com ele, para o "agora" do job, da API e da correção de ID | Aumentar a folga | A folga só adia o problema: o desvio do relógio do Docker no Windows não tem limite |
+| O teste original passou a ter **limites exatos, sem folga**: o horário gravado fica entre o segundo cheio de antes da inserção e a hora de depois | Uma margem de meio segundo para cada lado | O `NOW()` sem casas decimais **corta** a fração do segundo, em vez de arredondar (a primeira versão da correção supôs o arredondamento e falhou em 3 de 5 rodadas) |
+| O teste do "tentar agora" continua com o relógio do Node | Trocar também | Ali o teste regrava o horário de todas as partidas com o mesmo "agora" da API: um relógio só |
+
+**A prova:**
+- **Sem desvio:** a integração rodou 5 vezes seguidas, todas com 152 de 152.
+- **Com desvio simulado:** rodou de novo com o relógio do Node deslocado 5 s para frente e 5 s para trás, bem acima da folga antiga, e passou nas duas. Um teste temporário confirmou que o desvio valia dentro dos testes.
+
+**Observação sobre o código da API (sem mudança agora):** a importação grava a próxima tentativa com o relógio do MySQL, e o job e a correção de ID usam o do Node. No Docker, a API e o MySQL rodam na mesma máquina virtual e têm o mesmo relógio, então não há problema em produção. Ainda assim, um relógio só também no código seria mais simples de explicar: a importação passaria a gravar o "agora" da API.
+
+---
+
 ## Stack e ferramentas
 
 | Decisão | Alternativa descartada | Por quê |
@@ -609,3 +781,21 @@ Só web, seguindo o protótipo 2-resultado, no lugar da página "em construção
 | A API aplica as migrations ao subir | Passo manual de migração antes de subir | `docker compose up` deixa tudo pronto num comando só. Se a migration falhar, a API não sobe e o erro aparece no log |
 | A rota `/saude` recebe a verificação do banco por parâmetro | Importar a conexão direto na rota | Permite testar a rota sem MySQL, inclusive o caso de banco fora do ar (503) |
 | Front servido por `vite preview` com proxy `/api` | nginx | Serve o build de produção e repassa `/api` para a API sem CORS, com uma peça a menos. nginx fica como evolução se houver deploy real |
+
+---
+
+## Próximos passos
+
+Decidido com a Adrielly em 15/10/2026: a etapa 6 termina no 6e. Estes ficam para depois, **sem implementar** por enquanto.
+
+| Próximo passo | O que é | Por que ficou para depois |
+|---|---|---|
+| **PDF do resultado** | Pela impressão do navegador ("Salvar como PDF"), com um CSS de impressão na tela do resultado: sem cabeçalho do sistema, sem filtro e sem botões, com as tabelas inteiras | O CSV já permite pagar (6c); o PDF é para guardar ou enviar. Pela impressão do navegador, não precisa de biblioteca nova nem de rota na API |
+| **"Jogou X de Y partidas" no resultado** | O cálculo passa a gravar, para cada jogador, em quantas partidas jogou por aquele time e quantas o time jogou; a tela mostra isso no lugar de deduzir "Reserva" pelos minutos (6e) | Exige uma coluna nova em `premios_jogador` e uma mudança no cálculo. Deduzir pelos minutos marcaria errado quem só saiu mais cedo numa partida (Bia.gg) |
+| **Controle de "Pago" por jogador** | Marcar, na tela do resultado, quem já recebeu, com a data; o resultado continua congelado, só o pagamento muda | Hoje a Maria paga com o CSV no Excel; o controle dentro do sistema é uma comodidade, não uma regra do desafio |
+| **Integração com Pix**, depois do "Pago" | Enviar o Pix pelo sistema | Continua fora do escopo pela D12: dinheiro enviado errado não volta, e exigiria a chave Pix de cada jogador |
+| **"Gerar novo link"** (decidido com a Adrielly na etapa 7a) | Trocar o código público ou o de um time, e o antigo para de funcionar | Serve para quando um link vaza (por exemplo, o de um time colado no canal geral do Discord). Hoje o código nasce no cálculo e não muda. Precisa decidir antes se a troca pede confirmação e como a Maria avisa o time do link novo |
+| **Total de prêmios por período na lista de torneios** (decidido com a Adrielly na etapa 7d) | Na lista, o total pago no mês atual, no mês anterior e em todo o período, pela **data do cálculo** | A Maria passa a ver quanto distribuiu sem somar planilhas. A data do cálculo é quando o valor foi definido (a das partidas pode cair em outro mês). Não é pedido no desafio, e o "Pago" (acima) diria melhor quanto saiu de fato |
+| **"Arquivar" torneio em vez de apagar** | Tira o torneio da lista principal e mantém tudo no banco: planilha, conferência, Cientes e resultado | Para **responder contestações depois**: o CSV do resultado é gerado do banco a cada download, então apagar o torneio perderia também o relatório. Arquivar limpa a lista sem perder a prova do que foi pago |
+| **Apagar só torneios não calculados** (já no `plano.md`, seção 9) | Excluir torneio criado por engano ou de teste, antes do cálculo | Antes do cálculo, nada foi pago nem divulgado. Depois dele, os links dos times podem ter sido enviados e o resultado precisa existir para uma contestação: aí o caminho é arquivar |
+| **Envio de cópia por e-mail** | Mandar para a Maria, por e-mail, o CSV e os links de cada torneio calculado | Depende de **login e cadastro da organizadora** (o sistema não tem login, limitação da etapa 3b): sem saber quem é a Maria e qual o e-mail dela, não há para quem mandar. Também exigiria um serviço de envio de e-mail |

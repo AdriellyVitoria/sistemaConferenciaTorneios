@@ -13,7 +13,7 @@ import { buscarResultado } from '../../src/repositorios/resultado';
 import { calcularEGravar } from '../../src/servicos/calculo';
 import { corrigirId } from '../../src/servicos/partidas';
 import { criarTorneio, importarPlanilha } from '../../src/servicos/torneios';
-import { conectarAoBancoDeTeste, esvaziarTabelas } from './banco-de-teste';
+import { conectarAoBancoDeTeste, esvaziarTabelas, relogioDoBanco } from './banco-de-teste';
 
 // Arquivos só lidos: planilhas, dados do site e resultados esperados.
 const RAIZ = path.resolve(__dirname, '../../..');
@@ -22,11 +22,14 @@ const DADOS_DO_SITE = [arquivo('testes/site-oficial.json'), arquivo('api/test/fi
 const MINUTO = 60_000;
 
 let bd: Knex;
+/** O relógio do MySQL: o job e a correção usam o mesmo relógio que grava a próxima tentativa na importação. */
+let relogio: () => Date;
 let siteSimulado: Server;
 let site: SiteOficial;
 
-beforeAll(() => {
+beforeAll(async () => {
   bd = conectarAoBancoDeTeste();
+  relogio = await relogioDoBanco(bd);
 });
 afterAll(() => bd.destroy());
 beforeEach(async () => {
@@ -51,7 +54,7 @@ async function torneioConferido(planilha: string, modoDivisao: ModoDivisao = 'mi
 }
 
 async function conferirTudo(torneioId: number) {
-  let agora = new Date(Date.now() + 2_000);
+  let agora = new Date(relogio().getTime() + 2_000);
   for (let rodada = 0; rodada < 20; rodada++) {
     await executarRodada({ bd, site, agora: () => agora, intervalosMs: [MINUTO], lote: 3, presaAposMs: 2 * MINUTO });
     const proxima: { p: Date | null } | undefined = await bd('partidas').where({ torneio_id: torneioId, status_conferencia: 'aguardando' }).min({ p: 'proxima_tentativa_em' }).first();
@@ -83,7 +86,7 @@ const porChave = <T extends { time: string; nick: string }>(lista: T[]) =>
 /** 02: antes de calcular, a Maria corrige o ID que o site não conhece (#52214 → #52241). */
 async function corrigirO02(id: number) {
   const errada = await bd('partidas').where({ torneio_id: id, id_partida: '#52214' }).first();
-  expect((await corrigirId(bd, id, errada.id, '#52241')).tipo).toBe('corrigida');
+  expect((await corrigirId(bd, id, errada.id, '#52241', relogio())).tipo).toBe('corrigida');
   await conferirTudo(id);
 }
 

@@ -2,14 +2,16 @@
 /**
  * A tela do resultado (6e, protótipo 2-resultado): o que foi gravado no cálculo, nada recalculado.
  * Cabeçalho (data, modo travado, total distribuído e o CSV), classificação com o critério e a
- * frase dos empates (D2), e o prêmio por jogador com o filtro por nick. Os links por time são da
- * etapa 7.
+ * frase dos empates (D2), o prêmio por jogador com o filtro por nick e, no fim, os links da página
+ * pública e de cada time premiado para a Maria copiar (7d).
  */
 import { computed, onMounted, ref, useId } from 'vue';
 import { RouterLink } from 'vue-router';
+import LinksDosTimes from '../componentes/LinksDosTimes.vue';
+import TabelaClassificacao from '../componentes/TabelaClassificacao.vue';
 import { formatarHora } from '../dominio/conferencia';
 import { formatarCentavos } from '../dominio/dinheiro';
-import { buscarNoResultado, explicarEmpates, observacaoDoJogador, percentualDoTime, rotuloDoCriterio } from '../dominio/resultado';
+import { buscarNoResultado, observacaoDoJogador, percentualDoTime } from '../dominio/resultado';
 import { formatarDataDeCriacao, rotuloDoModo } from '../dominio/torneio';
 import { buscarResultado, enderecoDoCsv, type ResultadoDoTorneio } from '../servicos/api';
 
@@ -34,7 +36,6 @@ const idDoFiltro = `filtro-nick-${useId()}`;
 const totalDistribuido = computed(() => (resultado.value?.jogadores ?? []).reduce((soma, j) => soma + j.premioCentavos, 0));
 const premiados = computed(() => (resultado.value?.jogadores ?? []).filter((j) => j.premioCentavos > 0));
 const encontrados = computed(() => buscarNoResultado(resultado.value?.jogadores ?? [], busca.value));
-const empates = computed(() => (resultado.value ? explicarEmpates(resultado.value.times, resultado.value.percentuais) : []));
 const quando = computed(() => {
   const iso = resultado.value?.calculadoEm;
   return iso ? `${formatarDataDeCriacao(iso)} às ${formatarHora(iso).slice(0, 5)}` : '';
@@ -69,8 +70,7 @@ const resumo = computed(() => {
       <div class="titulo-com-acao">
         <div class="titulo-da-pagina">
           <h1>Resultado: {{ resultado.torneio.nome }}</h1>
-          <p class="texto-suave">Calculado em {{ quando }} · {{ rotuloDoModo(resultado.modoDivisao) }} (travada)</p>
-        </div>
+          <p class="texto-suave">Calculado em {{ quando }} · {{ rotuloDoModo(resultado.modoDivisao) }} (travada)</p>        </div>
         <div class="acoes-topo">
           <span class="selo sucesso redondo total">Total distribuído: {{ formatarCentavos(totalDistribuido) }}</span>
           <a :href="enderecoDoCsv(id)" class="botao secundario" download>Baixar CSV</a>
@@ -78,36 +78,7 @@ const resumo = computed(() => {
       </div>
 
       <section class="cartao" aria-labelledby="t-classificacao">
-        <h2 id="t-classificacao">Classificação</h2>
-        <div class="caixa-tabela">
-          <table class="tabela-resultado">
-            <caption class="visualmente-oculto">Classificação</caption>
-            <thead>
-              <tr>
-                <th scope="col">Posição</th>
-                <th scope="col">Time</th>
-                <th scope="col" class="numero">Vitórias</th>
-                <th scope="col" class="numero">Kills do time</th>
-                <th scope="col" class="numero">Prêmio</th>
-                <th scope="col">Critério</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="t in resultado.times" :key="t.time" :class="{ sem_premio: t.premioCentavos === 0 }">
-                <th scope="row" class="forte">{{ t.posicao }}º</th>
-                <td class="forte">{{ t.time }}</td>
-                <td class="numero numeral">{{ t.vitorias }}</td>
-                <td class="numero numeral">{{ t.killsTime }}</td>
-                <td class="numero mono">{{ t.premioCentavos > 0 ? formatarCentavos(t.premioCentavos) : '—' }}</td>
-                <td>
-                  <span v-if="rotuloDoCriterio(t.criterio)" class="selo" :class="rotuloDoCriterio(t.criterio)!.tom">{{ rotuloDoCriterio(t.criterio)!.texto }}</span>
-                  <span v-else>—</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p v-for="frase in empates" :key="frase" class="quadro-suave">{{ frase }}</p>
+        <TabelaClassificacao :times="resultado.times" :percentuais="resultado.percentuais" id-do-titulo="t-classificacao" />
       </section>
 
       <section class="cartao" aria-labelledby="t-jogadores">
@@ -152,6 +123,8 @@ const resumo = computed(() => {
 
         <p class="resumo-jogadores texto-suave" aria-live="polite">{{ resumo }}</p>
       </section>
+
+      <LinksDosTimes :torneio-id="id" />
     </template>
   </main>
 </template>
@@ -166,49 +139,6 @@ const resumo = computed(() => {
 .total {
   font-size: var(--texto-sm);
   padding: 6px 14px;
-}
-/* a tabela rola dentro da caixa no celular; a página não */
-.caixa-tabela {
-  overflow-x: auto;
-  min-width: 0;
-}
-.tabela-resultado {
-  width: 100%;
-  min-width: 640px;
-  border-collapse: collapse;
-  overflow-wrap: normal;
-}
-.tabela-resultado thead th {
-  text-align: left;
-  font-size: var(--texto-sm);
-  font-weight: var(--peso-medio);
-  color: var(--texto-suave);
-  padding: 10px var(--espaco-2);
-  border-bottom: 1px solid var(--borda);
-  white-space: nowrap;
-}
-.tabela-resultado td,
-.tabela-resultado tbody th {
-  text-align: left;
-  font-weight: var(--peso-normal);
-  padding: var(--espaco-3) var(--espaco-2);
-  border-bottom: 1px solid var(--linha-tabela);
-  white-space: nowrap;
-}
-.tabela-resultado .numero {
-  text-align: right;
-}
-.tabela-resultado .forte {
-  font-weight: var(--peso-forte);
-}
-.tabela-resultado tr:last-child td,
-.tabela-resultado tr:last-child th {
-  border-bottom: none;
-}
-.tabela-resultado tr.sem_premio td,
-.tabela-resultado tr.sem_premio th {
-  color: var(--texto-suave);
-  font-weight: var(--peso-normal);
 }
 .observacao {
   font-size: var(--texto-sm);

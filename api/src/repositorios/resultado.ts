@@ -1,6 +1,7 @@
 /** O resultado congelado do cálculo (etapa 6a): gravar e ler. */
 
 import type { Executor } from '../banco/conexao';
+import { gerarCodigoDeAcesso } from '../dominio/codigo-de-acesso';
 import type { PremioTime } from '../dominio/premio';
 import type { ModoDivisao } from '../dominio/rateio';
 import type { JogadorDoResultado, Resultado } from '../dominio/resultado';
@@ -36,8 +37,9 @@ export interface ResultadoGravado extends ConfiguracaoUsada {
 }
 
 /**
- * Grava o resultado e a configuração usada. Se o torneio já tinha um cálculo, ele é substituído
- * (as linhas saem junto, pela chave estrangeira). Quem impede um segundo cálculo é a etapa 6b.
+ * Grava o resultado e a configuração usada, com os códigos dos links (D11, 7a): o público e um por
+ * time premiado. Se o torneio já tinha um cálculo, ele é substituído (as linhas e os códigos saem
+ * junto, pela chave estrangeira). Quem impede um segundo cálculo é a etapa 6b.
  */
 export async function gravarResultado(
   bd: Executor,
@@ -53,6 +55,7 @@ export async function gravarResultado(
     premio_centavos: config.premioCentavos,
     percentuais: JSON.stringify(config.percentuais),
     modo_divisao: config.modoDivisao,
+    codigo_publico: gerarCodigoDeAcesso(),
   });
 
   if (resultado.times.length) {
@@ -69,6 +72,11 @@ export async function gravarResultado(
         recebeu_centavo: t.recebeuCentavo,
       })),
     );
+    // times sem prêmio não recebem código: eles veem a página pública (D11)
+    const premiados: { id: number }[] = await bd('premios_time').where({ calculo_id: calculoId }).andWhere('premio_centavos', '>', 0).select('id');
+    if (premiados.length) {
+      await bd('codigos_time').insert(premiados.map(({ id }) => ({ premio_time_id: id, codigo: gerarCodigoDeAcesso() })));
+    }
   }
   if (resultado.jogadores.length) {
     await bd('premios_jogador').insert(
@@ -87,6 +95,50 @@ export async function gravarResultado(
       })),
     );
   }
+}
+
+/** O torneio do código público, ou null se nenhum cálculo tem esse código. */
+export async function buscarPorCodigoPublico(bd: Executor, codigo: string): Promise<{ torneioId: number; nome: string } | null> {
+  const linha = await bd('calculos as c')
+    .join('torneios as t', 't.id', 'c.torneio_id')
+    .where('c.codigo_publico', codigo)
+    .first('t.id', 't.nome');
+  return linha ? { torneioId: linha.id, nome: linha.nome } : null;
+}
+
+/** O time do código, com o torneio e o código público, ou null se nenhum time premiado tem esse código. */
+export async function buscarPorCodigoDeTime(
+  bd: Executor,
+  codigo: string,
+): Promise<{ torneioId: number; nome: string; time: string; codigoPublico: string } | null> {
+  const linha = await bd('codigos_time as c')
+    .join('premios_time as p', 'p.id', 'c.premio_time_id')
+    .join('calculos as k', 'k.id', 'p.calculo_id')
+    .join('torneios as t', 't.id', 'k.torneio_id')
+    .where('c.codigo', codigo)
+    .first('t.id', 't.nome', 'p.time', 'k.codigo_publico');
+  return linha ? { torneioId: linha.id, nome: linha.nome, time: linha.time, codigoPublico: linha.codigo_publico } : null;
+}
+
+export interface CodigosDoTorneio {
+  publico: { codigo: string };
+  /** Os times premiados, na ordem da classificação. */
+  times: { time: string; posicao: number; premioCentavos: number; codigo: string }[];
+}
+
+/** Os códigos dos links do torneio, para a Maria copiar, ou null se ainda não foi calculado. */
+export async function buscarCodigos(bd: Executor, torneioId: number): Promise<CodigosDoTorneio | null> {
+  const calculo = await bd('calculos').where({ torneio_id: torneioId }).first('id', 'codigo_publico');
+  if (!calculo) return null;
+  const times = await bd('codigos_time as c')
+    .join('premios_time as p', 'p.id', 'c.premio_time_id')
+    .where('p.calculo_id', calculo.id)
+    .orderBy('p.ordem')
+    .select('p.time', 'p.posicao', 'p.premio_centavos', 'c.codigo');
+  return {
+    publico: { codigo: calculo.codigo_publico },
+    times: times.map((t) => ({ time: t.time, posicao: t.posicao, premioCentavos: t.premio_centavos, codigo: t.codigo })),
+  };
 }
 
 /** O resultado gravado do torneio, ou null se ainda não foi calculado. */

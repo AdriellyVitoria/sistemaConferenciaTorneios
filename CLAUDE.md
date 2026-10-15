@@ -57,5 +57,10 @@ Projeto: desafio técnico da PowerRev (Desenvolvedora Full Stack Júnior). Siste
 - Etapa 6, pedaço 6b (rota de cálculo, só API): concluído.
 - Etapa 6, pedaço 6c (ler o resultado e baixar o CSV, só API): concluído.
 - Etapa 6, pedaço 6d (botão Calcular com confirmação, só web): concluído.
-- Etapa 6, pedaço 6e (tela do resultado, só web): pronto, aguardando aprovação. Decisões no `DECISIONS.md`. Com ele, a etapa 6 fica completa (marcar no checklist quando a Adrielly aprovar).
-- Próximo passo: **Etapa 7** (página pública e links por time premiado), depois da aprovação do 6e.
+- Etapa 6, pedaço 6e (tela do resultado, só web): concluído. Etapa 6 completa e marcada no checklist. Sem 6f: PDF, "jogou X de Y partidas" e "Pago"/Pix estão em "Próximos passos" no `DECISIONS.md`.
+- Etapa 7, pedaço 7a (códigos de acesso e `GET /publico/:codigo`, só API, migration 010): concluído. Código de time não abre a página pública. "Gerar novo link" em "Próximos passos" no `DECISIONS.md`.
+- Etapa 7, pedaço 7b (`GET /time/:codigo` e `GET /torneios/:id/links`, só API): concluído.
+- Testes de integração com um relógio só (o do MySQL, `relogioDoBanco` em `api/test/integracao/banco-de-teste.ts`): concluído.
+- Etapa 7, pedaço 7c (tela da página pública, só web, rota `/publico/:codigo`): concluído. Rotas com `meta: { publica: true }` ficam sem menu, rodapé e links para as telas da Maria. Posição com 0% não conta como premiada (confirmado).
+- Etapa 7, pedaço 7d (tela do link do time em `/time/:codigo` e "Links para os times premiados" na tela do resultado, só web): pronto, aguardando aprovação. **Quando a Adrielly aprovar, marcar a etapa 7 no checklist do `plano.md`.**
+- Próximo passo: depois da aprovação do 7d, **Etapa 8** (documentação).

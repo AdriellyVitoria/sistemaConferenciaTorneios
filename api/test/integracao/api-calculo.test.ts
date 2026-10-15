@@ -9,13 +9,15 @@ import { carregarPartidas } from '../../../site-oficial-simulado/src/dados';
 import { criarApp } from '../../src/app';
 import { executarRodada } from '../../src/conferencia/job';
 import { criarClienteSiteOficial } from '../../src/conferencia/site-oficial';
-import { conectarAoBancoDeTeste, esvaziarTabelas } from './banco-de-teste';
+import { conectarAoBancoDeTeste, esvaziarTabelas, relogioDoBanco } from './banco-de-teste';
 
 const RAIZ = path.resolve(__dirname, '../../..');
 const arquivo = (relativo: string) => path.join(RAIZ, relativo);
 const DADOS_DO_SITE = [arquivo('testes/site-oficial.json'), arquivo('api/test/fixtures/site-setembro.json')];
 
 let bd: Knex;
+/** O relógio do MySQL: a API e o job usam o mesmo relógio que grava a próxima tentativa na importação. */
+let relogio: () => Date;
 let api: Server;
 let site: Server;
 let base: string;
@@ -23,7 +25,8 @@ let urlDoSite: string;
 
 beforeAll(async () => {
   bd = conectarAoBancoDeTeste();
-  api = criarApp({ bd, verificarBanco: async () => {} }).listen(0);
+  relogio = await relogioDoBanco(bd);
+  api = criarApp({ bd, verificarBanco: async () => {}, agora: () => relogio() }).listen(0);
   await new Promise((pronto) => api.once('listening', pronto));
   base = `http://127.0.0.1:${(api.address() as AddressInfo).port}`;
 });
@@ -55,7 +58,7 @@ const conferirTudo = () =>
   executarRodada({
     bd,
     site: criarClienteSiteOficial({ urlBase: urlDoSite, tempoLimiteMs: 5_000 }),
-    agora: () => new Date(Date.now() + 2_000),
+    agora: () => new Date(relogio().getTime() + 2_000),
     intervalosMs: [60_000],
     lote: 3,
     presaAposMs: 120_000,

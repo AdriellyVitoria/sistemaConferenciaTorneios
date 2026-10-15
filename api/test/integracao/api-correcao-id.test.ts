@@ -9,7 +9,7 @@ import { carregarPartidas } from '../../../site-oficial-simulado/src/dados';
 import { criarApp } from '../../src/app';
 import { executarRodada } from '../../src/conferencia/job';
 import { criarClienteSiteOficial, type SiteOficial } from '../../src/conferencia/site-oficial';
-import { conectarAoBancoDeTeste, esvaziarTabelas } from './banco-de-teste';
+import { conectarAoBancoDeTeste, esvaziarTabelas, relogioDoBanco } from './banco-de-teste';
 
 const RAIZ = path.resolve(__dirname, '../../..');
 const arquivo = (relativo: string) => path.join(RAIZ, relativo);
@@ -32,6 +32,8 @@ function dadosDoSite() {
 }
 
 let bd: Knex;
+/** O relógio do MySQL: a API e o job usam o mesmo relógio que grava a próxima tentativa na importação. */
+let relogio: () => Date;
 let api: Server;
 let site: Server;
 let base: string;
@@ -39,7 +41,8 @@ let clienteDoSite: SiteOficial;
 
 beforeAll(async () => {
   bd = conectarAoBancoDeTeste();
-  api = criarApp({ bd, verificarBanco: async () => {} }).listen(0);
+  relogio = await relogioDoBanco(bd);
+  api = criarApp({ bd, verificarBanco: async () => {}, agora: () => relogio() }).listen(0);
   await new Promise((pronto) => api.once('listening', pronto));
   base = `http://127.0.0.1:${(api.address() as AddressInfo).port}`;
 });
@@ -67,7 +70,7 @@ async function pedir(metodo: string, caminho: string, corpo?: unknown) {
   return { status: resposta.status, corpo: await resposta.json() };
 }
 
-const rodada = (siteUsado: SiteOficial = clienteDoSite, agora = () => new Date(Date.now() + 2_000)) =>
+const rodada = (siteUsado: SiteOficial = clienteDoSite, agora = () => new Date(relogio().getTime() + 2_000)) =>
   executarRodada({ bd, site: siteUsado, agora, intervalosMs: [60_000], lote: 3, presaAposMs: 120_000 });
 
 async function torneioConferido(planilha: string): Promise<number> {
@@ -131,7 +134,8 @@ describe('PUT /torneios/:id/partidas/:partidaId/id-partida', () => {
       id_partida: '#45695', status_conferencia: 'aguardando', tentativas: 0, vencedor: null,
       ultimo_erro: null, origem_do_erro: null, ultima_tentativa_em: null, em_consulta_desde: null,
     });
-    expect(corrigida.proxima_tentativa_em.getTime()).toBeLessThanOrEqual(Date.now() + 1_000);
+    // a API grava a hora da correção em segundos inteiros, cortando a fração: nunca fica no futuro
+    expect(corrigida.proxima_tentativa_em.getTime()).toBeLessThanOrEqual(relogio().getTime());
     expect(await bd('participacoes').where({ partida_id: p.id })).toEqual([]);
   });
 
@@ -198,8 +202,8 @@ describe('correção durante a consulta: o recibo do 4b descarta o resultado do 
     const alvo = await partidaDoBanco(id, '#45659');
     await bd('partidas').where({ torneio_id: id }).whereNot({ id: alvo.id }).update({ status_conferencia: 'conferida', proxima_tentativa_em: null });
     // a rodada começa antes da correção: a partida corrigida (próxima tentativa = agora) fica para a rodada seguinte
-    await bd('partidas').where({ id: alvo.id }).update({ proxima_tentativa_em: new Date(Date.now() - 60_000) });
-    const inicioDaRodada = new Date(Date.now() - 30_000);
+    await bd('partidas').where({ id: alvo.id }).update({ proxima_tentativa_em: new Date(relogio().getTime() - 60_000) });
+    const inicioDaRodada = new Date(relogio().getTime() - 30_000);
 
     // o site demora na consulta do #45659: enquanto isso, a Maria corrige o ID
     let soltar!: () => void;

@@ -323,6 +323,10 @@ Em três pedaços. **4a:** as peças da consulta, sem o job: cliente HTTP do sit
 **Pronto quando:** setembro mostra o empate triplo com a justificativa e os valores batem com o resultado esperado (`contexto.md`, seção 14): Lobos 1º (R$ 5.000), Corvos 2º por kills (368, R$ 3.000), Tubarões e Falcões empatados em vitórias e kills (310) dividindo o 3º lugar (R$ 1.000 cada).
 
 ### Etapa 7 — Página pública e links por time premiado
+**7a (API):** códigos de acesso gerados no cálculo, na mesma transação (um público e um por time premiado, 32 caracteres aleatórios; migration 010, que também preenche os torneios já calculados) e `GET /publico/:codigo`, só do resultado congelado, sem dado de jogador, com 404 igual para qualquer erro e `X-Robots-Tag: noindex`. **(feito)**
+**7b (API):** `GET /time/:codigo` (extrato dos jogadores de um time premiado, sem nada de outros times, com o código público) e `GET /torneios/:id/links` (códigos para a Maria copiar; 409 antes do cálculo). Códigos guardados em texto, não em hash (DECISIONS.md). **(feito)**
+**7c (web):** tela da página pública em `/publico/:codigo`: nome, data, regras em texto simples e a classificação (componente compartilhado com o resultado) com a frase dos empates; sem menu, sem rodapé e sem links para as telas da Maria; `noindex` no `index.html`; "Página não encontrada" para código errado ou vazio. **(feito)**
+**7d (web):** tela do link do time em `/time/:codigo` (protótipo 3-link-do-time: resumo, "Como o valor foi calculado" em passos montados dos dados, um cartão por jogador com a conta e o centavo, "Procurar meu nick", total e o link para a página pública) e a seção "Links para os times premiados" na tela do resultado ("Copiar link", com o campo selecionado se a área de transferência falhar). **(feito)**
 - Página pública: classificação, regras, desempate e prêmio por time, sem valores individuais (D11).
 - Link com token para cada time premiado: extrato de cada jogador, a conta, o centavo de arredondamento e filtro por nick.
 

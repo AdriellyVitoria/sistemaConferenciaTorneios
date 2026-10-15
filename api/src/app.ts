@@ -5,6 +5,7 @@ import { rotasCalculo } from './rotas/calculo';
 import { rotasPartidas } from './rotas/partidas';
 import { rotasResultado } from './rotas/resultado';
 import { rotasPendencias } from './rotas/pendencias';
+import { rotasPublico } from './rotas/publico';
 import { rotasTorneios } from './rotas/torneios';
 
 export interface Dependencias {
@@ -24,6 +25,7 @@ export function criarApp({ bd, verificarBanco, agora = () => new Date() }: Depen
   app.use(rotasPartidas(bd, agora));
   app.use(rotasCalculo(bd, agora));
   app.use(rotasResultado(bd));
+  app.use(rotasPublico(bd));
   app.use(tratarErros);
   return app;
 }

@@ -243,7 +243,8 @@ export async function corrigirIdPartida(
 }
 
 /** Um time na classificação gravada no cálculo (6c). */
-export interface TimeDoResultado {
+/** Um time na classificação gravada: o que a tela do resultado e a página pública mostram. */
+export interface TimeDaClassificacao {
   posicao: number;
   time: string;
   vitorias: number;
@@ -251,6 +252,9 @@ export interface TimeDoResultado {
   premioCentavos: number;
   /** Como foi gravado: "desempate por kills do time", "divisão igual (empate em vitórias e kills)"... */
   criterio: string | null;
+}
+
+export interface TimeDoResultado extends TimeDaClassificacao {
   recebeuCentavo: boolean;
 }
 
@@ -291,6 +295,88 @@ export async function buscarResultado(torneioId: number): Promise<{ tipo: 'ok'; 
 }
 
 export const enderecoDoCsv = (torneioId: number) => `/api/torneios/${torneioId}/resultado.csv`;
+
+/** A página pública do torneio (7a): só o que é do torneio e dos times, sem dado de jogador. */
+export interface PaginaPublica {
+  torneio: { nome: string };
+  calculadoEm: string;
+  regras: {
+    premioCentavos: number;
+    percentuais: number[];
+    modoDivisao: ModoDivisao;
+    criterioDeDesempate: string;
+  };
+  classificacao: TimeDaClassificacao[];
+}
+
+/** Uma página aberta por link: "nao_encontrada" = 404 (código errado); "erro" = qualquer outra falha. */
+export type LeituraPorLink<T> = { tipo: 'ok'; pagina: T } | { tipo: 'nao_encontrada' } | { tipo: 'erro' };
+
+async function lerPorLink<T>(caminho: string): Promise<LeituraPorLink<T>> {
+  let resposta: Response;
+  try {
+    resposta = await fetch(caminho);
+  } catch {
+    return { tipo: 'erro' };
+  }
+  if (resposta.status === 404) return { tipo: 'nao_encontrada' };
+  if (!resposta.ok) return { tipo: 'erro' };
+  try {
+    return { tipo: 'ok', pagina: await resposta.json() };
+  } catch {
+    return { tipo: 'erro' };
+  }
+}
+
+/** GET /publico/:codigo (7a). */
+export const buscarPaginaPublica = (codigo: string) => lerPorLink<PaginaPublica>(`/api/publico/${encodeURIComponent(codigo)}`);
+
+/** Um jogador no link do time (7b): só deste time. */
+export interface JogadorDaPaginaDoTime {
+  nick: string;
+  /** Minutos ou kills, conforme `baseUsada`. */
+  base: number;
+  baseUsada: ModoDivisao;
+  /** A parte do jogador no time, em centésimos de ponto percentual: 220 = 2,20%. */
+  centesimosDePercentual: number;
+  premioCentavos: number;
+  recebeuCentavo: boolean;
+  explicacao: string | null;
+}
+
+/** O link de um time premiado (7b): o extrato dos jogadores dele, sem nada dos outros times. */
+export interface PaginaDoTime {
+  torneio: { nome: string };
+  calculadoEm: string;
+  time: { nome: string; posicao: number; premioCentavos: number; baseUsada: ModoDivisao; baseTime: number };
+  comoFoiCalculado: {
+    premioTotalCentavos: number;
+    percentualDaPosicao: number;
+    /** Como foi gravado: "desempate por kills do time", "divisão igual (empate em vitórias e kills)" ou null. */
+    criterio: string | null;
+    /** Só no empate dividido: as posições somadas, os percentuais delas e quantos times dividiram. */
+    empate: { posicoes: number[]; percentuais: number[]; quantidadeDeTimes: number } | null;
+    modoDivisao: ModoDivisao;
+  };
+  /** Do maior valor para o menor, e por nick no mesmo valor. */
+  jogadores: JogadorDaPaginaDoTime[];
+  totalCentavos: number;
+  codigoPublico: string;
+}
+
+/** GET /time/:codigo (7b). */
+export const buscarPaginaDoTime = (codigo: string) => lerPorLink<PaginaDoTime>(`/api/time/${encodeURIComponent(codigo)}`);
+
+/** Os códigos dos links do torneio (7b), para a Maria copiar. */
+export interface LinksDoTorneio {
+  publico: { codigo: string };
+  /** Os times premiados, na ordem da classificação. */
+  times: { time: string; posicao: number; premioCentavos: number; codigo: string }[];
+}
+
+export async function buscarLinks(torneioId: number): Promise<LinksDoTorneio> {
+  return lerOuFalhar(await chamar(`/api/torneios/${torneioId}/links`));
+}
 
 /**
  * Calcula os prêmios (6b). "recusado" = 409: algo mudou entre a tela e o clique (um Ciente

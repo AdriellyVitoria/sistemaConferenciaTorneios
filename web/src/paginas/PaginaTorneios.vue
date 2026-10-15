@@ -54,10 +54,35 @@ async function aoRemover(id: number) {
 
 const mesAtual = mesDeHoje();
 
-const filtro = ref<Filtro>('todos');
-const divisao = ref<FiltroDeDivisao>('todas');
-const mes = ref('todos');
-const busca = ref('');
+/** Os filtros de quando a página abre: "Limpar filtros" volta a eles (R4). */
+const PADRAO = { situacao: 'todos' as Filtro, divisao: 'todas' as FiltroDeDivisao, mes: 'todos', busca: '' };
+
+const filtro = ref<Filtro>(PADRAO.situacao);
+const divisao = ref<FiltroDeDivisao>(PADRAO.divisao);
+const mes = ref(PADRAO.mes);
+const busca = ref(PADRAO.busca);
+
+/** Algum filtro diferente do padrão: só então o botão "Limpar filtros" aparece. */
+const temFiltro = computed(
+  () => filtro.value !== PADRAO.situacao || divisao.value !== PADRAO.divisao || mes.value !== PADRAO.mes || busca.value !== PADRAO.busca,
+);
+
+/** O que o leitor de tela lê depois de limpar: "Filtros limpos: 3 torneios." */
+const anuncioDosFiltros = ref('');
+/** O botão "Todos" da situação, o primeiro filtro: recebe o foco depois de limpar. */
+const primeiroFiltro = ref<HTMLButtonElement | null>(null);
+
+async function limparFiltros() {
+  filtro.value = PADRAO.situacao;
+  divisao.value = PADRAO.divisao;
+  mes.value = PADRAO.mes;
+  busca.value = PADRAO.busca;
+  await nextTick();
+  const quantos = visiveis.value.length;
+  anuncioDosFiltros.value = `Filtros limpos: ${quantos} ${quantos === 1 ? 'torneio' : 'torneios'}.`;
+  // o botão sumiu: o foco vai para o primeiro filtro, e não se perde no começo da página
+  primeiroFiltro.value?.focus();
+}
 
 const lista = computed(() => torneios.value ?? []);
 const filtros = computed(() => ({ situacao: filtro.value, busca: busca.value, mes: mes.value, divisao: divisao.value }));
@@ -122,8 +147,9 @@ const DIVISOES: { id: FiltroDeDivisao; rotulo: string }[] = [
       <div class="controles">
           <div role="tablist" aria-label="Filtrar torneios" class="segmentos">
             <button
-              v-for="f in FILTROS"
+              v-for="(f, i) in FILTROS"
               :key="f.id"
+              :ref="(el) => { if (i === 0) primeiroFiltro = el as HTMLButtonElement | null; }"
               type="button"
               role="tab"
               class="segmento"
@@ -161,7 +187,10 @@ const DIVISOES: { id: FiltroDeDivisao; rotulo: string }[] = [
             <label for="busca-torneio" class="ajuda">Buscar torneio</label>
             <input id="busca-torneio" v-model="busca" type="search" class="campo" placeholder="Nome do torneio" autocomplete="off" />
           </div>
+          <button v-if="temFiltro" type="button" class="botao secundario limpar" @click="limparFiltros">Limpar filtros</button>
       </div>
+      <!-- fora do botão, que some: o leitor de tela lê quantos torneios aparecem depois de limpar -->
+      <p class="visualmente-oculto anuncio-dos-filtros" role="status">{{ anuncioDosFiltros }}</p>
 
       <div id="lista-torneios" role="tabpanel" class="lista" aria-live="polite">
         <section v-if="grupos.emAndamento.length" class="grupo-andamento" aria-labelledby="t-em-andamento">
@@ -308,7 +337,8 @@ const DIVISOES: { id: FiltroDeDivisao; rotulo: string }[] = [
 @media (max-width: 640px) {
   .grupo-de-filtro,
   .mes,
-  .busca {
+  .busca,
+  .limpar {
     flex-basis: 100%;
     width: 100%;
   }

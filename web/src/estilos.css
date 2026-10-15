@@ -168,6 +168,10 @@ p {
   background: var(--alerta-fundo);
   color: var(--alerta);
 }
+.selo.erro {
+  background: var(--erro-fundo);
+  color: var(--erro);
+}
 
 /* botões */
 .botao {

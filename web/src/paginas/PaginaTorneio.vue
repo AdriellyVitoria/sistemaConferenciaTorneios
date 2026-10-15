@@ -1,7 +1,14 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, onUnmounted, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
 import DialogoConfirmacao from '../componentes/DialogoConfirmacao.vue';
+import {
+  estadoDoTentarAgora,
+  precisaAcompanhar,
+  progressoDaConferencia,
+  segundosAte,
+  situacaoNaFila,
+} from '../dominio/conferencia';
 import { formatarCentavos } from '../dominio/dinheiro';
 import { resumoDosPercentuais } from '../dominio/percentuais';
 import {
@@ -12,9 +19,11 @@ import {
   rotuloDoModo,
   rotuloDoStatus,
 } from '../dominio/torneio';
+import { criarSondagem } from '../utilitarios/sondagem';
 import {
   buscarTorneio,
   enviarPlanilha,
+  tentarAgora,
   type ErroPlanilha,
   type PlanilhaImportada,
   type StatusConferencia,
@@ -25,21 +34,122 @@ const props = defineProps<{ id: number }>();
 
 const torneio = ref<TorneioComPartidas | null>(null);
 const erroAoCarregar = ref<string | null>(null);
+/** Falha ao atualizar uma tela que já tem dados: avisa, sem apagar o que está na tela. */
+const semConexao = ref(false);
+/** O relógio da tela, para a contagem do botão e o "próxima em instantes". */
+const agora = ref(Date.now());
+
+// --- atualização periódica (etapa 4c): a cada 5 s enquanto houver partida esperando o site
+const sondagem = criarSondagem({
+  intervaloMs: 5_000,
+  atualizar: async () => {
+    await carregar();
+    return torneio.value !== null && precisaAcompanhar(torneio.value.partidas);
+  },
+});
 
 async function carregar() {
   try {
-    torneio.value = await buscarTorneio(props.id);
+    const recebido = await buscarTorneio(props.id);
+    torneio.value = recebido;
     erroAoCarregar.value = null;
+    semConexao.value = false;
+    agora.value = Date.now();
+    iniciarContagem(recebido.segundosParaTentarAgora);
+    if (precisaAcompanhar(recebido.partidas)) sondagem.garantirAtiva();
   } catch (e) {
-    erroAoCarregar.value = (e as Error).message;
+    if (torneio.value) semConexao.value = true;
+    else erroAoCarregar.value = (e as Error).message;
   }
 }
-watch(() => props.id, carregar, { immediate: true });
+watch(
+  () => props.id,
+  () => {
+    sondagem.parar();
+    torneio.value = null;
+    void carregar();
+  },
+  { immediate: true },
+);
 
 const envio = computed(() => (torneio.value ? envioDaPlanilha(torneio.value) : 'primeira'));
 const partidas = computed(() =>
   [...(torneio.value?.partidas ?? [])].sort((a, b) => a.rodada - b.rodada || a.id - b.id),
 );
+
+// --- progresso e abas
+const progresso = computed(() => progressoDaConferencia(partidas.value));
+const naFila = computed(() =>
+  partidas.value
+    .filter((p) => p.statusConferencia === 'aguardando' || p.statusConferencia === 'em_consulta')
+    .map((p) => ({ partida: p, situacao: situacaoNaFila(p, new Date(agora.value)) })),
+);
+type Aba = 'aguardando' | 'todas';
+const abaEscolhida = ref<Aba | null>(null);
+// sem escolha da Maria, abre em "Aguardando o site" enquanto houver partida lá
+const aba = computed<Aba>(() => abaEscolhida.value ?? (naFila.value.length ? 'aguardando' : 'todas'));
+
+// --- "tentar agora": a contagem do bloqueio de 30 s vem da API e corre aqui a cada segundo
+let liberaEm = 0;
+let relogio: ReturnType<typeof setInterval> | undefined;
+const segundosRestantes = computed(() => segundosAte(liberaEm, agora.value));
+
+function iniciarContagem(segundos: number) {
+  liberaEm = Date.now() + segundos * 1000;
+  agora.value = Date.now();
+  if (segundos > 0 && relogio === undefined) {
+    relogio = setInterval(() => {
+      agora.value = Date.now();
+      if (segundosRestantes.value === 0) pararContagem();
+    }, 1_000);
+  }
+}
+function pararContagem() {
+  if (relogio !== undefined) clearInterval(relogio);
+  relogio = undefined;
+}
+
+const botaoTentarAgora = computed(() =>
+  torneio.value
+    ? estadoDoTentarAgora({ partidas: partidas.value, segundosParaTentarAgora: segundosRestantes.value, status: torneio.value.status })
+    : { habilitado: false, rotulo: 'Tentar agora', motivo: null },
+);
+const tentando = ref(false);
+const avisoTentarAgora = ref<{ tom: 'sucesso' | 'alerta' | 'erro'; texto: string } | null>(null);
+
+function textoDasAntecipadas(quantas: number): string {
+  if (quantas === 0) return 'As partidas já estavam na vez: serão consultadas em instantes.';
+  const partidasAntecipadas = quantas === 1 ? '1 partida antecipada' : `${quantas} partidas antecipadas`;
+  return `${partidasAntecipadas}: serão consultadas em instantes.`;
+}
+
+async function clicarTentarAgora() {
+  tentando.value = true;
+  avisoTentarAgora.value = null;
+  try {
+    const resultado = await tentarAgora(props.id);
+    if (resultado.tipo === 'antecipadas') {
+      iniciarContagem(resultado.segundosParaTentarAgora);
+      avisoTentarAgora.value = { tom: 'sucesso', texto: textoDasAntecipadas(resultado.antecipadas) };
+    } else if (resultado.tipo === 'aguarde') {
+      iniciarContagem(resultado.segundosParaTentarAgora);
+      avisoTentarAgora.value = { tom: 'alerta', texto: resultado.mensagem };
+    } else {
+      avisoTentarAgora.value = { tom: 'erro', texto: resultado.mensagem };
+    }
+    await carregar();
+  } catch (e) {
+    avisoTentarAgora.value = { tom: 'erro', texto: (e as Error).message };
+  } finally {
+    tentando.value = false;
+  }
+}
+
+// ao sair da página, nada fica rodando
+onUnmounted(() => {
+  sondagem.parar();
+  pararContagem();
+});
 
 // --- envio da planilha ---
 const seletor = ref<HTMLInputElement | null>(null);
@@ -105,7 +215,6 @@ const tomDaConferencia: Record<StatusConferencia, string> = {
   times_diferentes: 'alerta',
 };
 
-const partidasAguardando = computed(() => partidas.value.filter((p) => p.statusConferencia === 'aguardando').length);
 </script>
 
 <template>
@@ -199,12 +308,77 @@ const partidasAguardando = computed(() => partidas.value.filter((p) => p.statusC
         </div>
       </section>
 
-      <section v-if="partidas.length" class="cartao" aria-labelledby="t-partidas">
+      <section v-if="partidas.length" class="cartao" aria-labelledby="t-conferencia">
         <div class="titulo-com-acao">
-          <h2 id="t-partidas">Partidas</h2>
-          <span class="texto-suave">{{ partidasAguardando }} de {{ partidas.length }} aguardando o site oficial</span>
+          <div class="titulo-da-pagina">
+            <h2 id="t-conferencia">Conferência com o site oficial</h2>
+            <p class="texto-medio" aria-live="polite">
+              <strong class="mono">{{ progresso.conferidas }}</strong> de <span class="mono">{{ progresso.total }}</span> conferidas
+              <template v-if="progresso.aguardandoOSite"> · {{ progresso.aguardandoOSite }} aguardando o site</template>
+            </p>
+          </div>
+          <div class="tentar-agora">
+            <button type="button" class="botao secundario" :disabled="!botaoTentarAgora.habilitado || tentando" @click="clicarTentarAgora">
+              {{ tentando ? 'Antecipando…' : botaoTentarAgora.rotulo }}
+            </button>
+            <span v-if="botaoTentarAgora.motivo && progresso.aguardandoOSite" class="ajuda">{{ botaoTentarAgora.motivo }}</span>
+          </div>
         </div>
-        <div class="rolagem">
+        <div
+          class="barra"
+          role="progressbar"
+          :aria-valuenow="progresso.conferidas"
+          aria-valuemin="0"
+          :aria-valuemax="progresso.total"
+          :aria-label="`${progresso.conferidas} de ${progresso.total} partidas conferidas`"
+        >
+          <div class="barra-cheia" :style="{ width: `${progresso.percentual}%` }" />
+        </div>
+        <p v-if="avisoTentarAgora" class="aviso" :class="avisoTentarAgora.tom" role="status">{{ avisoTentarAgora.texto }}</p>
+        <p v-if="semConexao" class="aviso alerta" role="status">Sem conexão com o servidor. A tela tenta atualizar de novo em instantes.</p>
+      </section>
+
+      <section v-if="partidas.length" class="cartao" aria-label="Partidas">
+        <div role="tablist" aria-label="Situação das partidas" class="abas">
+          <button
+            id="aba-aguardando"
+            type="button"
+            role="tab"
+            :aria-selected="aba === 'aguardando'"
+            aria-controls="painel-aguardando"
+            class="aba"
+            @click="abaEscolhida = 'aguardando'"
+          >
+            Aguardando o site <span class="contador neutro mono">{{ naFila.length }}</span>
+          </button>
+          <button
+            id="aba-todas"
+            type="button"
+            role="tab"
+            :aria-selected="aba === 'todas'"
+            aria-controls="painel-todas"
+            class="aba"
+            @click="abaEscolhida = 'todas'"
+          >
+            Todas as partidas <span class="contador neutro mono">{{ partidas.length }}</span>
+          </button>
+        </div>
+
+        <div v-if="aba === 'aguardando'" id="painel-aguardando" role="tabpanel" aria-labelledby="aba-aguardando">
+          <p v-if="naFila.length === 0" class="texto-medio vazio-aba">Nenhuma partida esperando o site oficial.</p>
+          <ul v-else class="fila">
+            <li v-for="{ partida: p, situacao } in naFila" :key="p.id" class="item-fila">
+              <div class="item-cabecalho">
+                <span class="selo" :class="situacao.selo.tom">{{ situacao.selo.texto }}</span>
+                <strong>Partida <span class="mono">{{ p.idPartida }}</span> · Rodada {{ p.rodada }} · {{ p.timeA }} x {{ p.timeB }}</strong>
+              </div>
+              <p v-if="situacao.motivo" class="texto-medio">{{ situacao.motivo }}</p>
+              <p class="texto-suave">{{ situacao.horario }}</p>
+            </li>
+          </ul>
+        </div>
+
+        <div v-else id="painel-todas" role="tabpanel" aria-labelledby="aba-todas" class="rolagem">
           <table class="tabela partidas">
             <thead>
               <tr>
@@ -260,5 +434,74 @@ const partidasAguardando = computed(() => partidas.value.filter((p) => p.statusC
 }
 .tabela.partidas {
   min-width: 640px;
+}
+.tentar-agora {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+.barra {
+  height: 8px;
+  background: var(--primaria-clara);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.barra-cheia {
+  height: 8px;
+  background: var(--primaria);
+  transition: width 0.4s ease;
+}
+.abas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  border-bottom: 1px solid var(--borda-forte);
+}
+.aba {
+  font: inherit;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 12px 16px;
+  min-height: 44px;
+  color: var(--texto-suave);
+  cursor: pointer;
+}
+.aba[aria-selected='true'] {
+  font-weight: 600;
+  color: var(--texto);
+  border-bottom-color: var(--primaria);
+}
+.contador {
+  border-radius: 999px;
+  padding: 1px 8px;
+  margin-left: 4px;
+  background: var(--neutro-fundo);
+  color: var(--neutro);
+}
+.vazio-aba {
+  padding: 16px 0 4px;
+}
+.fila {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.item-fila {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--linha-tabela);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.item-fila:last-child {
+  border-bottom: none;
+}
+.item-cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
 }
 </style>

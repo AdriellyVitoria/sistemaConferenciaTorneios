@@ -21,6 +21,8 @@ export interface Torneio extends NovoTorneio {
   planilhaImportadaEm: Date | null;
   /** A planilha não era UTF-8 e foi convertida de Windows-1252 (D18): a tela avisa. */
   planilhaConvertidaDeWindows1252: boolean;
+  /** O último clique em "tentar agora", para o bloqueio de 30 s (etapa 4c). */
+  tentarAgoraEm: Date | null;
   criadoEm: Date;
 }
 
@@ -35,6 +37,7 @@ interface LinhaTorneio {
   planilha_arquivo: string | null;
   planilha_importada_em: Date | null;
   planilha_convertida_windows1252: number;
+  tentar_agora_em: Date | null;
   created_at: Date;
 }
 
@@ -92,6 +95,11 @@ export async function registrarImportacao(
   });
 }
 
+/** Guarda o clique em "tentar agora": começa o bloqueio de 30 s (etapa 4c). */
+export async function registrarTentarAgora(bd: Executor, id: number, agora: Date): Promise<void> {
+  await bd('torneios').where({ id }).update({ tentar_agora_em: agora });
+}
+
 function paraTorneio(linha: LinhaTorneio): Torneio {
   return {
     id: linha.id,
@@ -105,6 +113,7 @@ function paraTorneio(linha: LinhaTorneio): Torneio {
     planilhaArquivo: linha.planilha_arquivo,
     planilhaImportadaEm: linha.planilha_importada_em,
     planilhaConvertidaDeWindows1252: Boolean(linha.planilha_convertida_windows1252),
+    tentarAgoraEm: linha.tentar_agora_em,
     criadoEm: linha.created_at,
   };
 }

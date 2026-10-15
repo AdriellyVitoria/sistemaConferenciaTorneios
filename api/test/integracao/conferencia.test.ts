@@ -8,8 +8,8 @@ import { criarApp as criarSiteSimulado } from '../../../site-oficial-simulado/sr
 import { carregarPartidas } from '../../../site-oficial-simulado/src/dados';
 import { executarRodada, type OpcoesRodada } from '../../src/conferencia/job';
 import { criarClienteSiteOficial, type SiteOficial } from '../../src/conferencia/site-oficial';
-import { gravarNaoEncontrada, reservarPartidas } from '../../src/repositorios/conferencia';
-import { criarTorneio, importarPlanilha } from '../../src/servicos/torneios';
+import { gravarNaoEncontrada, recuperarPresas, reservarPartidas } from '../../src/repositorios/conferencia';
+import { criarTorneio, importarPlanilha, tentarAgora } from '../../src/servicos/torneios';
 import { conectarAoBancoDeTeste, esvaziarTabelas } from './banco-de-teste';
 
 // Arquivos só lidos: as planilhas e os dados do site simulado.
@@ -90,6 +90,7 @@ interface LinhaPartida {
   ultima_tentativa_em: Date | null;
   em_consulta_desde: Date | null;
   ultimo_erro: string | null;
+  origem_do_erro: 'site' | 'interno' | null;
 }
 const partidas = (torneioId: number): Promise<LinhaPartida[]> =>
   bd('partidas').where({ torneio_id: torneioId }).orderBy('id');
@@ -199,6 +200,35 @@ describe('novembro: partidas instáveis no site', () => {
     expect((await partidas(id)).every((p) => p.status_conferencia === 'conferida')).toBe(true);
   });
 
+  it('a falha do site fica marcada como do site, e some quando a partida é conferida', async () => {
+    const id = await torneioCom('testes/planilhas/torneio-novembro.csv');
+    await executarRodada(opcoes());
+    expect(await partida(id, '#62142')).toMatchObject({ status_conferencia: 'aguardando', origem_do_erro: 'site' });
+    agora = new Date(agora.getTime() + 10 * MINUTO);
+    await executarRodada(opcoes());
+    agora = new Date(agora.getTime() + 10 * MINUTO);
+    await executarRodada(opcoes());
+    expect(await partida(id, '#62142')).toMatchObject({ status_conferencia: 'conferida', origem_do_erro: null, ultimo_erro: null });
+  });
+
+  it('"tentar agora" antecipa, mas não zera a agenda: a falha seguinte espera o intervalo de onde parou', async () => {
+    const id = await torneioCom('testes/planilhas/torneio-novembro.csv');
+    const inicio = agora;
+    await executarRodada(opcoes()); // 1ª falha de #62477: próxima em 1 min
+    agora = new Date(inicio.getTime() + MINUTO);
+    await executarRodada(opcoes()); // 2ª falha: próxima em 2 min
+
+    // 10 s depois, a Maria clica em "tentar agora"
+    agora = new Date(agora.getTime() + 10_000);
+    expect(await tentarAgora(bd, id, agora)).toMatchObject({ tipo: 'antecipadas' });
+    expect((await partida(id, '#62477')).proxima_tentativa_em).toEqual(new Date(Math.floor(agora.getTime() / 1000) * 1000));
+
+    await executarRodada(opcoes()); // 3ª falha: o intervalo segue a agenda, 5 min, e não volta para 1 min
+    const p = await partida(id, '#62477');
+    expect(p.tentativas).toBe(3);
+    expect(p.proxima_tentativa_em!.getTime() - p.ultima_tentativa_em!.getTime()).toBe(5 * MINUTO);
+  });
+
   it('a espera cresce: 1, 2, 5, 10 e 10 minutos entre as falhas de #62477', async () => {
     const id = await torneioCom('testes/planilhas/torneio-novembro.csv');
     const esperas: number[] = [];
@@ -258,9 +288,22 @@ describe('recuperação de partida presa', () => {
 
     expect(resumo).toMatchObject({ recuperadas: 1, consultadas: 1, conferidas: 1 });
     expect(espiao.consultas).toEqual([presa.id_partida]);
+    expect((await partida(id, presa.id_partida)).origem_do_erro).toBeNull(); // conferida: o erro sumiu
     expect(await partida(id, presa.id_partida)).toMatchObject({ status_conferencia: 'conferida', tentativas: 0, ultimo_erro: null });
     // a que está em consulta há 30 s pode estar viva: não é tocada
     expect(await partida(id, emAndamento.id_partida)).toMatchObject({ status_conferencia: 'em_consulta' });
+  });
+
+  it('a partida recuperada aparece como erro interno, não do site', async () => {
+    const id = await torneioCom('torneio-setembro.csv');
+    const [presa] = await partidas(id);
+    await bd('partidas').where({ id: presa.id }).update({ status_conferencia: 'em_consulta', em_consulta_desde: new Date(agora.getTime() - 3 * MINUTO) });
+    await recuperarPresas(bd, { presaAntesDe: new Date(agora.getTime() - 2 * MINUTO), agora });
+    expect(await partida(id, presa.id_partida)).toMatchObject({
+      status_conferencia: 'aguardando',
+      origem_do_erro: 'interno',
+      ultimo_erro: 'A consulta foi interrompida antes de terminar e será feita de novo.',
+    });
   });
 
   it('a consulta antiga que termina depois da recuperação é descartada: não grava por cima', async () => {
@@ -306,7 +349,7 @@ describe('erro inesperado numa partida', () => {
     expect(resumo).toMatchObject({ consultadas: 15, conferidas: 14, erros: 1 });
     expect(erros).toHaveBeenCalled();
     const p = await partida(id, '#40923');
-    expect(p).toMatchObject({ status_conferencia: 'aguardando', tentativas: 0, em_consulta_desde: null, ultimo_erro: ESPERA_DEPOIS_DE_ERRO });
+    expect(p).toMatchObject({ status_conferencia: 'aguardando', tentativas: 0, em_consulta_desde: null, ultimo_erro: ESPERA_DEPOIS_DE_ERRO, origem_do_erro: 'interno' });
     expect(p.proxima_tentativa_em!.getTime() - p.ultima_tentativa_em!.getTime()).toBe(MINUTO);
 
     // na próxima vez, com o cliente bom, é conferida

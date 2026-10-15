@@ -1,6 +1,7 @@
 import type { Executor } from '../banco/conexao';
 
 export type StatusConferencia = 'aguardando' | 'em_consulta' | 'conferida' | 'nao_encontrada' | 'times_diferentes';
+export type OrigemDoErro = 'site' | 'interno';
 
 /** Uma partida como a importação cria: os dados que só a planilha sabe. */
 export interface NovaPartida {
@@ -25,6 +26,8 @@ export interface Partida extends NovaPartida {
   ultimaTentativaEm: Date | null;
   emConsultaDesde: Date | null;
   ultimoErro: string | null;
+  /** De quem foi a última falha: do site, ou nossa ("erro interno, não é o site"). */
+  origemDoErro: OrigemDoErro | null;
 }
 
 interface LinhaPartida {
@@ -43,6 +46,7 @@ interface LinhaPartida {
   ultima_tentativa_em: Date | null;
   em_consulta_desde: Date | null;
   ultimo_erro: string | null;
+  origem_do_erro: OrigemDoErro | null;
 }
 
 /**
@@ -100,5 +104,6 @@ export async function listarPartidas(bd: Executor, torneioId: number): Promise<P
     ultimaTentativaEm: l.ultima_tentativa_em,
     emConsultaDesde: l.em_consulta_desde,
     ultimoErro: l.ultimo_erro,
+    origemDoErro: l.origem_do_erro,
   }));
 }

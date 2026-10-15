@@ -8,6 +8,8 @@ export interface Saude {
 export type ModoDivisao = 'minutos' | 'kills';
 export type StatusTorneio = 'criado' | 'importado' | 'conferindo' | 'pronto' | 'calculado';
 export type StatusConferencia = 'aguardando' | 'em_consulta' | 'conferida' | 'nao_encontrada' | 'times_diferentes';
+/** De quem foi a última falha: do site, ou nossa ("erro interno, não é o site"). */
+export type OrigemDoErro = 'site' | 'interno';
 
 export interface NovoTorneio {
   nome: string;
@@ -45,11 +47,15 @@ export interface Partida {
   tentativas: number;
   proximaTentativaEm: string | null;
   ultimaTentativaEm: string | null;
+  emConsultaDesde: string | null;
   ultimoErro: string | null;
+  origemDoErro: OrigemDoErro | null;
 }
 
 export interface TorneioComPartidas extends Torneio {
   partidas: Partida[];
+  /** Quanto falta para o "tentar agora" liberar; 0 = liberado. */
+  segundosParaTentarAgora: number;
 }
 
 /** Um erro de campo do formulário, como a API devolve no 400. */
@@ -128,6 +134,20 @@ export async function enviarPlanilha(torneioId: number, arquivo: File): Promise<
     return { tipo: 'recusada', erros: corpo.erros, convertidoDeWindows1252: Boolean(corpo.convertidoDeWindows1252) };
   }
   return { tipo: 'erro', mensagem: corpo.erro ?? `Não foi possível enviar a planilha (erro ${resposta.status}).` };
+}
+
+export type ResultadoTentarAgora =
+  | { tipo: 'antecipadas'; antecipadas: number; segundosParaTentarAgora: number }
+  | { tipo: 'aguarde'; segundosParaTentarAgora: number; mensagem: string }
+  | { tipo: 'erro'; mensagem: string };
+
+/** Antecipa a próxima consulta das partidas aguardando o site; a API bloqueia 30 s entre cliques. */
+export async function tentarAgora(torneioId: number): Promise<ResultadoTentarAgora> {
+  const resposta = await chamar(`/api/torneios/${torneioId}/tentar-agora`, { method: 'POST' });
+  const corpo = await resposta.json().catch(() => ({}));
+  if (resposta.ok) return { tipo: 'antecipadas', antecipadas: corpo.antecipadas, segundosParaTentarAgora: corpo.segundosParaTentarAgora };
+  if (resposta.status === 429) return { tipo: 'aguarde', segundosParaTentarAgora: corpo.segundosParaTentarAgora, mensagem: corpo.erro };
+  return { tipo: 'erro', mensagem: corpo.erro ?? `Não foi possível tentar agora (erro ${resposta.status}).` };
 }
 
 async function chamar(caminho: string, opcoes?: RequestInit): Promise<Response> {

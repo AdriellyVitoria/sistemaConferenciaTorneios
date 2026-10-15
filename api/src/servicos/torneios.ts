@@ -7,6 +7,8 @@ import type { Knex } from 'knex';
 import { montarPartidas } from '../dominio/importacao';
 import { lerPlanilha, type ErroLeitura } from '../dominio/planilha';
 import { erroDosPercentuais } from '../dominio/premio';
+import { segundosParaTentarAgora } from '../dominio/tentar-agora';
+import { anteciparAguardando, contarAguardando } from '../repositorios/conferencia';
 import { inserirLinhas } from '../repositorios/linhas-planilha';
 import { apagarPartidasDoTorneio, inserirPartidas, listarPartidas, type Partida } from '../repositorios/partidas';
 import {
@@ -15,6 +17,7 @@ import {
   criarTorneio as inserirTorneio,
   listarTorneios as buscarTodosOsTorneios,
   registrarImportacao,
+  registrarTentarAgora,
   type NovoTorneio,
   type ResumoTorneio,
   type Torneio,
@@ -33,10 +36,46 @@ export function listarTorneios(bd: Knex): Promise<ResumoTorneio[]> {
   return buscarTodosOsTorneios(bd);
 }
 
-export async function consultarTorneio(bd: Knex, id: number): Promise<(Torneio & { partidas: Partida[] }) | null> {
+export type TorneioComPartidas = Torneio & { partidas: Partida[]; segundosParaTentarAgora: number };
+
+export async function consultarTorneio(bd: Knex, id: number, agora = new Date()): Promise<TorneioComPartidas | null> {
   const torneio = await buscarTorneio(bd, id);
   if (!torneio) return null;
-  return { ...torneio, partidas: await listarPartidas(bd, id) };
+  return {
+    ...torneio,
+    partidas: await listarPartidas(bd, id),
+    // a tela mostra a contagem a partir daqui, sem depender do relógio do navegador
+    segundosParaTentarAgora: segundosParaTentarAgora(torneio.tentarAgoraEm, agora),
+  };
+}
+
+export type ResultadoTentarAgora =
+  | { tipo: 'antecipadas'; antecipadas: number; segundosParaTentarAgora: number }
+  | { tipo: 'bloqueado'; segundosParaTentarAgora: number }
+  | { tipo: 'sem_aguardando' }
+  | { tipo: 'torneio_nao_encontrado' }
+  | { tipo: 'torneio_calculado' };
+
+/**
+ * "Tentar agora" (etapa 4c): antecipa a próxima consulta das partidas aguardando o site.
+ * Numa transação, com o torneio travado (SELECT ... FOR UPDATE): dois cliques ao mesmo tempo, ou
+ * em duas APIs, esperam um pelo outro, e o segundo encontra o bloqueio de 30 s já gravado.
+ * Sem partida aguardando, responde sem começar o bloqueio.
+ */
+export async function tentarAgora(bd: Knex, torneioId: number, agora = new Date()): Promise<ResultadoTentarAgora> {
+  return bd.transaction(async (trx) => {
+    const torneio = await buscarTorneioParaAtualizar(trx, torneioId);
+    if (!torneio) return { tipo: 'torneio_nao_encontrado' } as const;
+    if (torneio.status === 'calculado') return { tipo: 'torneio_calculado' } as const;
+
+    const faltam = segundosParaTentarAgora(torneio.tentarAgoraEm, agora);
+    if (faltam > 0) return { tipo: 'bloqueado', segundosParaTentarAgora: faltam } as const;
+    if ((await contarAguardando(trx, torneioId)) === 0) return { tipo: 'sem_aguardando' } as const;
+
+    const antecipadas = await anteciparAguardando(trx, torneioId, agora);
+    await registrarTentarAgora(trx, torneioId, agora);
+    return { tipo: 'antecipadas', antecipadas, segundosParaTentarAgora: segundosParaTentarAgora(agora, agora) } as const;
+  });
 }
 
 export type ResultadoImportacao =

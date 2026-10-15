@@ -75,7 +75,28 @@ export async function recuperarPresas(bd: Executor, { presaAntesDe, agora }: { p
       em_consulta_desde: null,
       proxima_tentativa_em: emSegundosInteiros(agora),
       ultimo_erro: 'A consulta foi interrompida antes de terminar e será feita de novo.',
+      origem_do_erro: 'interno',
     });
+}
+
+/** Quantas partidas do torneio estão "aguardando" o site (as em consulta não contam). */
+export async function contarAguardando(bd: Executor, torneioId: number): Promise<number> {
+  const [{ n }] = await bd('partidas').where({ torneio_id: torneioId, status_conferencia: 'aguardando' }).count({ n: '*' });
+  return Number(n);
+}
+
+/**
+ * "Tentar agora" (etapa 4c): a próxima tentativa das partidas "aguardando" do torneio passa a ser
+ * agora; o job pega na próxima vez que acordar. Não mexe nas tentativas: se falhar de novo, a
+ * espera segue a agenda de onde estava (D10). As "em_consulta" ficam como estão: nada em paralelo.
+ * Devolve quantas foram antecipadas (as que já estavam prontas não contam).
+ */
+export async function anteciparAguardando(bd: Executor, torneioId: number, agora: Date): Promise<number> {
+  const agoraEmSegundos = emSegundosInteiros(agora);
+  return bd('partidas')
+    .where({ torneio_id: torneioId, status_conferencia: 'aguardando' })
+    .where('proxima_tentativa_em', '>', agoraEmSegundos)
+    .update({ proxima_tentativa_em: agoraEmSegundos });
 }
 
 /** Só a partida ainda reservada com este recibo: apagada (D22) ou recuperada, não é mais nossa. */
@@ -103,6 +124,7 @@ export async function gravarEncontrada(bd: Knex, reserva: PartidaReservada, part
       status_conferencia: 'conferida',
       vencedor: partida.vencedor,
       ultimo_erro: null,
+      origem_do_erro: null,
     });
     if (atualizadas === 0) return false;
 
@@ -131,13 +153,14 @@ export async function devolverAposErro(bd: Executor, reserva: PartidaReservada, 
     em_consulta_desde: null,
     proxima_tentativa_em: emSegundosInteiros(proximaTentativaEm),
     ultimo_erro: 'Erro inesperado ao conferir a partida; ela será consultada de novo.',
+    origem_do_erro: 'interno',
   });
   return atualizadas > 0;
 }
 
 /** O site não conhece o ID (D5): sai da fila até a Maria corrigir o ID (D16). */
 export async function gravarNaoEncontrada(bd: Executor, reserva: PartidaReservada): Promise<boolean> {
-  const atualizadas = await aindaReservada(bd, reserva).update({ ...encerrarReserva, status_conferencia: 'nao_encontrada', ultimo_erro: null });
+  const atualizadas = await aindaReservada(bd, reserva).update({ ...encerrarReserva, status_conferencia: 'nao_encontrada', ultimo_erro: null, origem_do_erro: null });
   return atualizadas > 0;
 }
 
@@ -153,6 +176,7 @@ export async function gravarIndisponivel(
     tentativas: reserva.tentativas + 1,
     proxima_tentativa_em: emSegundosInteiros(proximaTentativaEm),
     ultimo_erro: erro.slice(0, 255),
+    origem_do_erro: 'site',
   });
   return atualizadas > 0;
 }

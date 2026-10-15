@@ -42,5 +42,6 @@ Projeto: desafio técnico da PowerRev (Desenvolvedora Full Stack Júnior). Siste
 - Etapa 3, pedaço 3c (telas): concluído; etapa 3 integrada por pull request. Nova lista de torneios e excluir torneio: melhorias pendentes (plano.md, seção 9), sem implementar. `GET /torneios` (lista); web com vue-router 4, Vitest (regras puras em `web/src/dominio/`, testes em `web/test/`) e fontes IBM Plex locais (`@fontsource`). Páginas: lista, novo torneio (prêmio em reais convertido só com inteiros, percentuais 50/30/20 com soma ao vivo) e torneio (envio da planilha com confirmação de substituir, erros por linha, partidas).
 - Visual: protótipo em `C:\Users\mende\Downloads\prototipo\prototipo` (três HTML de editor de design; usar só o visual, tokens em `web/src/estilos.css`).
 - Etapa 4, pedaço 4a (cliente do site e agenda das novas tentativas): concluído.
-- Etapa 4, pedaço 4b (job de conferência): pronto, aguardando os commits. As decisões estão no `DECISIONS.md` (seções da etapa 4a e 4b).
-- Próximo passo: **Etapa 4, pedaço 4c** (tela de progresso e "tentar agora"), depois dos commits do 4b.
+- Etapa 4, pedaço 4b (job de conferência): concluído.
+- Etapa 4, pedaço 4c (tela de progresso e "tentar agora"): pronto, aguardando aprovação. Decisões no `DECISIONS.md` (seção da etapa 4c).
+- Próximo passo: **Etapa 5** (revisão das pendências), depois da aprovação do 4c.

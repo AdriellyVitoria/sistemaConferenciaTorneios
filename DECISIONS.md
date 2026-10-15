@@ -231,6 +231,34 @@ As confirmações na tela (substituir a planilha, calcular) evitam um **clique p
 
 ---
 
+## Tela de progresso e "tentar agora" (etapa 4c), 14/10/2026
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| A tela **consulta a API a cada 5 s enquanto houver partida aguardando ou em consulta**, para sozinha quando não há mais, e para ao sair da página | Consultar sempre; ou atualização em tempo real (WebSocket, SSE) | Consultar sempre gastaria pedidos à toa depois do fim. O tempo real seria mais uma peça (conexão aberta, reconexão) para algo que muda a cada 2 a 10 s |
+| A sondagem usa **`setTimeout` encadeado**: a próxima consulta só é marcada quando a anterior volta. A API fora do ar não para a sondagem; a tela mantém os dados e avisa "sem conexão" | `setInterval` | Com a API lenta, o `setInterval` empilharia consultas uma em cima da outra |
+| Não encontrada e times diferentes **não mantêm a sondagem ligada** | Acompanhar enquanto houver qualquer partida não conferida | Elas dependem da Maria (correção do ID, etapa 5), não do site: esperar não muda nada |
+| **"Tentar agora" por torneio**: a próxima tentativa das partidas "aguardando" passa a ser agora; o job pega na próxima vez que acordar (até 5 s) | Consultar o site direto na requisição do botão | Seria uma consulta paralela à do job, com risco de a mesma partida ser consultada duas vezes (D10) |
+| (mesma) **Não zera as tentativas** | Recomeçar a agenda em 1 min | Se falhar de novo, segue de onde estava (um teste mostra a 3ª falha esperando 5 min). Zerar faria o botão desfazer o intervalo crescente |
+| (mesma) **As em consulta não são tocadas** | — | Nada em paralelo: elas já estão sendo consultadas |
+| **Bloqueio de 30 s guardado no banco** (`torneios.tentar_agora_em`, migration 007), com o torneio travado (`SELECT ... FOR UPDATE`) | Bloqueio na memória da API | Na memória, uma API reiniciada liberaria o botão, e duas APIs teriam dois bloqueios. A trava do torneio faz dois cliques ao mesmo tempo resultarem em um 200 e um 429 |
+| Durante o bloqueio, **429** com `Retry-After` e os segundos que faltam; a API manda os segundos também no `GET` do torneio, e a tela conta a partir daí | A tela calcular pelo horário do clique | O relógio do navegador pode estar diferente do servidor; segundos relativos não dependem disso |
+| Sem partida aguardando: **409, e o bloqueio não começa**. Depois do cálculo: 409 | Aceitar sem fazer nada | Um clique que não fez nada não deveria travar o próximo |
+| **De quem foi o erro** numa coluna própria (`partidas.origem_do_erro`: `site` ou `interno`, migration 007). Interno = defeito nosso ou consulta interrompida (partida presa) | Descobrir pelo texto da mensagem | Mudar o texto de uma mensagem quebraria o selo sem ninguém perceber |
+| Erro interno aparece na aba "Aguardando o site" com o selo **"Erro interno, não é o site"**; o "tentar agora" também vale para essas partidas | Esconder da Maria | Ela precisa saber que a demora não é do site, sem precisar entender o motivo técnico |
+| Abas desta etapa: **"Aguardando o site"** e **"Todas as partidas"**; a tela abre na primeira enquanto houver partida lá | As três abas da D17 já agora | "Conferidas" e "Pendências" dependem da comparação com a planilha (etapa 5); até lá, "Todas as partidas" mostra também as não encontradas, que não podem sumir da tela. Na etapa 5, ela vira "Conferidas" e "Pendências" |
+
+**Testado no navegador de verdade** (roteiro pelo protocolo de depuração do Edge, contra o Docker), mas **sem teste de componente no repositório**, pelo mesmo corte da etapa 3c. Os casos:
+- com o site derrubado, a aba mostra a falha, o motivo e "última às X, próxima às Y";
+- uma partida com erro interno aparece com o selo certo;
+- o "tentar agora" antecipa as 15 partidas e a contagem desce de 30 s;
+- ao religar o site, a tela chega a "15 de 15" sozinha e **para de consultar a API**;
+- ao sair da página, nenhuma consulta continua.
+
+As regras da tela (progresso, botão, textos da fila, sondagem) têm testes no Vitest do web.
+
+---
+
 ## Stack e ferramentas
 
 | Decisão | Alternativa descartada | Por quê |

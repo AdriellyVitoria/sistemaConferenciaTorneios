@@ -6,14 +6,16 @@ import { rotasTorneios } from './rotas/torneios';
 export interface Dependencias {
   bd: Knex;
   verificarBanco: () => Promise<void>;
+  /** O relógio; os testes avançam o tempo (bloqueio do "tentar agora") sem esperar. */
+  agora?: () => Date;
 }
 
 // Monta o app sem abrir porta nem conexão: o servidor e os testes injetam o que precisam.
-export function criarApp({ bd, verificarBanco }: Dependencias) {
+export function criarApp({ bd, verificarBanco, agora = () => new Date() }: Dependencias) {
   const app = express();
   app.use(express.json());
   app.use(rotaSaude(verificarBanco));
-  app.use(rotasTorneios(bd));
+  app.use(rotasTorneios(bd, agora));
   app.use(tratarErros);
   return app;
 }

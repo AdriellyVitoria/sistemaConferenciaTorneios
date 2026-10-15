@@ -1,5 +1,5 @@
 /**
- * Casos de uso do torneio (etapa 3b): criar, consultar e importar a planilha.
+ * Casos de uso do torneio (etapa 3b): criar, consultar, importar a planilha e remover (M2).
  * Orquestra: valida, abre a transação e chama o domínio e os repositórios. Sem HTTP aqui.
  */
 
@@ -16,6 +16,7 @@ import { calcularPendencias } from './pendencias';
 import { inserirLinhas } from '../repositorios/linhas-planilha';
 import { apagarPartidasDoTorneio, inserirPartidas, listarPartidas, type Partida } from '../repositorios/partidas';
 import {
+  apagarTorneio,
   buscarTorneio,
   buscarTorneioParaAtualizar,
   criarTorneio as inserirTorneio,
@@ -103,6 +104,32 @@ export async function tentarAgora(bd: Knex, torneioId: number, agora = new Date(
     const antecipadas = await anteciparAguardando(trx, torneioId, agora);
     await registrarTentarAgora(trx, torneioId, agora);
     return { tipo: 'antecipadas', antecipadas, segundosParaTentarAgora: segundosParaTentarAgora(agora, agora) } as const;
+  });
+}
+
+export type ResultadoRemocao = { tipo: 'removido' } | { tipo: 'torneio_nao_encontrado' } | { tipo: 'torneio_calculado' };
+
+/**
+ * Remove o torneio que ainda não foi calculado (M2, plano item 9), numa transação só:
+ * 1. trava o torneio PRIMEIRO (SELECT ... FOR UPDATE), na mesma ordem das outras gravações
+ *    (torneio → partidas → participações, lição do 4b). Dois pedidos de remoção, ou uma remoção e
+ *    um cálculo, esperam um pelo outro: o segundo encontra o torneio já removido, ou já calculado;
+ * 2. depois do cálculo, recusa: o resultado é o registro do pagamento (e dos links já enviados);
+ * 3. apaga as partidas (as linhas da planilha e as participações saem junto, em cascata), os
+ *    Cientes e o torneio, como a importação faz ao trocar a planilha (D22).
+ * Uma consulta do job em andamento descarta o resultado: ao gravar, ela trava o torneio e confere
+ * o recibo da partida, que não existe mais.
+ */
+export async function removerTorneio(bd: Knex, torneioId: number): Promise<ResultadoRemocao> {
+  return bd.transaction(async (trx) => {
+    const torneio = await buscarTorneioParaAtualizar(trx, torneioId);
+    if (!torneio) return { tipo: 'torneio_nao_encontrado' } as const;
+    if (torneio.status === 'calculado') return { tipo: 'torneio_calculado' } as const;
+
+    await apagarPartidasDoTorneio(trx, torneioId);
+    await apagarCientesDoTorneio(trx, torneioId);
+    await apagarTorneio(trx, torneioId);
+    return { tipo: 'removido' } as const;
   });
 }
 

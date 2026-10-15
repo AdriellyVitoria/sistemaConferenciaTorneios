@@ -81,6 +81,8 @@ export function criarApiFalsa({ calculado = false, semPlanilha = false, aguardan
     /** A próxima marcação desta chave responde 404: os dados mudaram enquanto a Maria olhava. */
     mudarAoMarcar: null as string | null,
     pedidos: [] as string[],
+    /** O torneio foi removido (M2): some da lista. */
+    removido: false,
   };
 
   const lista = () => {
@@ -181,6 +183,17 @@ export function criarApiFalsa({ calculado = false, semPlanilha = false, aguardan
       }
       estado.calculado = true;
       return json(200, { calculadoEm: '2026-10-15T13:00:00.000Z', times: [], jogadores: [] });
+    }
+
+    // remover (M2): só antes do cálculo; depois, a lista não tem mais o torneio
+    if (metodo === 'DELETE' && caminho === '/api/torneios/1') {
+      if (estado.calculado) return json(409, { erro: 'Torneio calculado não pode ser removido: o resultado é o registro do pagamento.' });
+      estado.removido = true;
+      return new Response(null, { status: 204 });
+    }
+    if (metodo === 'GET' && caminho === '/api/torneios') {
+      const { partidas: _partidas, calculo: _calculo, segundosParaTentarAgora: _s, ...resumo } = torneio();
+      return json(200, estado.removido ? [] : [{ ...resumo, quantidadeDePartidas: partidas.length, primeiraPartidaEm: '2026-09-05' }]);
     }
 
     return json(404, { erro: `rota falsa não encontrada: ${metodo} ${caminho}` });

@@ -5,6 +5,7 @@
  *   GET  /torneios                  os torneios, o mais novo primeiro, com quantas partidas cada um tem
  *   POST /torneios                  cria o torneio
  *   GET  /torneios/:id              o torneio, com as partidas e o status de cada uma
+ *   DELETE /torneios/:id            remove o torneio ainda não calculado (M2): 204; calculado: 409
  *   POST /torneios/:id/tentar-agora antecipa a próxima consulta das partidas aguardando o site
  *                                   (bloqueio de 30 s entre cliques: 429 com os segundos que faltam)
  *   PUT  /torneios/:id/planilha     envia (ou reenvia) a planilha: o arquivo vai direto no corpo,
@@ -15,7 +16,7 @@ import express, { Router } from 'express';
 import type { Knex } from 'knex';
 import { z } from 'zod';
 import { assincrono } from './assincrono';
-import { consultarTorneio, criarTorneio, importarPlanilha, listarTorneios, tentarAgora } from '../servicos/torneios';
+import { consultarTorneio, criarTorneio, importarPlanilha, listarTorneios, removerTorneio, tentarAgora } from '../servicos/torneios';
 
 const TAMANHO_MAXIMO = '5mb'; // a planilha de setembro tem 9 KB
 
@@ -68,6 +69,22 @@ export function rotasTorneios(bd: Knex, agora: () => Date = () => new Date()): R
       return;
     }
     res.json(torneio);
+  }));
+
+  rota.delete('/torneios/:id', assincrono(async (req, res) => {
+    const id = esquemaId.safeParse(req.params.id);
+    const resultado = id.success ? await removerTorneio(bd, id.data) : ({ tipo: 'torneio_nao_encontrado' } as const);
+    switch (resultado.tipo) {
+      case 'removido':
+        res.status(204).end();
+        return;
+      case 'torneio_calculado':
+        res.status(409).json({ erro: 'Torneio calculado não pode ser removido: o resultado é o registro do pagamento.' });
+        return;
+      case 'torneio_nao_encontrado':
+        res.status(404).json({ erro: 'Torneio não encontrado.' });
+        return;
+    }
   }));
 
   rota.post('/torneios/:id/tentar-agora', assincrono(async (req, res) => {

@@ -392,6 +392,23 @@ export async function calcularPremios(torneioId: number): Promise<{ tipo: 'ok' }
   return { tipo: 'erro', mensagem: corpo.erro ?? `Não foi possível calcular (erro ${resposta.status}).` };
 }
 
+/**
+ * DELETE /torneios/:id (M2): só antes do cálculo. 404 conta como removido: o torneio já não
+ * existe (outra aba removeu), e é isso que a Maria queria.
+ */
+export async function removerTorneio(torneioId: number): Promise<{ tipo: 'removido' } | { tipo: 'recusado' | 'erro'; mensagem: string }> {
+  let resposta: Response;
+  try {
+    resposta = await chamar(`/api/torneios/${torneioId}`, { method: 'DELETE' });
+  } catch (e) {
+    return { tipo: 'erro', mensagem: (e as Error).message };
+  }
+  if (resposta.status === 204 || resposta.status === 404) return { tipo: 'removido' };
+  const corpo = await resposta.json().catch(() => ({}));
+  if (resposta.status === 409) return { tipo: 'recusado', mensagem: corpo.erro ?? 'Este torneio não pode mais ser removido.' };
+  return { tipo: 'erro', mensagem: corpo.erro ?? `Não foi possível remover o torneio (erro ${resposta.status}).` };
+}
+
 async function chamar(caminho: string, opcoes?: RequestInit): Promise<Response> {
   try {
     return await fetch(caminho, opcoes);

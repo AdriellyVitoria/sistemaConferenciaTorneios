@@ -789,6 +789,43 @@ Decisões da Adrielly: a lista agrupada por mês, os filtros de mês e de divis�
 
 ---
 
+## Melhorias, parte 2 (M2): remover torneio não calculado, 15/10/2026
+
+Decisões da Adrielly (plano, seção 9): remover só antes do cálculo, com confirmação, e voltar para a lista com o aviso. Sem migration: as tabelas do torneio já apagam em cascata.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **`DELETE /torneios/:id`, só antes do cálculo** (204). **Calculado: 409** "Torneio calculado não pode ser removido: o resultado é o registro do pagamento." Inexistente ou id inválido: 404 | Permitir sempre, ou "lixeira" | Depois do cálculo, o resultado prova o que foi pago e os links dos times podem ter sido enviados; o caminho para um torneio antigo é arquivar ("Próximos passos") |
+| **Numa transação, com o torneio travado primeiro** (`SELECT ... FOR UPDATE`), na mesma ordem das outras gravações: torneio, partidas (as linhas da planilha e as participações saem em cascata), Cientes, torneio | Só `DELETE FROM torneios` e deixar a cascata apagar tudo | O resultado seria o mesmo, mas apagar na ordem das travas é a lição do 4b, e é o mesmo caminho da troca de planilha (D22). **Testado:** remover e calcular ao mesmo tempo, um espera o outro (ou remove e o cálculo não acha o torneio, ou calcula e a remoção é recusada); dois pedidos de remoção, um 204 e um 404 |
+| **Consulta do job em andamento:** o resultado é **descartado pelo recibo** | Parar o job antes | O job grava travando o torneio e conferindo o recibo da partida, que não existe mais (o mesmo caso da planilha trocada, D22). **Testado:** o site responde depois da remoção, o job conta a partida como descartada, sem erro, e nenhuma participação é gravada |
+| **"Remover" no cartão da lista e "Remover torneio" no topo da página do torneio**, este discreto (em texto, ao lado do nome) | Só na página do torneio | Na lista, a Maria limpa os testes e os criados por engano sem abrir cada um. No topo da página, discreto, para não competir com as ações da conferência |
+| **Depois do cálculo, o botão não existe** (não fica só desabilitado) | Botão desabilitado com explicação | Não há o que a Maria possa fazer para habilitar. Mostrar um botão morto só confunde |
+| **Modal:** título "Remover o torneio “NOME”?", o texto "A planilha, a conferência e os Cientes serão apagados. Isso não pode ser desfeito.", e os botões "Cancelar" e "Remover torneio" (em vermelho). O mesmo `DialogoConfirmacao` das outras confirmações: **foco começa no "Cancelar"**, preso dentro do modal, e **Esc fecha** | Um "Tem certeza?" sem dizer o que se perde | O nome evita remover o torneio errado; dizer o que é apagado deixa claro que não volta |
+| **Sem clique duplo:** a trava é ligada antes de qualquer espera; a API também trava | Só desabilitar o botão | Mesmo cuidado do "Calcular" (6d); testado com dois cliques juntos |
+| **409 no modal** (o torneio foi calculado em outra aba): a frase da API aparece no modal, e o torneio continua na lista | Fechar o modal em silêncio | A Maria entende por que não removeu |
+| **404 conta como removido** na tela | Mostrar erro | Outra aba já removeu: é o que a Maria queria |
+| **Na lista:** o cartão some, e aparece **"Torneio removido."** (`role="status"`, anunciado), com o foco nele. **Na página do torneio:** a atualização automática para, e a tela volta para a lista, que mostra o mesmo aviso | Deixar o foco onde estava | O botão clicado sumiu junto com o cartão (ou com a página); sem levar o foco, o teclado e o leitor de tela ficariam perdidos |
+| O aviso da página do torneio para a lista vai por um **recado de uma vez só** (`aviso-da-lista.ts`: a página deixa, a lista pega e apaga) | Parâmetro na URL (`?removido=1`) | Na URL, o aviso voltaria ao recarregar a página ou ao usar o "voltar" do navegador |
+
+**Testes:**
+- **API (integração):**
+  - remove antes do cálculo e some tudo do banco (partidas, linhas, participações e Cientes), e os outros torneios ficam;
+  - remove também um torneio sem planilha;
+  - 409 depois do cálculo, sem apagar nada; 404 para inexistente e id inválido;
+  - dois pedidos ao mesmo tempo, e remover e calcular ao mesmo tempo;
+  - a remoção durante a consulta do job.
+- **Web (componente):**
+  - "Remover" só no torneio não calculado, e o botão ausente no calculado;
+  - o modal com o nome, o texto, o foco no "Cancelar" e um rótulo só dele;
+  - "Cancelar" e Esc fecham sem remover; o clique duplo gera um pedido só;
+  - o 409 mostra a frase no modal;
+  - na lista, o cartão some e o aviso aparece com o foco;
+  - na página do torneio, remover volta para a lista com o aviso, e o botão não existe no calculado.
+
+**No navegador** (Docker, com os torneios reais, abrindo o modal sem confirmar): o "Remover" nos cartões em andamento, em 1280 px e 375 px; o "Remover torneio" discreto no topo; o modal no celular com o foco no "Cancelar"; nenhum botão no torneio calculado; nenhuma rolagem lateral. Os 12 torneios continuaram no banco.
+
+---
+
 ## Testes de integração com um relógio só, 15/10/2026
 
 **O problema:** um teste de `repositorios.test.ts` falhava de vez em quando. A partida nasce com o `NOW()` do MySQL, e o teste comparava esse horário com o `Date.now()` do Node. Os testes rodam no Windows e o MySQL no Docker, e os dois relógios chegam a ficar mais de 1 s diferentes. O mesmo padrão estava escondido em 8 arquivos: o "agora" do job era `Date.now() + 2 s`, e o job só pega a partida cuja próxima tentativa (gravada com o relógio do MySQL) já chegou. Com o MySQL mais de 2 s à frente, a partida não seria pega.
@@ -825,16 +862,18 @@ Decisões da Adrielly: a lista agrupada por mês, os filtros de mês e de divis�
 
 ## Próximos passos
 
-Decidido com a Adrielly em 15/10/2026: a etapa 6 termina no 6e. Estes ficam para depois, **sem implementar** por enquanto.
+Decididos com a Adrielly em 15/10/2026 (no fim da etapa 6, nas etapas 7a e 7d e no pacote de melhorias). Ficam para depois, **sem implementar** por enquanto.
+
+**Já feitos, saíram desta lista:** o total de prêmios por mês na lista de torneios (M1, pelo mês do torneio, e não pela data do cálculo, como estava anotado aqui) e a remoção de torneio não calculado (M2).
 
 | Próximo passo | O que é | Por que ficou para depois |
 |---|---|---|
+| **Aba "Aguardando o site" igual ao protótipo 1c** | O quadro "O site oficial está instável agora" com o "Tentar agora" dentro da aba; um estado por partida ("Consultando o site", "Na fila", "O site falhou · 3 tentativas", "Erro interno, não é o site") e a espera ao lado da próxima tentativa ("(espera de 5 min)") | A aba do 4c já mostra o motivo, as tentativas e "última às X, próxima às Y" (D10), que é o que a Maria precisa para não vigiar o site. O que falta é polimento visual, sem regra nova |
+| **Relógio único na API** | A importação passa a gravar a próxima tentativa com o "agora" da API, em vez do `NOW()` do MySQL | Hoje a importação usa o relógio do MySQL, e o job e a correção de ID usam o do Node. No Docker os dois são o mesmo relógio (a mesma máquina virtual), então não há problema em produção; os testes já usam um relógio só. Um relógio só também no código seria mais simples de explicar |
 | **PDF do resultado** | Pela impressão do navegador ("Salvar como PDF"), com um CSS de impressão na tela do resultado: sem cabeçalho do sistema, sem filtro e sem botões, com as tabelas inteiras | O CSV já permite pagar (6c); o PDF é para guardar ou enviar. Pela impressão do navegador, não precisa de biblioteca nova nem de rota na API |
 | **"Jogou X de Y partidas" no resultado** | O cálculo passa a gravar, para cada jogador, em quantas partidas jogou por aquele time e quantas o time jogou; a tela mostra isso no lugar de deduzir "Reserva" pelos minutos (6e) | Exige uma coluna nova em `premios_jogador` e uma mudança no cálculo. Deduzir pelos minutos marcaria errado quem só saiu mais cedo numa partida (Bia.gg) |
-| **Controle de "Pago" por jogador** | Marcar, na tela do resultado, quem já recebeu, com a data; o resultado continua congelado, só o pagamento muda | Hoje a Maria paga com o CSV no Excel; o controle dentro do sistema é uma comodidade, não uma regra do desafio |
+| **Controle de "Pago" por jogador** | Marcar, na tela do resultado, quem já recebeu, com a data; o resultado continua congelado, só o pagamento muda | O sistema não controla pagamento (D12). Hoje a Maria paga com o CSV no Excel, que já tem a coluna "Pago" vazia para ela marcar (M1); o controle dentro do sistema é uma comodidade, não uma regra do desafio |
 | **Integração com Pix**, depois do "Pago" | Enviar o Pix pelo sistema | Continua fora do escopo pela D12: dinheiro enviado errado não volta, e exigiria a chave Pix de cada jogador |
 | **"Gerar novo link"** (decidido com a Adrielly na etapa 7a) | Trocar o código público ou o de um time, e o antigo para de funcionar | Serve para quando um link vaza (por exemplo, o de um time colado no canal geral do Discord). Hoje o código nasce no cálculo e não muda. Precisa decidir antes se a troca pede confirmação e como a Maria avisa o time do link novo |
-| **Total de prêmios por período na lista de torneios** (decidido com a Adrielly na etapa 7d) | Na lista, o total pago no mês atual, no mês anterior e em todo o período, pela **data do cálculo** | A Maria passa a ver quanto distribuiu sem somar planilhas. A data do cálculo é quando o valor foi definido (a das partidas pode cair em outro mês). Não é pedido no desafio, e o "Pago" (acima) diria melhor quanto saiu de fato |
-| **"Arquivar" torneio em vez de apagar** | Tira o torneio da lista principal e mantém tudo no banco: planilha, conferência, Cientes e resultado | Para **responder contestações depois**: o CSV do resultado é gerado do banco a cada download, então apagar o torneio perderia também o relatório. Arquivar limpa a lista sem perder a prova do que foi pago |
-| **Apagar só torneios não calculados** (já no `plano.md`, seção 9) | Excluir torneio criado por engano ou de teste, antes do cálculo | Antes do cálculo, nada foi pago nem divulgado. Depois dele, os links dos times podem ter sido enviados e o resultado precisa existir para uma contestação: aí o caminho é arquivar |
+| **"Arquivar" torneio calculado, à mão** | A Maria escolhe arquivar: o torneio sai da lista principal e tudo continua no banco (planilha, conferência, Cientes, resultado e links) | Para **responder contestações depois**: o CSV do resultado é gerado do banco a cada download, então apagar perderia também o relatório. **À mão, e não na virada do mês**: um torneio antigo pode ainda estar sendo contestado (M1). Com a lista por mês (M1), os meses anteriores já ficam recolhidos, então a lista não incomoda tanto |
 | **Envio de cópia por e-mail** | Mandar para a Maria, por e-mail, o CSV e os links de cada torneio calculado | Depende de **login e cadastro da organizadora** (o sistema não tem login, limitação da etapa 3b): sem saber quem é a Maria e qual o e-mail dela, não há para quem mandar. Também exigiria um serviço de envio de e-mail |

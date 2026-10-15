@@ -1,12 +1,17 @@
 <script setup lang="ts">
-/** Um torneio na lista da página inicial: nome, situação, criação, prêmio, divisão, partidas e o próximo passo. */
+/**
+ * Um torneio na lista da página inicial: nome, situação, criação, prêmio, divisão, partidas, o
+ * próximo passo e, antes do cálculo, "Remover" (M2).
+ */
 import { RouterLink } from 'vue-router';
+import RemoverTorneio from './RemoverTorneio.vue';
 import { formatarCentavos } from '../dominio/dinheiro';
 import { acaoDoTorneio, descreverPartidas } from '../dominio/lista-torneios';
 import { formatarDataDeCriacao, rotuloDoModo, rotuloDoStatus } from '../dominio/torneio';
 import type { ResumoTorneio, StatusTorneio } from '../servicos/api';
 
 defineProps<{ torneio: ResumoTorneio }>();
+const emit = defineEmits<{ removido: [] }>();
 
 const tom: Record<StatusTorneio, string> = {
   criado: 'neutro',
@@ -31,13 +36,17 @@ const tom: Record<StatusTorneio, string> = {
         <span>{{ descreverPartidas(torneio) }}</span>
       </div>
     </div>
-    <RouterLink
-      :to="{ name: 'torneio', params: { id: torneio.id } }"
-      class="botao secundario acao"
-      :aria-label="`${acaoDoTorneio(torneio.status)}: ${torneio.nome}`"
-    >
-      {{ acaoDoTorneio(torneio.status) }}
-    </RouterLink>
+    <div class="acoes">
+      <!-- só antes do cálculo: depois, o resultado é o registro do pagamento, e o botão não existe -->
+      <RemoverTorneio v-if="torneio.status !== 'calculado'" :torneio="torneio" rotulo="Remover" @removido="emit('removido')" />
+      <RouterLink
+        :to="{ name: 'torneio', params: { id: torneio.id } }"
+        class="botao secundario acao"
+        :aria-label="`${acaoDoTorneio(torneio.status)}: ${torneio.nome}`"
+      >
+        {{ acaoDoTorneio(torneio.status) }}
+      </RouterLink>
+    </div>
   </article>
 </template>
 
@@ -83,15 +92,23 @@ const tom: Record<StatusTorneio, string> = {
   font-weight: var(--peso-medio);
   color: var(--texto);
 }
-.acao {
+.acoes {
   margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+.acao {
   font-size: var(--texto-md);
   padding: 10px var(--espaco-4);
 }
 @media (max-width: 640px) {
-  .acao {
+  .acoes {
     margin-left: 0;
     width: 100%;
+  }
+  .acoes > * {
+    flex: 1 1 0;
   }
 }
 </style>

@@ -4,7 +4,7 @@
  * qualquer mês, e abaixo um grupo por mês da primeira partida, do mais recente para o mais antigo,
  * com o mês atual aberto e os anteriores recolhidos. Filtros: situação, divisão, mês e busca.
  */
-import { computed, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import CartaoDoTorneio from '../componentes/CartaoDoTorneio.vue';
 import { formatarCentavos } from '../dominio/dinheiro';
@@ -21,17 +21,36 @@ import {
   type FiltroDeDivisao,
 } from '../dominio/lista-torneios';
 import { listarTorneios, type ResumoTorneio } from '../servicos/api';
+import { pegarAvisoDaLista } from '../utilitarios/aviso-da-lista';
 
 const torneios = ref<ResumoTorneio[] | null>(null);
 const erro = ref<string | null>(null);
 
+/** "Torneio removido." (M2): depois de remover aqui, ou ao voltar da página do torneio removido. */
+const avisoRemovido = ref<string | null>(null);
+const elementoDoAviso = ref<HTMLElement | null>(null);
+
+async function mostrarAviso(texto: string) {
+  avisoRemovido.value = texto;
+  // o foco vai para o aviso: o botão clicado sumiu junto com o cartão, e o leitor de tela lê o aviso
+  await nextTick();
+  elementoDoAviso.value?.focus();
+}
+
 onMounted(async () => {
+  const deixado = pegarAvisoDaLista();
   try {
     torneios.value = await listarTorneios();
   } catch (e) {
     erro.value = (e as Error).message;
   }
+  if (deixado) await mostrarAviso(deixado);
 });
+
+async function aoRemover(id: number) {
+  torneios.value = (torneios.value ?? []).filter((t) => t.id !== id);
+  await mostrarAviso('Torneio removido.');
+}
 
 const mesAtual = mesDeHoje();
 
@@ -75,6 +94,8 @@ const DIVISOES: { id: FiltroDeDivisao; rotulo: string }[] = [
         Novo torneio
       </RouterLink>
     </div>
+
+    <p v-if="avisoRemovido" ref="elementoDoAviso" class="aviso sucesso aviso-removido" role="status" tabindex="-1">{{ avisoRemovido }}</p>
 
     <p v-if="erro" class="aviso erro" role="alert">{{ erro }}</p>
     <p v-else-if="torneios === null" class="texto-suave">Carregando os torneios…</p>
@@ -145,7 +166,7 @@ const DIVISOES: { id: FiltroDeDivisao; rotulo: string }[] = [
       <div id="lista-torneios" role="tabpanel" class="lista" aria-live="polite">
         <section v-if="grupos.emAndamento.length" class="grupo-andamento" aria-labelledby="t-em-andamento">
           <h2 id="t-em-andamento" class="titulo-do-grupo">Em andamento</h2>
-          <CartaoDoTorneio v-for="t in grupos.emAndamento" :key="t.id" :torneio="t" />
+          <CartaoDoTorneio v-for="t in grupos.emAndamento" :key="t.id" :torneio="t" @removido="aoRemover(t.id)" />
         </section>
 
         <details v-for="g in grupos.meses" :key="g.mes" class="grupo-do-mes" :open="g.aberto">
@@ -154,7 +175,7 @@ const DIVISOES: { id: FiltroDeDivisao; rotulo: string }[] = [
             <span class="resumo-do-mes texto-suave">{{ g.resumo }}</span>
           </summary>
           <div class="torneios-do-mes">
-            <CartaoDoTorneio v-for="t in g.torneios" :key="t.id" :torneio="t" />
+            <CartaoDoTorneio v-for="t in g.torneios" :key="t.id" :torneio="t" @removido="aoRemover(t.id)" />
           </div>
         </details>
 

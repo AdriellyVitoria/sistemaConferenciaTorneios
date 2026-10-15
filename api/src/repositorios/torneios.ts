@@ -111,6 +111,11 @@ export async function marcarCalculado(bd: Executor, id: number, calculadoEm: Dat
   await bd('torneios').where({ id }).update({ status: 'calculado', calculado_em: calculadoEm });
 }
 
+/** Apaga a linha do torneio (M2). Quem apaga as partidas e os Cientes antes, na ordem das travas, é o serviço. */
+export async function apagarTorneio(bd: Executor, id: number): Promise<void> {
+  await bd('torneios').where({ id }).del();
+}
+
 /** Guarda o clique em "tentar agora": começa o bloqueio de 30 s (etapa 4c). */
 export async function registrarTentarAgora(bd: Executor, id: number, agora: Date): Promise<void> {
   await bd('torneios').where({ id }).update({ tentar_agora_em: agora });

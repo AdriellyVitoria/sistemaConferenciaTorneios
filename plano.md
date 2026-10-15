@@ -369,7 +369,7 @@ Em três pedaços. **4a:** as peças da consulta, sem o job: cliente HTTP do sit
 - [x] Etapa 4 — Conferência em segundo plano
 - [x] Etapa 5 — Revisão das pendências
 - [x] Etapa 6 — Cálculo e resultado
-- [ ] Etapa 7 — Página pública e links por time
+- [x] Etapa 7 — Página pública e links por time
 - [ ] Etapa 8 — Documentação
 - [ ] Etapa 9 — Revisão final
 
@@ -380,4 +380,4 @@ Em três pedaços. **4a:** as peças da consulta, sem o job: cliente HTTP do sit
 Anotadas para depois, **sem implementar** por enquanto. Se não couberem no prazo, vão para o `DECISIONS.md` como "o que ficou de fora".
 
 - ~~**Nova lista de torneios**~~: feita no pedaço visual, só com o que já existe. Ficam para as etapas 5 a 7: "precisam da sua atenção", régua de etapas, linha de detalhe de cada torneio e as ações "Revisar" e "Ver resultado" (lista no `DECISIONS.md`).
-- **Excluir torneio.** Precisa definir antes, como regra de negócio: se pode excluir depois do cálculo (os links dos times já podem ter sido enviados) e se a tela pede confirmação.
+- ~~**Excluir torneio.**~~ Feito na M2: só antes do cálculo, com confirmação (DECISIONS.md). Torneio calculado: "Arquivar" em "Próximos passos".

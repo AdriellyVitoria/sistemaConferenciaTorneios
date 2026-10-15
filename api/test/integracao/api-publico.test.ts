@@ -11,7 +11,7 @@ import * as migracaoDosCodigos from '../../src/banco/migrations/010_cria_codigos
 import { executarRodada } from '../../src/conferencia/job';
 import { criarClienteSiteOficial } from '../../src/conferencia/site-oficial';
 import { CRITERIO_DE_DESEMPATE } from '../../src/dominio/pagina-publica';
-import { conectarAoBancoDeTeste, esvaziarTabelas } from './banco-de-teste';
+import { conectarAoBancoDeTeste, esvaziarTabelas, relogioDoBanco } from './banco-de-teste';
 
 const RAIZ = path.resolve(__dirname, '../../..');
 const arquivo = (relativo: string) => path.join(RAIZ, relativo);
@@ -19,6 +19,8 @@ const DADOS_DO_SITE = [arquivo('testes/site-oficial.json'), arquivo('api/test/fi
 const FORMATO = /^[A-Za-z0-9_-]{32}$/;
 
 let bd: Knex;
+/** O relógio do MySQL: a API e o job usam o mesmo relógio que grava a próxima tentativa na importação. */
+let relogio: () => Date;
 let api: Server;
 let site: Server;
 let base: string;
@@ -26,7 +28,8 @@ let urlDoSite: string;
 
 beforeAll(async () => {
   bd = conectarAoBancoDeTeste();
-  api = criarApp({ bd, verificarBanco: async () => {} }).listen(0);
+  relogio = await relogioDoBanco(bd);
+  api = criarApp({ bd, verificarBanco: async () => {}, agora: () => relogio() }).listen(0);
   await new Promise((pronto) => api.once('listening', pronto));
   base = `http://127.0.0.1:${(api.address() as AddressInfo).port}`;
 });
@@ -60,7 +63,7 @@ async function setembroPronto(): Promise<number> {
   await pedir('PUT', `/torneios/${corpo.id}/planilha`, readFileSync(arquivo('torneio-setembro.csv')));
   await executarRodada({
     bd, site: criarClienteSiteOficial({ urlBase: urlDoSite, tempoLimiteMs: 5_000 }),
-    agora: () => new Date(Date.now() + 2_000), intervalosMs: [60_000], lote: 3, presaAposMs: 120_000,
+    agora: () => new Date(relogio().getTime() + 2_000), intervalosMs: [60_000], lote: 3, presaAposMs: 120_000,
   });
   await pedir('POST', `/torneios/${corpo.id}/pendencias/ciente-de-todas`);
   return corpo.id;

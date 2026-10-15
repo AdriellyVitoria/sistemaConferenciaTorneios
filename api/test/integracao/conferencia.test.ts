@@ -10,7 +10,7 @@ import { executarRodada, type OpcoesRodada } from '../../src/conferencia/job';
 import { criarClienteSiteOficial, type SiteOficial } from '../../src/conferencia/site-oficial';
 import { gravarNaoEncontrada, recuperarPresas, reservarPartidas } from '../../src/repositorios/conferencia';
 import { criarTorneio, importarPlanilha, tentarAgora } from '../../src/servicos/torneios';
-import { conectarAoBancoDeTeste, esvaziarTabelas } from './banco-de-teste';
+import { conectarAoBancoDeTeste, esvaziarTabelas, horaDoBanco } from './banco-de-teste';
 
 // Arquivos só lidos: as planilhas e os dados do site simulado.
 const RAIZ = path.resolve(__dirname, '../../..');
@@ -40,8 +40,10 @@ beforeEach(async () => {
     urlBase: `http://127.0.0.1:${(siteSimulado.address() as AddressInfo).port}`,
     tempoLimiteMs: 5_000,
   });
-  // um pouco à frente do relógio do banco: as partidas recém-importadas já estão prontas
-  agora = new Date(Date.now() + 2_000);
+  // 2 s à frente do relógio do MySQL, o mesmo que grava a próxima tentativa na importação: as
+  // partidas recém-importadas já estão prontas (a folga cobre o tempo entre esta linha e a
+  // importação de cada teste, não a diferença entre os relógios do Node e do MySQL)
+  agora = new Date((await horaDoBanco(bd)).getTime() + 2_000);
 });
 afterEach(async () => {
   vi.restoreAllMocks();

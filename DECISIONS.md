@@ -666,6 +666,24 @@ Senhas são guardadas só como **hash**, um resumo de mão única: quem lê o ba
 
 ---
 
+## Testes de integração com um relógio só, 15/10/2026
+
+**O problema:** um teste de `repositorios.test.ts` falhava de vez em quando. A partida nasce com o `NOW()` do MySQL, e o teste comparava esse horário com o `Date.now()` do Node. Os testes rodam no Windows e o MySQL no Docker, e os dois relógios chegam a ficar mais de 1 s diferentes. O mesmo padrão estava escondido em 8 arquivos: o "agora" do job era `Date.now() + 2 s`, e o job só pega a partida cuja próxima tentativa (gravada com o relógio do MySQL) já chegou. Com o MySQL mais de 2 s à frente, a partida não seria pega.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **Nos testes, tudo que conversa com horários do banco usa o relógio do MySQL:** `horaDoBanco` (`SELECT NOW(3)`) para comparar, e `relogioDoBanco`, que mede uma vez quanto o MySQL está à frente ou atrás do Node e anda junto com ele, para o "agora" do job, da API e da correção de ID | Aumentar a folga | A folga só adia o problema: o desvio do relógio do Docker no Windows não tem limite |
+| O teste original passou a ter **limites exatos, sem folga**: o horário gravado fica entre o segundo cheio de antes da inserção e a hora de depois | Uma margem de meio segundo para cada lado | O `NOW()` sem casas decimais **corta** a fração do segundo, em vez de arredondar (a primeira versão da correção supôs o arredondamento e falhou em 3 de 5 rodadas) |
+| O teste do "tentar agora" continua com o relógio do Node | Trocar também | Ali o teste regrava o horário de todas as partidas com o mesmo "agora" da API: um relógio só |
+
+**A prova:**
+- **Sem desvio:** a integração rodou 5 vezes seguidas, todas com 152 de 152.
+- **Com desvio simulado:** rodou de novo com o relógio do Node deslocado 5 s para frente e 5 s para trás, bem acima da folga antiga, e passou nas duas. Um teste temporário confirmou que o desvio valia dentro dos testes.
+
+**Observação sobre o código da API (sem mudança agora):** a importação grava a próxima tentativa com o relógio do MySQL, e o job e a correção de ID usam o do Node. No Docker, a API e o MySQL rodam na mesma máquina virtual e têm o mesmo relógio, então não há problema em produção. Ainda assim, um relógio só também no código seria mais simples de explicar: a importação passaria a gravar o "agora" da API.
+
+---
+
 ## Stack e ferramentas
 
 | Decisão | Alternativa descartada | Por quê |

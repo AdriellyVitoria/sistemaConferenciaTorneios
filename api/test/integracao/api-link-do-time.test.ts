@@ -9,7 +9,7 @@ import { carregarPartidas } from '../../../site-oficial-simulado/src/dados';
 import { criarApp } from '../../src/app';
 import { executarRodada } from '../../src/conferencia/job';
 import { criarClienteSiteOficial } from '../../src/conferencia/site-oficial';
-import { conectarAoBancoDeTeste, esvaziarTabelas } from './banco-de-teste';
+import { conectarAoBancoDeTeste, esvaziarTabelas, relogioDoBanco } from './banco-de-teste';
 
 const RAIZ = path.resolve(__dirname, '../../..');
 const arquivo = (relativo: string) => path.join(RAIZ, relativo);
@@ -17,6 +17,8 @@ const DADOS_DO_SITE = [arquivo('testes/site-oficial.json'), arquivo('api/test/fi
 const MINUTO = 60_000;
 
 let bd: Knex;
+/** O relógio do MySQL: a API e o job usam o mesmo relógio que grava a próxima tentativa na importação. */
+let relogio: () => Date;
 let api: Server;
 let site: Server;
 let base: string;
@@ -24,7 +26,8 @@ let urlDoSite: string;
 
 beforeAll(async () => {
   bd = conectarAoBancoDeTeste();
-  api = criarApp({ bd, verificarBanco: async () => {} }).listen(0);
+  relogio = await relogioDoBanco(bd);
+  api = criarApp({ bd, verificarBanco: async () => {}, agora: () => relogio() }).listen(0);
   await new Promise((pronto) => api.once('listening', pronto));
   base = `http://127.0.0.1:${(api.address() as AddressInfo).port}`;
 });
@@ -55,7 +58,7 @@ async function pedir(metodo: string, caminho: string, corpo?: unknown) {
 /** Roda o job até o site responder tudo (o relógio avança até cada nova tentativa). */
 async function conferirTudo(torneioId: number) {
   const cliente = criarClienteSiteOficial({ urlBase: urlDoSite, tempoLimiteMs: 5_000 });
-  let agora = new Date(Date.now() + 2_000);
+  let agora = new Date(relogio().getTime() + 2_000);
   for (let rodada = 0; rodada < 20; rodada++) {
     await executarRodada({ bd, site: cliente, agora: () => agora, intervalosMs: [MINUTO], lote: 3, presaAposMs: 2 * MINUTO });
     const proxima: { p: Date | null } | undefined = await bd('partidas').where({ torneio_id: torneioId, status_conferencia: 'aguardando' }).min({ p: 'proxima_tentativa_em' }).first();

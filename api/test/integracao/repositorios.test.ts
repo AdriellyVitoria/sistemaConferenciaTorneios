@@ -6,7 +6,7 @@ import { lerPlanilha, type LinhaPlanilha } from '../../src/dominio/planilha';
 import { inserirLinhas, listarLinhas } from '../../src/repositorios/linhas-planilha';
 import { inserirPartidas, listarPartidas, type NovaPartida } from '../../src/repositorios/partidas';
 import { buscarTorneio, criarTorneio, registrarImportacao, type NovoTorneio } from '../../src/repositorios/torneios';
-import { conectarAoBancoDeTeste, esvaziarTabelas } from './banco-de-teste';
+import { conectarAoBancoDeTeste, esvaziarTabelas, horaDoBanco } from './banco-de-teste';
 
 // A planilha original é só lida.
 const RAIZ = path.resolve(__dirname, '../../..');
@@ -88,7 +88,9 @@ describe('repositório de torneios', () => {
 describe('repositório de partidas (também a tabela de tarefas da conferência)', () => {
   it('insere as 15 partidas de setembro como "aguardando", prontas para a primeira consulta', async () => {
     const torneioId = await criarTorneio(bd, SETEMBRO);
+    const antes = await horaDoBanco(bd);
     const ids = await inserirPartidas(bd, torneioId, partidasDasLinhas(linhasDeSetembro()));
+    const depois = await horaDoBanco(bd);
     expect(ids.size).toBe(15);
 
     const partidas = await listarPartidas(bd, torneioId);
@@ -109,9 +111,13 @@ describe('repositório de partidas (também a tabela de tarefas da conferência)
       emConsultaDesde: null,
       ultimoErro: null,
     });
-    // a primeira tentativa já pode acontecer
+    // a primeira tentativa já pode acontecer: nasce com o NOW() do MySQL na hora da inserção.
+    // Comparado com o próprio relógio do MySQL (o do Node pode estar adiantado ou atrasado), sem
+    // folga: o NOW() sem casas decimais CORTA a fração do segundo, então o valor gravado fica entre
+    // o segundo cheio de antes da inserção e a hora de depois.
     expect(p40923.proximaTentativaEm).toBeInstanceOf(Date);
-    expect(p40923.proximaTentativaEm!.getTime()).toBeLessThanOrEqual(Date.now() + 1_000);
+    expect(p40923.proximaTentativaEm!.getTime()).toBeGreaterThanOrEqual(Math.floor(antes.getTime() / 1000) * 1000);
+    expect(p40923.proximaTentativaEm!.getTime()).toBeLessThanOrEqual(depois.getTime());
   });
 
   it('o mesmo ID não entra duas vezes no mesmo torneio, mas pode existir em outro', async () => {

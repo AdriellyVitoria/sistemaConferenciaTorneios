@@ -309,11 +309,13 @@ export interface PaginaPublica {
   classificacao: TimeDaClassificacao[];
 }
 
-/** GET /publico/:codigo. "nao_encontrada" = 404 (código errado); "erro" = qualquer outra falha. */
-export async function buscarPaginaPublica(codigo: string): Promise<{ tipo: 'ok'; pagina: PaginaPublica } | { tipo: 'nao_encontrada' } | { tipo: 'erro' }> {
+/** Uma página aberta por link: "nao_encontrada" = 404 (código errado); "erro" = qualquer outra falha. */
+export type LeituraPorLink<T> = { tipo: 'ok'; pagina: T } | { tipo: 'nao_encontrada' } | { tipo: 'erro' };
+
+async function lerPorLink<T>(caminho: string): Promise<LeituraPorLink<T>> {
   let resposta: Response;
   try {
-    resposta = await fetch(`/api/publico/${encodeURIComponent(codigo)}`);
+    resposta = await fetch(caminho);
   } catch {
     return { tipo: 'erro' };
   }
@@ -324,6 +326,56 @@ export async function buscarPaginaPublica(codigo: string): Promise<{ tipo: 'ok';
   } catch {
     return { tipo: 'erro' };
   }
+}
+
+/** GET /publico/:codigo (7a). */
+export const buscarPaginaPublica = (codigo: string) => lerPorLink<PaginaPublica>(`/api/publico/${encodeURIComponent(codigo)}`);
+
+/** Um jogador no link do time (7b): só deste time. */
+export interface JogadorDaPaginaDoTime {
+  nick: string;
+  /** Minutos ou kills, conforme `baseUsada`. */
+  base: number;
+  baseUsada: ModoDivisao;
+  /** A parte do jogador no time, em centésimos de ponto percentual: 220 = 2,20%. */
+  centesimosDePercentual: number;
+  premioCentavos: number;
+  recebeuCentavo: boolean;
+  explicacao: string | null;
+}
+
+/** O link de um time premiado (7b): o extrato dos jogadores dele, sem nada dos outros times. */
+export interface PaginaDoTime {
+  torneio: { nome: string };
+  calculadoEm: string;
+  time: { nome: string; posicao: number; premioCentavos: number; baseUsada: ModoDivisao; baseTime: number };
+  comoFoiCalculado: {
+    premioTotalCentavos: number;
+    percentualDaPosicao: number;
+    /** Como foi gravado: "desempate por kills do time", "divisão igual (empate em vitórias e kills)" ou null. */
+    criterio: string | null;
+    /** Só no empate dividido: as posições somadas, os percentuais delas e quantos times dividiram. */
+    empate: { posicoes: number[]; percentuais: number[]; quantidadeDeTimes: number } | null;
+    modoDivisao: ModoDivisao;
+  };
+  /** Do maior valor para o menor, e por nick no mesmo valor. */
+  jogadores: JogadorDaPaginaDoTime[];
+  totalCentavos: number;
+  codigoPublico: string;
+}
+
+/** GET /time/:codigo (7b). */
+export const buscarPaginaDoTime = (codigo: string) => lerPorLink<PaginaDoTime>(`/api/time/${encodeURIComponent(codigo)}`);
+
+/** Os códigos dos links do torneio (7b), para a Maria copiar. */
+export interface LinksDoTorneio {
+  publico: { codigo: string };
+  /** Os times premiados, na ordem da classificação. */
+  times: { time: string; posicao: number; premioCentavos: number; codigo: string }[];
+}
+
+export async function buscarLinks(torneioId: number): Promise<LinksDoTorneio> {
+  return lerOuFalhar(await chamar(`/api/torneios/${torneioId}/links`));
 }
 
 /**

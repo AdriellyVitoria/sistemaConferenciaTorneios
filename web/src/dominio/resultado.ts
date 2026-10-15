@@ -6,7 +6,7 @@
 import type { JogadorDoResultado, TimeDaClassificacao } from '../servicos/api';
 import { formatarCentavos } from './dinheiro';
 
-const juntarComE = (itens: string[]) => (itens.length <= 1 ? itens.join('') : `${itens.slice(0, -1).join(', ')} e ${itens.at(-1)}`);
+export const juntarComE = (itens: string[]) => (itens.length <= 1 ? itens.join('') : `${itens.slice(0, -1).join(', ')} e ${itens.at(-1)}`);
 const ordinal = (n: number) => `${n}º`;
 
 /** As posições que pagam algo: as de percentual maior que zero (uma posição com 0% não é premiada). */
@@ -108,7 +108,7 @@ export function observacaoDoJogador(j: JogadorDoResultado): string {
   return [j.recebeuCentavo ? '+R$ 0,01 de arredondamento' : '', j.explicacao ?? ''].filter(Boolean).join(' · ');
 }
 
-const normalizar = (texto: string) => texto.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLocaleLowerCase('pt-BR').trim();
+export const normalizar = (texto: string) => texto.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLocaleLowerCase('pt-BR').trim();
 
 export interface BuscaNoResultado {
   /** Os jogadores premiados que batem com a busca (todos, sem busca). */

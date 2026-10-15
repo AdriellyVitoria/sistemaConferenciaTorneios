@@ -2,11 +2,12 @@
 /**
  * A tela do resultado (6e, protótipo 2-resultado): o que foi gravado no cálculo, nada recalculado.
  * Cabeçalho (data, modo travado, total distribuído e o CSV), classificação com o critério e a
- * frase dos empates (D2), e o prêmio por jogador com o filtro por nick. Os links por time são da
- * etapa 7.
+ * frase dos empates (D2), o prêmio por jogador com o filtro por nick e, no fim, os links da página
+ * pública e de cada time premiado para a Maria copiar (7d).
  */
 import { computed, onMounted, ref, useId } from 'vue';
 import { RouterLink } from 'vue-router';
+import LinksDosTimes from '../componentes/LinksDosTimes.vue';
 import TabelaClassificacao from '../componentes/TabelaClassificacao.vue';
 import { formatarHora } from '../dominio/conferencia';
 import { formatarCentavos } from '../dominio/dinheiro';
@@ -122,6 +123,8 @@ const resumo = computed(() => {
 
         <p class="resumo-jogadores texto-suave" aria-live="polite">{{ resumo }}</p>
       </section>
+
+      <LinksDosTimes :torneio-id="id" />
     </template>
   </main>
 </template>

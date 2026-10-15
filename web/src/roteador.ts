@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
+import PaginaDoTime from './paginas/PaginaDoTime.vue';
 import PaginaNovoTorneio from './paginas/PaginaNovoTorneio.vue';
 import PaginaPublica from './paginas/PaginaPublica.vue';
 import PaginaResultado from './paginas/PaginaResultado.vue';
@@ -15,6 +16,7 @@ export const rotas: RouteRecordRaw[] = [
   // telas da Maria. O código é opcional para "/publico/" mostrar "Página não encontrada" em vez
   // de cair na regra abaixo, que leva à lista de torneios da Maria.
   { path: '/publico/:codigo?', name: 'publico', component: PaginaPublica, props: (rota) => ({ codigo: String(rota.params.codigo ?? '') }), meta: { publica: true } },
+  { path: '/time/:codigo?', name: 'time', component: PaginaDoTime, props: (rota) => ({ codigo: String(rota.params.codigo ?? '') }), meta: { publica: true } },
   { path: '/:caminho(.*)*', redirect: '/' },
 ];
 

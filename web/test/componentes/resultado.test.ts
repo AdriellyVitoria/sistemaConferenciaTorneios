@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+// @vitest-environment-options { "url": "http://localhost:5173/torneios/1/resultado" }
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
@@ -43,9 +44,25 @@ afterEach(() => {
   document.body.innerHTML = '';
 });
 
-async function montar(resposta: { status: number; corpo: unknown } = { status: 200, corpo: resultadoDeSetembro() }) {
+/** Os códigos dos links de setembro, como a API devolve em GET /torneios/:id/links. */
+const LINKS = {
+  publico: { codigo: 'PublicoPublicoPublicoPublico1234' },
+  times: [
+    { time: 'Lobos', posicao: 1, premioCentavos: 500_000, codigo: 'LobosLobosLobosLobosLobosLobos12' },
+    { time: 'Corvos', posicao: 2, premioCentavos: 300_000, codigo: 'CorvosCorvosCorvosCorvosCorvos12' },
+    { time: 'Falcões', posicao: 3, premioCentavos: 100_000, codigo: 'FalcoesFalcoesFalcoesFalcoes1234' },
+    { time: 'Tubarões', posicao: 3, premioCentavos: 100_000, codigo: 'TubaroesTubaroesTubaroesTubaroes' },
+  ],
+};
+
+async function montar(
+  resposta: { status: number; corpo: unknown } = { status: 200, corpo: resultadoDeSetembro() },
+  links: { status: number; corpo: unknown } = { status: 200, corpo: LINKS },
+) {
   vi.stubGlobal('fetch', vi.fn(async (url: string) => {
-    if (String(url) === '/api/torneios/1/resultado') return new Response(JSON.stringify(resposta.corpo), { status: resposta.status, headers: { 'content-type': 'application/json' } });
+    const json = (r: { status: number; corpo: unknown }) => new Response(JSON.stringify(r.corpo), { status: r.status, headers: { 'content-type': 'application/json' } });
+    if (String(url) === '/api/torneios/1/resultado') return json(resposta);
+    if (String(url) === '/api/torneios/1/links') return json(links);
     return new Response('{}', { status: 404 });
   }));
   const roteador = createRouter({ history: createMemoryHistory(), routes: rotas });
@@ -194,9 +211,76 @@ describe('filtro por nick', () => {
   });
 });
 
-describe('o que é da etapa 7 não aparece', () => {
-  it('sem os links dos times premiados', async () => {
+describe('Links para os times premiados (7d)', () => {
+  const ORIGEM = 'http://localhost:5173';
+  const secao = (pagina: VueWrapper) => pagina.find('section[aria-labelledby="t-links"]');
+  const item = (pagina: VueWrapper, nome: string) => secao(pagina).findAll('li').find((li) => li.find('.nome-do-link').text() === nome)!;
+  const area = (writeText: unknown) => Object.defineProperty(navigator, 'clipboard', { value: writeText === undefined ? undefined : { writeText }, configurable: true });
+
+  it('o link da página pública e um por time premiado, com o endereço completo', async () => {
     const pagina = await montar();
-    expect(pagina.text()).not.toContain('Links para os times premiados');
+    expect(secao(pagina).find('h2').text()).toBe('Links para os times premiados');
+    expect(secao(pagina).findAll('li').map((li) => [li.find('.nome-do-link').text(), li.find('.endereco').text()])).toEqual([
+      ['Página pública (classificação)', `${ORIGEM}/publico/${LINKS.publico.codigo}`],
+      ['Lobos · 1º · R$ 5.000,00', `${ORIGEM}/time/${LINKS.times[0].codigo}`],
+      ['Corvos · 2º · R$ 3.000,00', `${ORIGEM}/time/${LINKS.times[1].codigo}`],
+      ['Falcões · 3º · R$ 1.000,00', `${ORIGEM}/time/${LINKS.times[2].codigo}`],
+      ['Tubarões · 3º · R$ 1.000,00', `${ORIGEM}/time/${LINKS.times[3].codigo}`],
+    ]);
+  });
+
+  it('cada "Copiar link" tem um nome acessível próprio', async () => {
+    const pagina = await montar();
+    expect(secao(pagina).findAll('button').map((b) => b.attributes('aria-label'))).toEqual([
+      'Copiar link da página pública', 'Copiar link do time Lobos', 'Copiar link do time Corvos', 'Copiar link do time Falcões', 'Copiar link do time Tubarões',
+    ]);
+    for (const b of secao(pagina).findAll('button')) expect(b.text()).toBe('Copiar link');
+  });
+
+  it('"Copiar link" copia o endereço certo e mostra "Link copiado", anunciado ao leitor de tela', async () => {
+    const writeText = vi.fn(async () => {});
+    area(writeText);
+    const pagina = await montar();
+    const corvos = item(pagina, 'Corvos · 2º · R$ 3.000,00');
+    expect(corvos.find('[aria-live="polite"]').text()).toBe('');
+    await corvos.find('button').trigger('click');
+    await flushPromises();
+    expect(writeText).toHaveBeenCalledWith(`${ORIGEM}/time/${LINKS.times[1].codigo}`);
+    expect(corvos.find('[aria-live="polite"]').text()).toBe('Link copiado');
+    // só no item copiado
+    expect(item(pagina, 'Lobos · 1º · R$ 5.000,00').find('[aria-live="polite"]').text()).toBe('');
+  });
+
+  it('a área de transferência falhou: mostra o link num campo, já selecionado, para copiar à mão', async () => {
+    area(vi.fn(async () => { throw new Error('negado'); }));
+    const pagina = await montar();
+    const publico = item(pagina, 'Página pública (classificação)');
+    await publico.find('button').trigger('click');
+    await flushPromises();
+
+    const campo = publico.find('input[readonly]');
+    const endereco = `${ORIGEM}/publico/${LINKS.publico.codigo}`;
+    expect((campo.element as HTMLInputElement).value).toBe(endereco);
+    expect(document.activeElement).toBe(campo.element);
+    expect((campo.element as HTMLInputElement).selectionStart).toBe(0);
+    expect((campo.element as HTMLInputElement).selectionEnd).toBe(endereco.length);
+    expect(publico.find(`label[for="${campo.attributes('id')}"]`).exists()).toBe(true);
+    expect(publico.text()).toContain('Não foi possível copiar sozinho. O link está selecionado: copie com Ctrl+C (no celular, toque e segure).');
+    expect(publico.find('[aria-live="polite"]').text()).not.toBe('Link copiado');
+  });
+
+  it('sem área de transferência no navegador (endereço sem https): o mesmo campo para copiar à mão', async () => {
+    area(undefined);
+    const pagina = await montar();
+    const lobos = item(pagina, 'Lobos · 1º · R$ 5.000,00');
+    await lobos.find('button').trigger('click');
+    await flushPromises();
+    expect((lobos.find('input[readonly]').element as HTMLInputElement).value).toBe(`${ORIGEM}/time/${LINKS.times[0].codigo}`);
+  });
+
+  it('os links não carregaram: avisa na seção, e o resto da tela continua', async () => {
+    const pagina = await montar(undefined, { status: 500, corpo: { erro: 'Erro inesperado no servidor. Tente de novo.' } });
+    expect(secao(pagina).find('[role="alert"]').text()).toBe('Erro inesperado no servidor. Tente de novo.');
+    expect(linhasDa(pagina, 'Classificação')).toHaveLength(6);
   });
 });

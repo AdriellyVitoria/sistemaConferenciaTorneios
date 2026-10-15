@@ -8,14 +8,15 @@
  * Código errado ou vazio: "Página não encontrada", sem dizer se o torneio existe.
  */
 import { computed, onMounted, onUnmounted, ref } from 'vue';
+import AvisoDaPaginaPorLink from '../componentes/AvisoDaPaginaPorLink.vue';
 import TabelaClassificacao from '../componentes/TabelaClassificacao.vue';
 import { regrasEmTexto } from '../dominio/publico';
 import { formatarDataDeCriacao } from '../dominio/torneio';
-import { buscarPaginaPublica, type PaginaPublica } from '../servicos/api';
+import { buscarPaginaPublica, type LeituraPorLink, type PaginaPublica } from '../servicos/api';
 
 const props = defineProps<{ codigo: string }>();
 
-type Estado = { tipo: 'carregando' } | { tipo: 'ok'; pagina: PaginaPublica } | { tipo: 'nao_encontrada' } | { tipo: 'erro' };
+type Estado = { tipo: 'carregando' } | LeituraPorLink<PaginaPublica>;
 const estado = ref<Estado>({ tipo: 'carregando' });
 
 const tituloOriginal = document.title;
@@ -36,15 +37,7 @@ const regras = computed(() => (pagina.value ? regrasEmTexto(pagina.value.regras,
   <main class="pagina">
     <p v-if="estado.tipo === 'carregando'" class="texto-suave">Carregando a classificação…</p>
 
-    <section v-else-if="estado.tipo === 'nao_encontrada'" class="cartao" aria-labelledby="t-nao-encontrada">
-      <h1 id="t-nao-encontrada">Página não encontrada</h1>
-      <p class="texto-medio">Confira se o link foi copiado inteiro.</p>
-    </section>
-
-    <section v-else-if="estado.tipo === 'erro'" class="cartao" aria-labelledby="t-erro">
-      <h1 id="t-erro">Não foi possível carregar</h1>
-      <p class="aviso alerta" role="alert">Não foi possível carregar a página agora. Tente de novo em alguns minutos.</p>
-    </section>
+    <AvisoDaPaginaPorLink v-else-if="estado.tipo === 'nao_encontrada' || estado.tipo === 'erro'" :tipo="estado.tipo" />
 
     <template v-else-if="pagina">
       <div class="titulo-da-pagina">

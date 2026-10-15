@@ -33,6 +33,14 @@ const esquema = z
     SITE_TEMPO_LIMITE_MS: z.coerce.number().int().positive().default(15_000),
     /** Espera antes de cada nova tentativa (D10): 1, 2, 5 e depois 10 minutos. */
     CONFERENCIA_INTERVALOS_MS: listaDeMilissegundos.default('60000,120000,300000,600000'),
+
+    // job da conferência (etapa 4b)
+    /** De quanto em quanto tempo o job acorda para procurar partidas prontas para consultar. */
+    CONFERENCIA_ACORDAR_A_CADA_MS: z.coerce.number().int().positive().default(5_000),
+    /** Quantas partidas são consultadas ao mesmo tempo: rápido para a Maria, leve para o site. */
+    CONFERENCIA_LOTE: z.coerce.number().int().positive().default(3),
+    /** Partida "em_consulta" há mais que isso ficou presa (o processo caiu no meio) e volta para a fila. */
+    CONFERENCIA_PRESA_APOS_MS: z.coerce.number().int().positive().default(120_000),
   })
   .superRefine((c, ctx) => {
     // com o tempo limite abaixo da demora normal, uma consulta lenta mas certa viraria falha
@@ -41,6 +49,14 @@ const esquema = z
         code: z.ZodIssueCode.custom,
         path: ['SITE_TEMPO_LIMITE_MS'],
         message: `SITE_TEMPO_LIMITE_MS (${c.SITE_TEMPO_LIMITE_MS}) precisa ser maior que a demora máxima do site, SITE_DEMORA_MAX_MS (${c.SITE_DEMORA_MAX_MS}).`,
+      });
+    }
+    // uma consulta dura no máximo o tempo limite; antes disso, a partida pode estar sendo consultada
+    if (c.CONFERENCIA_PRESA_APOS_MS <= c.SITE_TEMPO_LIMITE_MS) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['CONFERENCIA_PRESA_APOS_MS'],
+        message: `CONFERENCIA_PRESA_APOS_MS (${c.CONFERENCIA_PRESA_APOS_MS}) precisa ser maior que o tempo limite da consulta, SITE_TEMPO_LIMITE_MS (${c.SITE_TEMPO_LIMITE_MS}).`,
       });
     }
   });

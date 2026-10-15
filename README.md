@@ -60,6 +60,18 @@ curl localhost:3000/torneios/1
 docker compose exec mysql mysql -utorneios -ptorneios torneios
 ```
 
+### Ver a conferência acontecendo
+
+A API confere as partidas no site oficial sozinha, em segundo plano: ao subir uma planilha, as partidas nascem "aguardando" e o job as consulta, 3 por vez. Para acompanhar, rode de tempos em tempos:
+
+```bash
+docker compose exec mysql mysql --default-character-set=utf8mb4 -utorneios -ptorneios torneios -e "
+  SELECT id_partida, status_conferencia, tentativas, ultima_tentativa_em, proxima_tentativa_em, ultimo_erro
+  FROM partidas WHERE torneio_id = 1 ORDER BY id"
+```
+
+As partidas passam de `aguardando` para `em_consulta` e depois `conferida` (ou `nao_encontrada`). Os dados oficiais de cada jogador ficam em `participacoes`. Para ver as novas tentativas, derrube o site em http://localhost:4000/demo: as partidas voltam para `aguardando`, com a tentativa somada, o erro e a próxima tentativa 1 min depois. Religue e espere. O log da API (`docker compose logs -f api`) mostra o resumo de cada rodada.
+
 Dentro do MySQL: `SHOW TABLES;`, `DESCRIBE partidas;`, `SELECT * FROM torneios;`. Qualquer cliente gráfico (DBeaver, MySQL Workbench) também conecta em `localhost:3307`, usuário e senha `torneios`.
 
 ## Desenvolvimento sem Docker (opcional)

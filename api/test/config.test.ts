@@ -24,6 +24,20 @@ describe('configuração da consulta ao site oficial', () => {
     expect(() => lerConfig({ SITE_DEMORA_MAX_MS: '800', SITE_TEMPO_LIMITE_MS: '500' })).toThrow('precisa ser maior');
   });
 
+  it('job: acorda a cada 5 s, consulta 3 partidas por vez e recupera a partida presa há mais de 2 min', () => {
+    expect(lerConfig({})).toMatchObject({
+      CONFERENCIA_ACORDAR_A_CADA_MS: 5_000,
+      CONFERENCIA_LOTE: 3,
+      CONFERENCIA_PRESA_APOS_MS: 120_000,
+    });
+  });
+
+  it('recusa tempo de "presa" que não passa do tempo limite: uma consulta lenta, mas viva, seria tomada', () => {
+    expect(() => lerConfig({ CONFERENCIA_PRESA_APOS_MS: '15000' })).toThrow(
+      'CONFERENCIA_PRESA_APOS_MS (15000) precisa ser maior que o tempo limite da consulta, SITE_TEMPO_LIMITE_MS (15000)',
+    );
+  });
+
   it.each([[''], ['60000,,120000'], ['60000,abc'], ['0'], ['-1000'], ['1.5']])(
     'recusa intervalos inválidos: "%s"',
     (texto) => {

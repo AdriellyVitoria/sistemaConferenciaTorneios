@@ -27,6 +27,8 @@ export interface LinhaPlanilha {
 export interface ErroLeitura {
   /** Linha do Excel; ausente quando o problema é o arquivo todo. */
   linha?: number;
+  /** Todas as linhas envolvidas, quando o problema é de mais de uma (ex.: uma partida inteira, D23). */
+  linhas?: number[];
   /** Nome da coluna como aparece na planilha da Maria. */
   coluna?: string;
   /** O valor que veio na célula, para a tela mostrar. */

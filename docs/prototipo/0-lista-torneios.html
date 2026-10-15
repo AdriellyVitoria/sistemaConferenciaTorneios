@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Lista de torneios</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#2348C7}a:hover{color:#16328F}
+</style>
+</helmet>
+<div style="position: relative; background: #F4F5F7; color: #14161B; font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; line-height: 1.5; min-height: 1000px">
+<header style="background: #14161B; color: #FFFFFF; padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+<div style="display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 16px">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8FA8FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"></path><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"></path></svg>
+<span>Premiação de torneios</span>
+</div>
+<nav style="display: flex; gap: 20px; font-size: 14px"><a href="#" style="color: #FFFFFF; text-decoration: none">Torneios</a></nav>
+</header>
+<main style="max-width: 1120px; margin: 0 auto; padding: 32px 24px 56px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h1 style="margin: 0; font-size: 30px; font-weight: 600; letter-spacing: -0.01em">Torneios</h1>
+<p style="margin: 0; color: #5B6170">Crie o torneio, suba a planilha e o sistema confere cada partida no site oficial.</p>
+</div>
+<a href="#" style="background: #2348C7; color: #FFFFFF; text-decoration: none; font-weight: 600; border-radius: 8px; padding: 12px 20px; min-height: 44px; box-sizing: border-box; display: inline-flex; align-items: center; gap: 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Novo torneio</a>
+</div>
+<section aria-label="Resumo" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px">
+<div style="background: #FFFFFF; border: 1px solid #E2E5EA; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px; color: #5B6170">Em andamento</span><strong style="font-size: 26px; font-weight: 600; font-family: 'IBM Plex Mono', monospace">3</strong></div>
+<div style="background: #FFFFFF; border: 1px solid #E2E5EA; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px; color: #5B6170">Precisam da sua atenção</span><strong style="font-size: 26px; font-weight: 600; font-family: 'IBM Plex Mono', monospace; color: #8A4B05">1</strong></div>
+<div style="background: #FFFFFF; border: 1px solid #E2E5EA; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px; color: #5B6170">Prêmios calculados</span><strong style="font-size: 26px; font-weight: 500; font-family: 'IBM Plex Mono', monospace">R$ 18.000,00</strong></div>
+</section>
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+<div role="tablist" aria-label="Filtrar torneios" style="display: flex; gap: 4px; background: #E8EAEE; border-radius: 10px; padding: 4px">
+<sc-for list="{{filtros}}" as="f" hint-placeholder-count="3">
+<sc-if value="{{f.ativo}}" hint-placeholder-val="{{ false }}">
+<button role="tab" aria-selected="true" onClick="{{f.escolher}}" style="font: inherit; font-size: 14px; font-weight: 600; background: #FFFFFF; color: #14161B; border: none; border-radius: 8px; padding: 8px 14px; min-height: 40px; cursor: pointer; box-shadow: 0 1px 2px rgba(20,22,27,0.12)">{{f.rotulo}} <span style="font-family: 'IBM Plex Mono', monospace; color: #5B6170">{{f.qtd}}</span></button>
+</sc-if>
+<sc-if value="{{f.inativo}}" hint-placeholder-val="{{ true }}">
+<button role="tab" aria-selected="false" onClick="{{f.escolher}}" style="font: inherit; font-size: 14px; background: transparent; color: #444A57; border: none; border-radius: 8px; padding: 8px 14px; min-height: 40px; cursor: pointer">{{f.rotulo}} <span style="font-family: 'IBM Plex Mono', monospace">{{f.qtd}}</span></button>
+</sc-if>
+</sc-for>
+</div>
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 240px">
+<label for="busca-torneio" style="font-size: 13px; color: #444A57">Buscar torneio</label>
+<input id="busca-torneio" type="search" placeholder="Nome do torneio" value="{{busca}}" onChange="{{onBusca}}" style="font: inherit; border: 1px solid #C3C8D2; border-radius: 8px; padding: 9px 12px; min-height: 42px; box-sizing: border-box; background: #FFFFFF">
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 12px">
+<sc-for list="{{lista}}" as="t" hint-placeholder-count="4">
+<article style="background: #FFFFFF; border: 1px solid #E2E5EA; border-radius: 12px; padding: 18px 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px">
+<div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+<a href="#" style="font-size: 17px; font-weight: 600; color: #14161B; text-decoration: none">{{t.nome}}</a>
+<span style="font-size: 12px; font-weight: 600; border-radius: 999px; padding: 3px 10px; background: {{t.badgeBg}}; color: {{t.badgeFg}}">{{t.situacao}}</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: #5B6170">
+<span>Criado em {{t.criado}}</span>
+<span><strong style="font-family: 'IBM Plex Mono', monospace; font-weight: 500; color: #14161B">{{t.premio}}</strong></span>
+<span>{{t.divisao}}</span>
+<span>{{t.partidas}}</span>
+</div>
+</div>
+<div style="flex: 1 1 300px; display: flex; flex-direction: column; gap: 8px">
+<ol aria-label="Etapas do torneio" style="list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px">
+<sc-for list="{{t.etapas}}" as="e" hint-placeholder-count="4">
+<li style="display: flex; flex-direction: column; gap: 6px">
+<span style="height: 6px; border-radius: 999px; background: {{e.cor}}"></span>
+<span style="font-size: 12px; color: {{e.texto}}; font-weight: {{e.peso}}">{{e.nome}}</span>
+</li>
+</sc-for>
+</ol>
+<span style="font-size: 13px; color: #444A57">{{t.detalhe}}</span>
+</div>
+<div style="display: flex; align-items: center; gap: 8px; margin-left: auto">
+<a href="#" style="font-weight: 600; font-size: 14px; color: #2348C7; border: 1px solid #2348C7; border-radius: 8px; padding: 10px 16px; min-height: 44px; box-sizing: border-box; display: inline-flex; align-items: center; text-decoration: none">{{t.acao}}</a>
+<sc-if value="{{t.podeExcluir}}" hint-placeholder-val="{{ true }}">
+<button aria-label="Excluir torneio {{t.nome}}" onClick="{{t.excluir}}" style="font: inherit; background: #FFFFFF; color: #A12828; border: 1px solid #E8C4C4; border-radius: 8px; width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4h6v3"></path></svg></button>
+</sc-if>
+<sc-if value="{{t.travado}}" hint-placeholder-val="{{ false }}">
+<span title="Torneios calculados não podem ser excluídos" style="width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; color: #8A909C"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Calculado: não pode ser excluído"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></span>
+</sc-if>
+</div>
+</article>
+</sc-for>
+<sc-if value="{{vazio}}" hint-placeholder-val="{{ false }}">
+<p style="margin: 0; background: #FFFFFF; border: 1px dashed #C3C8D2; border-radius: 12px; padding: 28px; text-align: center; color: #5B6170">Nenhum torneio encontrado.</p>
+</sc-if>
+</div>
+<p style="margin: 0; font-size: 13px; color: #5B6170; display: flex; align-items: center; gap: 8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>Torneios calculados ficam travados: não podem ser excluídos, porque guardam o registro do que foi pago.</p>
+</main>
+<sc-if value="{{modalAberto}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; background: rgba(20,22,27,0.5); display: flex; align-items: flex-start; justify-content: center; padding: 160px 20px 20px">
+<div role="dialog" aria-modal="true" aria-labelledby="titulo-excluir" style="background: #FFFFFF; border-radius: 14px; max-width: 460px; width: 100%; padding: 24px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 12px 40px rgba(20,22,27,0.25)">
+<h2 id="titulo-excluir" style="margin: 0; font-size: 20px; font-weight: 600">Excluir “{{nomeExcluir}}”?</h2>
+<p style="margin: 0; color: #444A57">A planilha, a conferência com o site e as pendências deste torneio serão apagadas. Esta ação não pode ser desfeita.</p>
+<div style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px">
+<button onClick="{{fecharModal}}" style="font: inherit; font-weight: 500; background: #FFFFFF; color: #14161B; border: 1px solid #C3C8D2; border-radius: 8px; padding: 10px 18px; min-height: 44px; cursor: pointer">Cancelar</button>
+<button onClick="{{confirmarExclusao}}" style="font: inherit; font-weight: 600; background: #A12828; color: #FFFFFF; border: none; border-radius: 8px; padding: 10px 18px; min-height: 44px; cursor: pointer">Excluir torneio</button>
+</div>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1000}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = { filtro: 'todos', busca: '', excluir: null, excluidos: [] };
+}
+renderVals() {
+var self = this;
+var SIT = {
+aguardando: { rotulo: 'Aguardando a planilha', bg: '#EDEFF3', fg: '#444A57', etapa: 0, acao: 'Subir planilha' },
+conferindo: { rotulo: 'Conferindo no site', bg: '#E8EDFB', fg: '#16328F', etapa: 1, acao: 'Acompanhar' },
+pendencias: { rotulo: 'Pendências para revisar', bg: '#FDF1DC', fg: '#8A4B05', etapa: 2, acao: 'Revisar' },
+calculado: { rotulo: 'Calculado', bg: '#E3F3E9', fg: '#146C3A', etapa: 4, acao: 'Ver resultado' }
+};
+var base = [
+{ id: 1, nome: 'Torneio de outubro', criado: '13/10/2026', premio: 'R$ 12.000,00', divisao: 'Divisão por minutos', partidas: 'Sem planilha', sit: 'aguardando', detalhe: 'Próximo passo: subir a planilha das partidas.' },
+{ id: 2, nome: 'Copa de Primavera', criado: '12/10/2026', premio: 'R$ 5.000,00', divisao: 'Divisão por kills', partidas: '15 partidas', sit: 'conferindo', detalhe: '9 de 15 partidas conferidas · próxima consulta às 18:32' },
+{ id: 3, nome: 'Liga Universitária', criado: '01/10/2026', premio: 'R$ 3.000,00', divisao: 'Divisão por minutos', partidas: '15 partidas', sit: 'pendencias', detalhe: '3 diferenças entre a planilha e o site aguardam o seu “Ciente”.' },
+{ id: 4, nome: 'Torneio de setembro', criado: '20/09/2026', premio: 'R$ 10.000,00', divisao: 'Divisão por minutos', partidas: '15 partidas', sit: 'calculado', detalhe: 'Calculado em 14/10/2026 · 21 jogadores premiados' },
+{ id: 5, nome: 'Torneio de agosto', criado: '18/08/2026', premio: 'R$ 8.000,00', divisao: 'Divisão por kills', partidas: '15 partidas', sit: 'calculado', detalhe: 'Calculado em 02/09/2026 · 15 jogadores premiados' }
+].filter(function (t) { return self.state.excluidos.indexOf(t.id) === -1; });
+var nomesEtapas = ['Planilha', 'Conferência', 'Pendências', 'Cálculo'];
+var q = (this.state.busca || '').trim().toLowerCase();
+var emAndamento = base.filter(function (t) { return t.sit !== 'calculado'; });
+var calculados = base.filter(function (t) { return t.sit === 'calculado'; });
+var escolhida = this.state.filtro === 'andamento' ? emAndamento : this.state.filtro === 'calculados' ? calculados : base;
+var lista = escolhida.filter(function (t) { return !q || t.nome.toLowerCase().indexOf(q) !== -1; }).map(function (t) {
+var s = SIT[t.sit];
+var etapas = nomesEtapas.map(function (n, i) {
+var feito = i < s.etapa;
+var atual = i === s.etapa;
+return { nome: n, cor: feito ? '#2348C7' : atual ? '#9BB0F0' : '#E2E5EA', texto: feito || atual ? '#14161B' : '#8A909C', peso: atual ? '600' : '400' };
+});
+return {
+nome: t.nome, criado: t.criado, premio: t.premio, divisao: t.divisao, partidas: t.partidas, detalhe: t.detalhe,
+situacao: s.rotulo, badgeBg: s.bg, badgeFg: s.fg, acao: s.acao, etapas: etapas,
+podeExcluir: t.sit !== 'calculado', travado: t.sit === 'calculado',
+excluir: function () { self.setState({ excluir: t }); }
+};
+});
+var filtros = [
+{ id: 'todos', rotulo: 'Todos', qtd: base.length },
+{ id: 'andamento', rotulo: 'Em andamento', qtd: emAndamento.length },
+{ id: 'calculados', rotulo: 'Calculados', qtd: calculados.length }
+].map(function (f) {
+var ativo = self.state.filtro === f.id;
+return { rotulo: f.rotulo, qtd: f.qtd, ativo: ativo, inativo: !ativo, escolher: function () { self.setState({ filtro: f.id }); } };
+});
+return {
+filtros: filtros,
+lista: lista,
+vazio: lista.length === 0,
+busca: this.state.busca,
+onBusca: function (e) { self.setState({ busca: e.target.value }); },
+modalAberto: !!this.state.excluir,
+nomeExcluir: this.state.excluir ? this.state.excluir.nome : '',
+fecharModal: function () { self.setState({ excluir: null }); },
+confirmarExclusao: function () { var id = self.state.excluir.id; self.setState({ excluir: null, excluidos: self.state.excluidos.concat([id]) }); }
+};
+}
+}
+</script>
+</body>
+</html>

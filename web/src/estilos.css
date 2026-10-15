@@ -1,0 +1,539 @@
+/*
+ * Base visual de todas as telas, tirada dos protótipos (docs/prototipo). Os valores ficam
+ * definidos UMA VEZ aqui, como variáveis; as telas e os componentes só usam as variáveis.
+ * As fontes vêm dos pacotes @fontsource, dentro do projeto: a demonstração funciona sem internet.
+ */
+
+:root {
+  /* ---- cores: superfícies e texto */
+  --fundo: #f4f5f7;
+  --superficie: #ffffff;
+  --superficie-suave: #f7f8fa;
+  --superficie-afundada: #e8eaee; /* trilho dos filtros */
+  --texto: #14161b;
+  --texto-medio: #444a57;
+  --texto-suave: #5b6170;
+  --texto-apagado: #6b7280; /* etapas futuras, ícones; 4,8:1 sobre o branco */
+
+  /* ---- cores: bordas */
+  --borda: #e2e5ea;
+  --borda-forte: #d5d9e0;
+  --borda-campo: #c3c8d2;
+  --linha-tabela: #eef0f3;
+
+  /* ---- cores: ação e situações (texto sobre o fundo de cada par passa de 4,5:1) */
+  --primaria: #2348c7;
+  --primaria-escura: #16328f;
+  --primaria-clara: #e8edfb;
+  --sucesso: #146c3a;
+  --sucesso-fundo: #e3f3e9;
+  --alerta: #8a4b05;
+  --alerta-fundo: #fdf1dc;
+  --neutro: #444a57;
+  --neutro-fundo: #edeff3;
+  --erro: #a12828;
+  --erro-fundo: #fdecea;
+
+  /* ---- cabeçalho escuro */
+  --cabecalho: #14161b;
+  --cabecalho-texto: #ffffff;
+  --cabecalho-texto-suave: #c9ceda;
+  --cabecalho-icone: #8fa8ff;
+
+  /* ---- fontes. Mono para IDs de partida, nomes de arquivo e dinheiro; números pequenos em
+     selos e contadores usam a Sans com algarismos de mesma largura: o zero da Mono tem um
+     ponto no meio e, em 12 px, "100%" parece riscado. */
+  --fonte: 'IBM Plex Sans', system-ui, sans-serif;
+  --fonte-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --texto-xs: 12px;
+  --texto-sm: 13px;
+  --texto-md: 14px;
+  --texto-base: 15px;
+  --texto-marca: 16px; /* o nome do sistema no cabeçalho */
+  --texto-lg: 17px;
+  --texto-xl: 18px;
+  --texto-numero: 26px;
+  --texto-titulo: 30px;
+  --altura-linha: 1.5;
+  --peso-normal: 400;
+  --peso-medio: 500;
+  --peso-forte: 600;
+
+  /* ---- espaçamentos (escala de 4 px) */
+  --espaco-1: 4px;
+  --espaco-2: 8px;
+  --espaco-3: 12px;
+  --espaco-4: 16px;
+  --espaco-5: 20px;
+  --espaco-6: 24px;
+  --espaco-7: 32px;
+  --espaco-8: 48px;
+  --espaco-9: 56px;
+
+  /* ---- raios */
+  --raio-pequeno: 6px; /* selos */
+  --raio: 8px; /* botões, campos, quadros internos */
+  --raio-medio: 10px; /* trilho dos filtros */
+  --raio-grande: 12px; /* cartões */
+  --raio-dialogo: 14px;
+  --raio-pilula: 999px;
+
+  /* ---- sombras e foco */
+  --sombra-sutil: 0 1px 2px rgb(20 22 27 / 0.12);
+  --sombra-dialogo: 0 12px 40px rgb(20 22 27 / 0.25);
+  --fundo-modal: rgb(20 22 27 / 0.5);
+  --cor-foco: #6f8fe8; /* contorno do foco: 3:1 sobre o fundo e sobre o branco */
+
+  /* ---- medidas */
+  --alvo-toque: 44px; /* altura mínima de tudo que se clica */
+  --largura-pagina: 1120px;
+  --largura-estreita: 760px;
+  --margem-lateral: var(--espaco-6);
+}
+
+@media (max-width: 640px) {
+  :root {
+    --margem-lateral: var(--espaco-4);
+    --texto-titulo: 26px;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--texto);
+  font-family: var(--fonte);
+  font-size: var(--texto-base);
+  line-height: var(--altura-linha);
+  overflow-wrap: anywhere; /* nomes e arquivos longos quebram em vez de alargar a página */
+}
+
+a {
+  color: var(--primaria);
+}
+a:hover {
+  color: var(--primaria-escura);
+}
+
+/* foco visível em tudo que recebe o teclado */
+:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+h1 {
+  margin: 0;
+  font-size: var(--texto-titulo);
+  font-weight: var(--peso-forte);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+h2 {
+  margin: 0;
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-forte);
+}
+p {
+  margin: 0;
+}
+
+.mono {
+  font-family: var(--fonte-mono);
+}
+/* números que precisam alinhar, sem a Mono (ver --fonte) */
+.numeral {
+  font-family: var(--fonte);
+  font-variant-numeric: tabular-nums;
+}
+.texto-medio {
+  color: var(--texto-medio);
+}
+.texto-suave {
+  color: var(--texto-suave);
+  font-size: var(--texto-md);
+}
+
+/* ---- página */
+.pagina {
+  max-width: var(--largura-pagina);
+  margin: 0 auto;
+  padding: var(--espaco-7) var(--margem-lateral) var(--espaco-9);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-6);
+}
+.pagina.estreita {
+  max-width: var(--largura-estreita);
+}
+.titulo-da-pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  min-width: 0;
+}
+.titulo-com-acao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--espaco-3) var(--espaco-4);
+}
+.trilha {
+  font-size: var(--texto-sm);
+  color: var(--texto-suave);
+}
+
+/* ---- cartões */
+.cartao {
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-grande);
+  padding: var(--espaco-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  min-width: 0;
+}
+@media (max-width: 640px) {
+  .cartao {
+    padding: var(--espaco-4);
+  }
+}
+.quadro-suave {
+  background: var(--superficie-suave);
+  border-radius: var(--raio);
+  padding: var(--espaco-3) var(--espaco-4);
+  color: var(--texto-medio);
+  font-size: var(--texto-md);
+}
+
+/* ---- etiquetas em pílula (prêmio, percentuais, modo) */
+.pilulas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+  font-size: var(--texto-sm);
+}
+.pilula {
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-pilula);
+  padding: var(--espaco-1) var(--espaco-3);
+}
+
+/* ---- selos de situação */
+.selo {
+  display: inline-block;
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  font-variant-numeric: tabular-nums;
+  border-radius: var(--raio-pequeno);
+  padding: 3px var(--espaco-2);
+  white-space: nowrap;
+}
+.selo.redondo {
+  border-radius: var(--raio-pilula);
+  padding: 3px 10px;
+}
+.selo.neutro,
+.contador {
+  background: var(--neutro-fundo);
+  color: var(--neutro);
+}
+.selo.info {
+  background: var(--primaria-clara);
+  color: var(--primaria-escura);
+}
+.selo.sucesso {
+  background: var(--sucesso-fundo);
+  color: var(--sucesso);
+}
+.selo.alerta {
+  background: var(--alerta-fundo);
+  color: var(--alerta);
+}
+.selo.erro {
+  background: var(--erro-fundo);
+  color: var(--erro);
+}
+/* contador ao lado de uma aba ou filtro */
+.contador {
+  display: inline-block;
+  font-size: var(--texto-sm);
+  font-variant-numeric: tabular-nums;
+  border-radius: var(--raio-pilula);
+  padding: 0 var(--espaco-2);
+  margin-left: var(--espaco-1);
+}
+
+/* ---- botões */
+.botao {
+  font: inherit;
+  font-weight: var(--peso-forte);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaco-2);
+  min-height: var(--alvo-toque);
+  padding: 10px var(--espaco-5);
+  border-radius: var(--raio);
+  border: 1px solid var(--primaria);
+  background: var(--primaria);
+  color: #ffffff;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+}
+.botao:hover {
+  background: var(--primaria-escura);
+  border-color: var(--primaria-escura);
+  color: #ffffff;
+}
+.botao.secundario {
+  background: var(--superficie);
+  color: var(--primaria);
+}
+.botao.secundario:hover {
+  background: var(--primaria-clara);
+  color: var(--primaria-escura);
+}
+.botao.neutro {
+  background: var(--superficie);
+  color: var(--texto);
+  border-color: var(--borda-campo);
+  font-weight: var(--peso-medio);
+}
+.botao.neutro:hover {
+  background: var(--superficie-suave);
+}
+.botao.perigo {
+  background: var(--erro);
+  border-color: var(--erro);
+}
+.botao:disabled,
+.botao:disabled:hover {
+  background: var(--borda-forte);
+  border-color: var(--borda-forte);
+  color: var(--texto-medio);
+  cursor: not-allowed;
+}
+.botao-texto {
+  font: inherit;
+  font-size: var(--texto-md);
+  background: none;
+  border: none;
+  color: var(--primaria);
+  cursor: pointer;
+  padding: var(--espaco-2);
+  min-height: var(--alvo-toque);
+}
+.botao-texto:hover {
+  color: var(--primaria-escura);
+  text-decoration: underline;
+}
+
+/* ---- formulário */
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.rotulo {
+  font-size: var(--texto-md);
+  font-weight: var(--peso-medio);
+  color: var(--texto);
+}
+.ajuda {
+  font-size: var(--texto-sm);
+  color: var(--texto-suave);
+}
+.campo {
+  font: inherit;
+  border: 1px solid var(--borda-campo);
+  border-radius: var(--raio);
+  padding: 10px var(--espaco-3);
+  min-height: var(--alvo-toque);
+  background: var(--superficie);
+  color: var(--texto);
+  max-width: 100%;
+}
+.campo[aria-invalid='true'] {
+  border-color: var(--erro);
+}
+.mensagem-erro {
+  font-size: var(--texto-sm);
+  color: var(--erro);
+}
+
+/* ---- avisos em faixa */
+.aviso {
+  border-radius: var(--raio);
+  padding: var(--espaco-3) var(--espaco-4);
+  font-size: var(--texto-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+}
+.aviso.alerta {
+  background: var(--alerta-fundo);
+  color: var(--alerta);
+}
+.aviso.sucesso {
+  background: var(--sucesso-fundo);
+  color: var(--sucesso);
+}
+.aviso.erro {
+  background: var(--erro-fundo);
+  color: var(--erro);
+}
+.aviso.info {
+  background: var(--primaria-clara);
+  color: var(--primaria-escura);
+}
+
+/* ---- tabelas */
+.rolagem {
+  overflow-x: auto;
+}
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+}
+.tabela th {
+  text-align: left;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  color: var(--texto-suave);
+  border-bottom: 1px solid var(--borda);
+  padding: 10px var(--espaco-2);
+}
+.tabela td {
+  padding: var(--espaco-3) var(--espaco-2);
+  border-bottom: 1px solid var(--linha-tabela);
+  vertical-align: top;
+}
+.tabela tr:last-child td {
+  border-bottom: none;
+}
+.tabela .numero {
+  text-align: right;
+}
+.tabela td.numero {
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * No celular, a tabela vira uma lista: cada linha é um bloco, e cada célula mostra o nome da
+ * coluna (data-rotulo) ao lado do valor. Nada de rolagem lateral.
+ */
+@media (max-width: 640px) {
+  .tabela.empilhavel thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .tabela.empilhavel tr {
+    display: block;
+    padding: var(--espaco-3) 0;
+    border-bottom: 1px solid var(--linha-tabela);
+  }
+  .tabela.empilhavel tr:last-child {
+    border-bottom: none;
+  }
+  .tabela.empilhavel td {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--espaco-3);
+    padding: var(--espaco-1) 0;
+    border: none;
+    text-align: right;
+  }
+  .tabela.empilhavel td::before {
+    content: attr(data-rotulo);
+    color: var(--texto-suave);
+    font-size: var(--texto-sm);
+    text-align: left;
+    flex-shrink: 0;
+  }
+}
+
+/* ---- abas sublinhadas (tela do torneio) */
+.abas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-1);
+  border-bottom: 1px solid var(--borda-forte);
+}
+.aba {
+  font: inherit;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: var(--espaco-3) var(--espaco-4);
+  min-height: var(--alvo-toque);
+  color: var(--texto-suave);
+  cursor: pointer;
+}
+.aba[aria-selected='true'] {
+  font-weight: var(--peso-forte);
+  color: var(--texto);
+  border-bottom-color: var(--primaria);
+}
+
+/* ---- filtros segmentados (lista de torneios) */
+.segmentos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-1);
+  background: var(--superficie-afundada);
+  border-radius: var(--raio-medio);
+  padding: var(--espaco-1);
+}
+.segmento {
+  font: inherit;
+  font-size: var(--texto-md);
+  background: transparent;
+  color: var(--texto-medio);
+  border: none;
+  border-radius: var(--raio);
+  padding: var(--espaco-2) 14px;
+  min-height: var(--alvo-toque);
+  cursor: pointer;
+}
+.segmento[aria-selected='true'] {
+  background: var(--superficie);
+  color: var(--texto);
+  font-weight: var(--peso-forte);
+  box-shadow: var(--sombra-sutil);
+}
+.segmento .numeral {
+  color: var(--texto-suave);
+  margin-left: var(--espaco-1);
+}
+@media (max-width: 640px) {
+  /* no celular, os filtros dividem a largura numa linha só */
+  .segmentos {
+    flex-wrap: nowrap;
+    width: 100%;
+  }
+  .segmento {
+    flex: 1 1 auto;
+    padding-inline: var(--espaco-2);
+  }
+}
+
+.visualmente-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

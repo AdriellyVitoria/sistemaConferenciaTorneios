@@ -20,7 +20,7 @@ docker compose up --build
 | Modo demonstração do site | http://localhost:4000/demo (derrubar e religar o site) |
 | MySQL | `localhost:3307` (usuário `torneios`, senha `torneios`) |
 
-A página inicial mostra se a API e o banco estão no ar. A API aplica as migrations do banco sozinha ao subir.
+A página inicial lista os torneios. Por ela, a Maria cria um torneio (nome, prêmio, percentuais e forma de divisão) e sobe a planilha; as partidas aparecem aguardando o site oficial. O rodapé mostra se a API e o banco estão no ar. A API aplica as migrations do banco sozinha ao subir.
 
 Para parar: `docker compose down`. Para apagar também os dados do banco: `docker compose down -v`.
 
@@ -30,8 +30,49 @@ Pré-requisito: Node 22.
 
 ```bash
 npm install
-npm test        # testes da API e do site oficial simulado
+npm test                  # regras de negócio, API, site simulado e regras da tela; não precisa de banco
+npm run test:integracao   # repositórios contra o MySQL do Docker (docker compose up -d mysql)
 ```
+
+Os testes de integração usam um banco só deles, `torneios_teste`, recriado do zero a cada execução: os dados de desenvolvimento não são tocados.
+
+## Usar a API
+
+```bash
+# criar um torneio (prêmio em centavos: R$ 10.000,00 = 1000000)
+curl -X POST localhost:3000/torneios -H 'content-type: application/json' \
+  -d '{"nome":"Setembro/2026","premioCentavos":1000000,"percentuais":[50,30,20],"modoDivisao":"minutos"}'
+
+# subir a planilha do torneio 1 (o arquivo vai direto no corpo; enviar de novo substitui)
+curl -X PUT localhost:3000/torneios/1/planilha -H 'x-nome-arquivo: torneio-setembro.csv' \
+  --data-binary @torneio-setembro.csv
+
+# listar os torneios, o mais novo primeiro
+curl localhost:3000/torneios
+
+# ver o torneio, com as partidas e o status de cada uma (também pelo navegador)
+curl localhost:3000/torneios/1
+```
+
+## Ver o banco
+
+```bash
+docker compose exec mysql mysql -utorneios -ptorneios torneios
+```
+
+### Ver a conferência acontecendo
+
+A API confere as partidas no site oficial sozinha, em segundo plano: ao subir uma planilha, as partidas nascem "aguardando" e o job as consulta, 3 por vez. Para acompanhar, rode de tempos em tempos:
+
+```bash
+docker compose exec mysql mysql --default-character-set=utf8mb4 -utorneios -ptorneios torneios -e "
+  SELECT id_partida, status_conferencia, tentativas, ultima_tentativa_em, proxima_tentativa_em, ultimo_erro
+  FROM partidas WHERE torneio_id = 1 ORDER BY id"
+```
+
+As partidas passam de `aguardando` para `em_consulta` e depois `conferida` (ou `nao_encontrada`). Os dados oficiais de cada jogador ficam em `participacoes`. Para ver as novas tentativas, derrube o site em http://localhost:4000/demo: as partidas voltam para `aguardando`, com a tentativa somada, o erro e a próxima tentativa 1 min depois. Religue e espere. O log da API (`docker compose logs -f api`) mostra o resumo de cada rodada.
+
+Dentro do MySQL: `SHOW TABLES;`, `DESCRIBE partidas;`, `SELECT * FROM torneios;`. Qualquer cliente gráfico (DBeaver, MySQL Workbench) também conecta em `localhost:3307`, usuário e senha `torneios`.
 
 ## Desenvolvimento sem Docker (opcional)
 

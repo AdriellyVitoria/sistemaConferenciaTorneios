@@ -135,6 +135,156 @@ Princípio: **tolerante na forma, rígida no conteúdo.** O que não muda o sent
 
 ---
 
+## Banco de dados da importação (etapa 3a), 14/10/2026
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| Nick, time e ID da partida com collation **`utf8mb4_0900_as_cs`** (diferencia acentos e maiúsculas) | O padrão do MySQL 8, `utf8mb4_0900_ai_ci` | O padrão trata "xxsniperxx" e "xXSniperXx", ou "Falcoes" e "Falcões", como iguais. Num `GROUP BY` ou numa chave única, o banco juntaria em silêncio o que o domínio decide com aviso e "Ciente" (D7, D19) |
+| O torneio foi completado por uma **migration nova (002)** | Editar a 001 | A 001 já rodou nos bancos; uma migration aplicada não muda, senão os bancos ficam diferentes entre si |
+| Status **`criado`**, antes da planilha | Nascer como "importado" | O torneio é criado (nome, prêmio, percentuais, modo) antes de a planilha chegar |
+| `linhas_planilha` ligada a `partidas` por **chave estrangeira** | Ligar pelo texto do ID da partida | A Maria pode corrigir o ID (D16); pela chave, a ligação continua certa. O ID digitado fica guardado na linha |
+| Sem a coluna `situacao` (ok/duplicada) nas linhas | Marcar a duplicata na importação | Duplicata virou pendência da comparação com o site (D19); a linha é guardada exatamente como veio |
+| `partidas` já nasce com os campos da conferência, inclusive **`em_consulta_desde`** e **`ultimo_erro`** | Acrescentar na etapa 4 | Ela é a tabela de tarefas. `em_consulta_desde` permite recuperar uma partida presa se o job cair no meio; `ultimo_erro` é o que a tela mostra |
+| A fonte de migrations registra sempre o nome com **`.js`** | O padrão do Knex (nome com a extensão do arquivo) | No contêiner o arquivo é `.js`, fora dele `.ts`: o Knex acusaria a pasta como corrompida ao alternar entre `npm run dev` e o Docker |
+| DATE volta do banco como **texto `aaaa-mm-dd`** | Objeto `Date` | Uma data sem hora não tem fuso; como `Date`, o 19/09 poderia virar 18/09 na conversão |
+| Testes de integração num banco **`torneios_teste`, recriado do zero** a cada execução, com `npm run test:integracao` | Usar o banco de desenvolvimento, ou rodar junto com `npm test` | Os testes não apagam dados de quem está desenvolvendo, e as próprias migrations são testadas. O `npm test` continua sem precisar de banco |
+| Repositórios recebem o **executor** (conexão ou transação) | Cada repositório usar a conexão global | Quem orquestra (o serviço da importação, no 3b) abre uma transação e passa para todos: se algo falha, nada fica gravado pela metade |
+
+---
+
+## API de torneio e importação (etapa 3b), 14/10/2026
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **Enviar a planilha de novo substitui a anterior inteira**, enquanto o torneio não foi calculado; a tela confirma antes (D22) | Proibir o reenvio (criar outro torneio) | Deixaria torneios abandonados e obrigaria a digitar tudo de novo por um erro de digitação |
+| (mesma) | Substituir só as partidas que mudaram | Economizaria consultas ao site, mas misturar conferência antiga e planilha nova é fácil de errar |
+| Depois do cálculo, reenviar responde **409** | Permitir e recalcular | O resultado já foi visto e divulgado; mudar a base depois é o que a D1 quer evitar |
+| **Partida com um time só ou com mais de dois: o arquivo é recusado**, listando todas as linhas envolvidas (D23) | Aceitar e deixar a comparação com o site apontar | Viraria "times diferentes", e corrigir o ID da partida inteira não separa a linha errada |
+| A importação **trava a linha do torneio** (`SELECT ... FOR UPDATE`) durante a transação | Não travar | Dois envios ao mesmo tempo (dois cliques, duas abas) poderiam misturar as planilhas |
+| `PUT /torneios/:id/planilha`, com o arquivo **direto no corpo** e o nome no cabeçalho `X-Nome-Arquivo` | `POST` com multipart (formulário de upload) | "A" planilha do torneio é um recurso único: enviar de novo substitui. O corpo direto dispensa uma biblioteca de upload; o navegador envia o `File` do mesmo jeito |
+| Prêmio sempre em **centavos inteiros** na API; a tela converte "R$ 10.000,00" | Aceitar texto em reais na API | Um formato só, sem ambiguidade de vírgula e ponto, e sem float |
+
+### Limitação conhecida: o sistema não tem login
+
+As confirmações na tela (substituir a planilha, calcular) evitam um **clique por engano**, mas **não impedem outra pessoa** que chegue à tela da Maria de criar torneios, subir planilhas ou calcular. Os links dos times premiados usam **token** (D11), então só quem recebeu o link vê os valores do time. **Autenticação da Maria fica como evolução:** num torneio amador, com a tela rodando no computador dela, o risco é baixo, e um login bem feito (senhas, sessão, recuperação de acesso) é um projeto à parte.
+
+---
+
+## Telas de criar torneio e subir planilha (etapa 3c), 14/10/2026
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **Prêmio digitado em reais, no formato brasileiro**, e convertido para centavos **só com texto e inteiros** (`lerReais`): aceita `R$ 10.000,00`, `10.000,00`, `10000` e `10000,5`; pontos só como milhar, em grupos de 3; vírgula com 1 ou 2 dígitos | `parseFloat` depois de trocar vírgula por ponto | `parseFloat` passa por float: o tipo de erro que a regra "dinheiro em centavos" existe para evitar |
+| (mesma) | Campo em centavos | A Maria não é técnica; ninguém pensa num prêmio como "1000000" |
+| **Formato americano (`10,000.00`) é recusado**, com a frase do formato certo | Tentar adivinhar | "10,000" no Brasil seria dez reais com três casas; adivinhar errado multiplica o prêmio por mil |
+| Prêmio com **limite de R$ 42.949.672,95** na tela, o mesmo da coluna do banco | Deixar só a API recusar | A Maria vê o motivo no campo, antes de enviar |
+| **Percentuais: começa em 50/30/20**, com adicionar e remover posição e **soma ao vivo**. A tela não envia o que já sabe que está errado, mas **a validação que vale é a da API** (mesmas frases da D20) | Validar só na API | O erro só apareceria depois de enviar; a soma ao vivo mostra na hora quanto falta |
+| Confirmação de substituir a planilha (D22) num **`<dialog>` do navegador**, com o nome do arquivo atual e do novo | `window.confirm` | O `confirm` não deixa mostrar os dois nomes de arquivo nem destacar o botão; o `<dialog>` já prende o foco e fecha com Esc |
+| Erros da planilha numa **tabela linha × coluna × problema**, com todas as linhas da partida quando o erro é de uma partida inteira (D23) | Uma lista de frases | A Maria procura no Excel pela linha; a tabela deixa a linha sempre no mesmo lugar |
+| **`GET /torneios`** para a página inicial, o mais novo primeiro, com a quantidade de partidas, **sem paginação** | Paginar | A Maria organiza poucos torneios por ano; paginar seria código sem uso |
+| **vue-router 4** | vue-router 5 | A versão 5 pede Vite 7 (por causa do roteamento por arquivos, que não usamos); trocar o Vite agora seria mexer no que funciona |
+| **Fontes dentro do projeto** (pacotes `@fontsource`, só os pesos usados e o alfabeto latino) | Google Fonts | A demonstração precisa funcionar sem internet |
+| `formatarCentavos` **repetido no web** | Pacote compartilhado entre API e web | Seria um quarto pacote no monorepo e no Docker por uma função de 10 linhas; as duas cópias têm testes |
+| A página inicial virou a **lista de torneios**; o status da API e do banco foi para o rodapé | Manter a página de status | Ela provava que as camadas conversavam (etapa 0); agora a lista prova o mesmo e é útil |
+
+**O que ficou de fora, por tempo:** testes de componente do Vue (`@vue/test-utils`). O Vitest do web testa as regras puras da tela (prêmio, percentuais, quando pedir confirmação, rótulos); as interações (confirmar e cancelar a substituição, planilha recusada, soma ao vivo, criar com erro e corrigir) foram conferidas num navegador de verdade, mas não ficaram automatizadas no repositório.
+
+---
+
+## Consulta ao site oficial (etapa 4a), 14/10/2026
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| O job vai conhecer só a interface **`SiteOficial`** (`consultarPartida`), com três resultados: **encontrada**, **não encontrada** e **indisponível** | O job chamar o `fetch` direto | Trocar o simulado pelo site real, ou a consulta direta por uma fila, mexeria na regra da conferência |
+| **Só o 404 não é tentado de novo.** Tudo o que não é 200 válido nem 404 é **indisponível**, com o motivo guardado: 503, tempo esgotado, erro de rede, **outro código (400, 500, 502...) e resposta fora do formato** | Tratar o 400 como erro definitivo, como o plano dizia | O sistema só manda IDs válidos (D18), então um 400 só aparece se o site mudar ou tiver um defeito. A partida não tem um estado "erro definitivo"; tentar de novo com intervalo crescente não sobrecarrega o site, e o motivo aparece na tela em "Aguardando o site" |
+| Resposta 200 **validada com Zod** antes de usar; fora do formato vira indisponível | Usar o que vier | Uma partida com minutos em texto ou sem jogadores viraria dinheiro errado. O sistema prefere esperar a usar dado pela metade |
+| O **tempo limite cobre a consulta inteira**, até o fim do corpo | Só até chegar o cabeçalho (o padrão de muitos clientes) | O site pode responder o cabeçalho e travar no meio: a consulta ficaria pendurada para sempre |
+| **Tempo limite de 15 s**, e a **API não sobe** se ele não passar da demora máxima do site (`SITE_DEMORA_MAX_MS`) | Um valor fixo | Abaixo da demora normal, toda consulta lenta mas certa viraria falha. Na demonstração os dois podem ser encurtados juntos |
+| O tempo limite usa um **cronômetro injetado** (`Cronometro`); o teste decide quando ele esgota | Esperar de verdade no teste, ou falsificar os timers do Node | Esperar 15 s deixaria os testes lentos. Os timers falsos do Vitest também afetam os do `fetch` por dentro. É o mesmo padrão da demora do site simulado (`esperar`) |
+| **Próxima tentativa** numa **função pura** (`proximaTentativa`): 1, 2, 5 e depois 10 min, **sem limite de tentativas**, com os intervalos em `CONFERENCIA_INTERVALOS_MS` | Desistir depois de N tentativas | Toda partida precisa ser conferida no site (D5): desistir deixaria o torneio travado sem a Maria saber por quê |
+
+**Não testado automaticamente:** o cronômetro de verdade (`setTimeout`, três linhas). Os testes usam o cronômetro injetado para não esperar.
+
+---
+
+## Job da conferência (etapa 4b), 14/10/2026
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| O job roda **dentro do processo da API**: o servidor liga ao subir e desliga ao encerrar, esperando a rodada em andamento | Processo separado (outro serviço no Docker) | Um serviço a mais para subir e explicar, sem ganho para 15 a 28 partidas. O código fica isolado em `conferencia/` (`iniciarJob`); virar processo separado é um arquivo de entrada novo. Com SKIP LOCKED, várias execuções ao mesmo tempo continuam seguras |
+| **Lote de 3 partidas consultadas em paralelo** (`CONFERENCIA_LOTE`) | Uma por vez | Setembro levaria até 2,5 min, e 8 times quase 5 min: a dor que a Maria já tem |
+| (mesma) | Todas de uma vez | Dezenas de pedidos ao mesmo tempo num site que já é instável |
+| **Reserva numa transação curta**; a consulta ao site (2 a 10 s) acontece **fora** dela | Manter a transação aberta durante a consulta | Travaria a partida, e uma conexão do banco, por até 15 s por consulta |
+| A reserva funciona como um **recibo** (`em_consulta_desde`): a gravação só acontece se a partida ainda existir e continuar reservada com o mesmo recibo | Gravar sempre | Uma partida apagada pela planilha nova (D22), ou recuperada e reservada por outra execução, receberia dados de uma consulta velha. O resultado é descartado sem erro |
+| O recibo (`em_consulta_desde`) é **`DATETIME(3)`, com milissegundos** (migration 006) | `DATETIME` em segundos | Em segundos, duas reservas da mesma partida no mesmo segundo tinham o mesmo recibo, e a consulta antiga gravava por cima da nova; um teste mostrou isso. O caso é raro (exige a partida voltar para a fila e ser reservada de novo no mesmo segundo, por exemplo depois de uma correção de ID na etapa 5), mas o custo de evitar é uma coluna. As outras colunas de horário continuam em segundos, cortados antes de gravar, porque o MySQL arredonda a fração |
+| **Erro do nosso lado numa partida** (defeito, deadlock, gravação recusada pelo MySQL): fica no log, a transação desfaz o que tinha feito e a partida **volta para a fila em 1 intervalo, sem contar tentativa**; as outras do lote seguem | Deixar a partida presa até a recuperação (2 min) | A partida ficaria parada à toa; esperar um intervalo evita que um defeito que se repete vire consulta a cada rodada |
+| **Erro na rodada inteira** (MySQL fora do ar): fica no log e o job tenta de novo na próxima rodada | Parar o job | O job não pode morrer por uma queda passageira; um teste derruba o banco e confere que o job continua acordando |
+| **Partida presa** (em consulta há mais de `CONFERENCIA_PRESA_APOS_MS`, padrão 2 min) volta para a fila **sem contar tentativa**, com o motivo "consulta interrompida" | Contar como falha | A falha foi do sistema, não do site; contar faria a espera crescer sem o site ter falhado |
+| (mesma) A API **não sobe** se esse tempo não passar do tempo limite da consulta | Valor livre | Abaixo do tempo limite, uma consulta lenta, mas viva, seria "tomada" e feita duas vezes |
+| A espera até a próxima tentativa conta **do início da tentativa** | Do fim | É o horário que a tela vai mostrar como "última tentativa às X, próxima às Y" |
+| A reserva atualiza **uma partida por vez, pela chave** | `UPDATE ... WHERE id IN (...)` | O teste do SKIP LOCKED mostrou: com quase a tabela toda na lista, o MySQL varre a tabela e **espera as linhas travadas por outra execução**, o que o SKIP LOCKED tinha acabado de evitar |
+| Ao gravar uma partida encontrada, o job trava **primeiro o torneio** (trava compartilhada), na mesma ordem da importação: torneio → partidas → participações | Travar só a partida | Na ordem inversa, uma planilha substituída no meio da gravação causava **deadlock** (visto nos testes, 1 em 3 execuções). A trava compartilhada não faz as gravações do job esperarem umas pelas outras |
+| **Sem apagar participações** antes de gravar | `DELETE` por segurança | O `DELETE` sem linhas trava o intervalo vazio do índice e causava deadlock entre gravações em paralelo. Não há o que apagar: uma partida conferida só volta para a fila pela correção do ID (etapa 5), que apaga as participações dela |
+| `participacoes` **sem coluna `venceu`** | Repetir o vencedor em cada jogador, como no rascunho do banco | O vencedor já está na partida; repetir permitiria os dois discordarem |
+| Os testes de integração usam o **site simulado de verdade**, sem demora, dentro do teste | Um site falso só para o teste | Testa o contrato real, inclusive as falhas programadas de novembro |
+| Partida encontrada vira **"conferida" mesmo com times diferentes** | Comparar já no 4b | A comparação com a planilha (e o status `times_diferentes`) é da etapa 5 |
+
+---
+
+## Tela de progresso e "tentar agora" (etapa 4c), 14/10/2026
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| A tela **consulta a API a cada 5 s enquanto houver partida aguardando ou em consulta**, para sozinha quando não há mais, e para ao sair da página | Consultar sempre; ou atualização em tempo real (WebSocket, SSE) | Consultar sempre gastaria pedidos à toa depois do fim. O tempo real seria mais uma peça (conexão aberta, reconexão) para algo que muda a cada 2 a 10 s |
+| A sondagem usa **`setTimeout` encadeado**: a próxima consulta só é marcada quando a anterior volta. A API fora do ar não para a sondagem; a tela mantém os dados e avisa "sem conexão" | `setInterval` | Com a API lenta, o `setInterval` empilharia consultas uma em cima da outra |
+| Não encontrada e times diferentes **não mantêm a sondagem ligada** | Acompanhar enquanto houver qualquer partida não conferida | Elas dependem da Maria (correção do ID, etapa 5), não do site: esperar não muda nada |
+| **"Tentar agora" por torneio**: a próxima tentativa das partidas "aguardando" passa a ser agora; o job pega na próxima vez que acordar (até 5 s) | Consultar o site direto na requisição do botão | Seria uma consulta paralela à do job, com risco de a mesma partida ser consultada duas vezes (D10) |
+| (mesma) **Não zera as tentativas** | Recomeçar a agenda em 1 min | Se falhar de novo, segue de onde estava (um teste mostra a 3ª falha esperando 5 min). Zerar faria o botão desfazer o intervalo crescente |
+| (mesma) **As em consulta não são tocadas** | — | Nada em paralelo: elas já estão sendo consultadas |
+| **Bloqueio de 30 s guardado no banco** (`torneios.tentar_agora_em`, migration 007), com o torneio travado (`SELECT ... FOR UPDATE`) | Bloqueio na memória da API | Na memória, uma API reiniciada liberaria o botão, e duas APIs teriam dois bloqueios. A trava do torneio faz dois cliques ao mesmo tempo resultarem em um 200 e um 429 |
+| Durante o bloqueio, **429** com `Retry-After` e os segundos que faltam; a API manda os segundos também no `GET` do torneio, e a tela conta a partir daí | A tela calcular pelo horário do clique | O relógio do navegador pode estar diferente do servidor; segundos relativos não dependem disso |
+| Sem partida aguardando: **409, e o bloqueio não começa**. Depois do cálculo: 409 | Aceitar sem fazer nada | Um clique que não fez nada não deveria travar o próximo |
+| **De quem foi o erro** numa coluna própria (`partidas.origem_do_erro`: `site` ou `interno`, migration 007). Interno = defeito nosso ou consulta interrompida (partida presa) | Descobrir pelo texto da mensagem | Mudar o texto de uma mensagem quebraria o selo sem ninguém perceber |
+| Erro interno aparece na aba "Aguardando o site" com o selo **"Erro interno, não é o site"**; o "tentar agora" também vale para essas partidas | Esconder da Maria | Ela precisa saber que a demora não é do site, sem precisar entender o motivo técnico |
+| Abas desta etapa: **"Aguardando o site"** e **"Todas as partidas"**; a tela abre na primeira enquanto houver partida lá | As três abas da D17 já agora | "Conferidas" e "Pendências" dependem da comparação com a planilha (etapa 5); até lá, "Todas as partidas" mostra também as não encontradas, que não podem sumir da tela. Na etapa 5, ela vira "Conferidas" e "Pendências" |
+
+**Testado no navegador de verdade** (roteiro pelo protocolo de depuração do Edge, contra o Docker), mas **sem teste de componente no repositório**, pelo mesmo corte da etapa 3c. Os casos:
+- com o site derrubado, a aba mostra a falha, o motivo e "última às X, próxima às Y";
+- uma partida com erro interno aparece com o selo certo;
+- o "tentar agora" antecipa as 15 partidas e a contagem desce de 30 s;
+- ao religar o site, a tela chega a "15 de 15" sozinha e **para de consultar a API**;
+- ao sair da página, nenhuma consulta continua.
+
+As regras da tela (progresso, botão, textos da fila, sondagem) têm testes no Vitest do web.
+
+---
+
+## Base visual e nova lista de torneios, 14/10/2026
+
+Só front, sem regra de negócio nova e sem mudar a API.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **Tokens visuais definidos uma vez** em `web/src/estilos.css` (cores, fontes, tamanhos de texto, espaçamentos de 4 em 4 px, raios, sombras, foco, alvo de toque de 44 px, larguras), tirados dos protótipos; as telas só usam as variáveis | Valores soltos em cada tela | A próxima tela (etapas 5 a 7) herda o visual sem copiar números, e trocar uma cor é mexer num lugar só |
+| **Mono só para IDs de partida, nomes de arquivo e dinheiro**; números em selos, contadores, percentuais e datas usam a Sans com algarismos de mesma largura (`tabular-nums`) | Mono para todo número, como no protótipo | O zero da IBM Plex Mono tem um ponto no meio; em 12 px, "100%" parecia riscado |
+| **No celular, as tabelas viram blocos** (cada célula com o nome da coluna ao lado); filtros, abas e botões ocupam a largura | Rolagem lateral dentro do cartão | A regra é não haver rolagem lateral. Conferido em 375 px nas três telas: a página não passa da largura da tela |
+| **Foco visível** com contorno de 3 px (`outline`) em tudo que recebe o teclado; no cartão do modo de divisão, o cartão inteiro mostra o foco do rádio | Só o padrão do navegador | O padrão some sobre alguns fundos; o `outline` acompanha o arredondamento de cada elemento |
+| O "Remover" posição **não aparece** com uma posição só | Botão desabilitado | Um botão que nunca pode ser usado é ruído |
+| **Testes de componente** (`@vue/test-utils` com `happy-dom`) para o comportamento das telas: o "Remover", a data, os filtros e a busca da lista | Só regras puras | Reduz o corte registrado na 3c: estes comportamentos estão na tela, não numa função. `happy-dom` 20.14.5, e não a 21, que tinha poucos dias de publicada |
+| A lista é de **cartões**, como no protótipo: a "coluna" de data de criação virou "Criado em dd/mm/aaaa" em cada cartão | Manter a tabela | O protótipo novo é de cartões; a data aparece no mesmo lugar em todos |
+| Resumo, filtros (todos, em andamento, calculados) e busca **calculados na tela**, com o que o `GET /torneios` já devolve; a busca ignora maiúsculas e acentos | Filtrar na API | Poucos torneios; filtrar na tela evita mudar a API agora |
+
+**Ficou de fora do protótipo da lista, por depender das etapas 5 a 7 ou de dados que a API ainda não devolve:**
+- o cartão **"Precisam da sua atenção"** (conta pendências: etapa 5);
+- a **régua de etapas** (Planilha, Conferência, Pendências, Cálculo): o status do torneio ainda não avança com a conferência, então a régua mostraria "Conferência" mesmo com tudo conferido (etapas 5 e 6);
+- a **linha de detalhe** de cada torneio ("9 de 15 conferidas · próxima consulta às…", "3 diferenças aguardam o seu Ciente", "Calculado em… · 21 jogadores premiados"): o `GET /torneios` não traz o progresso de cada um, e as pendências e o cálculo são das etapas 5 e 6;
+- as ações **"Revisar"** (etapa 5) e **"Ver resultado"** (etapa 6): hoje os cartões dizem "Subir planilha", "Acompanhar" ou "Abrir";
+- **excluir torneio**, o cadeado dos calculados e a nota de torneios travados: melhoria pendente no `plano.md` (seção 9).
+
+O cartão "Prêmios calculados" está na tela, com o que a API já tem (status e prêmio), e mostra R$ 0,00 até a etapa 6.
+
+---
+
 ## Stack e ferramentas
 
 | Decisão | Alternativa descartada | Por quê |

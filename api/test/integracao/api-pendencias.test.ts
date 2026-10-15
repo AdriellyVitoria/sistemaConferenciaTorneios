@@ -242,6 +242,65 @@ describe('depois do cálculo, nada muda', () => {
   });
 });
 
+describe('GET /torneios/:id: pronto para calcular (5c)', () => {
+  const calculo = async (id: number) => (await pedir('GET', `/torneios/${id}`)).corpo.calculo;
+
+  it('setembro: aguardando o site, depois sem os Cientes, e só com os 3 Cientes pode calcular', async () => {
+    const id = await torneioCom('torneio-setembro.csv', { conferir: false });
+    expect(await calculo(id)).toEqual({
+      podeCalcular: false, calculado: false, calculadoEm: null, semPlanilha: false, aguardandoSite: 15, bloqueios: 0, semCiente: 0,
+    });
+
+    await conferirTudo();
+    expect(await calculo(id)).toMatchObject({ podeCalcular: false, aguardandoSite: 0, bloqueios: 0, semCiente: 3 });
+
+    const [duplicata, nick] = (await pendencias(id)).corpo.naoBloqueantes;
+    await ciente(id, duplicata.chave);
+    await ciente(id, nick.chave);
+    expect(await calculo(id)).toMatchObject({ podeCalcular: false, semCiente: 1 });
+
+    expect((await cienteDeTodas(id)).corpo).toEqual({ marcadas: 1 });
+    expect(await calculo(id)).toEqual({
+      podeCalcular: true, calculado: false, calculadoEm: null, semPlanilha: false, aguardandoSite: 0, bloqueios: 0, semCiente: 0,
+    });
+
+    // desfazer um Ciente volta a impedir
+    await desfazer(id, nick.chave);
+    expect(await calculo(id)).toMatchObject({ podeCalcular: false, semCiente: 1 });
+  });
+
+  it('cenário 02: o ID que o site não conhece bloqueia; corrigido e conferido, pode', async () => {
+    const id = await torneioCom('testes/planilhas/02-id-inexistente.csv');
+    expect(await calculo(id)).toMatchObject({ podeCalcular: false, bloqueios: 1, semCiente: 0, aguardandoSite: 0 });
+
+    const errada = await bd('partidas').where({ torneio_id: id, id_partida: '#52214' }).first();
+    await pedir('PUT', `/torneios/${id}/partidas/${errada.id}/id-partida`, { idPartida: '#52241' });
+    expect(await calculo(id)).toMatchObject({ podeCalcular: false, bloqueios: 0, aguardandoSite: 1 });
+
+    await conferirTudo();
+    expect(await calculo(id)).toMatchObject({ podeCalcular: true, bloqueios: 0, aguardandoSite: 0, semCiente: 0 });
+  });
+
+  it('em consulta conta como aguardando o site', async () => {
+    const id = await torneioCom('torneio-setembro.csv');
+    await cienteDeTodas(id);
+    await bd('partidas').where({ torneio_id: id, id_partida: '#45659' }).update({ status_conferencia: 'em_consulta', em_consulta_desde: new Date() });
+    expect(await calculo(id)).toMatchObject({ podeCalcular: false, aguardandoSite: 1 });
+  });
+
+  it('torneio sem planilha: não pode', async () => {
+    const { corpo } = await pedir('POST', '/torneios', { nome: 'Sem planilha', premioCentavos: 1_000_000, percentuais: [100], modoDivisao: 'minutos' });
+    expect(await calculo(corpo.id)).toMatchObject({ podeCalcular: false, semPlanilha: true, aguardandoSite: 0, bloqueios: 0, semCiente: 0 });
+  });
+
+  it('depois do cálculo: informa que já foi calculado', async () => {
+    const id = await torneioCom('torneio-setembro.csv');
+    await cienteDeTodas(id);
+    await bd('torneios').where({ id }).update({ status: 'calculado', calculado_em: new Date('2026-10-15T13:00:00.000Z') });
+    expect(await calculo(id)).toMatchObject({ podeCalcular: false, calculado: true, calculadoEm: '2026-10-15T13:00:00.000Z' });
+  });
+});
+
 describe('planilha enviada de novo (D22)', () => {
   it('a conferência recomeça do zero, e os Cientes também', async () => {
     const id = await torneioCom('torneio-setembro.csv');

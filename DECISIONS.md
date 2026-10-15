@@ -335,6 +335,27 @@ A lista de partidas dos itens do torneio todo é ordenada pelo código de cada c
 
 ---
 
+## Pronto para calcular (etapa 5c), 15/10/2026
+
+Só API. O `GET /torneios/:id` ganhou o campo `calculo`:
+
+```json
+{ "podeCalcular": false, "calculado": false, "calculadoEm": null, "semPlanilha": false,
+  "aguardandoSite": 2, "bloqueios": 1, "semCiente": 3 }
+```
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| Só pode calcular com **todas as partidas conferidas** (aguardando e em consulta contam como "aguardando o site"), **nenhum bloqueio** (não encontrada, times diferentes) e **todas as não bloqueantes com Ciente** (D17) | — | "Nada é pago sem a Maria ter visto" |
+| Também não pode **sem planilha** (`semPlanilha`) | Deixar passar | Sem partidas, todas as contagens dão zero e pareceria pronto |
+| **Calculado na hora** (`situacaoDoCalculo`, função pura), com as mesmas pendências do 5a | Gravar no `status` do torneio ("pronto") | Ficaria desatualizado a cada Ciente desfeito, ID corrigido ou partida que cai de volta na fila. O valor `pronto` do status continua sem uso |
+| **Sempre os mesmos campos**, com todas as contagens, mesmo quando pode calcular ou já calculou | Só os motivos que impedem | A tela mostra "faltam 2 partidas, 1 ID e 3 Cientes" sem montar o objeto; um formato só é mais fácil de usar |
+| Depois do cálculo: `calculado: true`, `calculadoEm` e `podeCalcular: false` | — | Não se calcula de novo (D1, D22) |
+
+O cálculo em si (que trava o modo de divisão e a planilha) é da etapa 6. Ele vai conferir de novo esta mesma situação dentro da transação, sem confiar no que a tela viu.
+
+---
+
 ## Stack e ferramentas
 
 | Decisão | Alternativa descartada | Por quê |

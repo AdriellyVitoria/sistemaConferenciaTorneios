@@ -46,7 +46,8 @@ export async function listarPendencias(bd: Knex, torneioId: number): Promise<Lis
   return calcularPendencias(bd, torneioId);
 }
 
-async function calcularPendencias(bd: Executor, torneioId: number): Promise<ListaDePendencias> {
+/** As pendências atuais do torneio (sem conferir se o torneio existe). */
+export async function calcularPendencias(bd: Executor, torneioId: number): Promise<ListaDePendencias> {
   const [partidas, linhas, participacoes, cientes] = await Promise.all([
     listarPartidas(bd, torneioId),
     listarLinhas(bd, torneioId),

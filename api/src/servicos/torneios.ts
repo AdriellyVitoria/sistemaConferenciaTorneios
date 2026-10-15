@@ -7,9 +7,11 @@ import type { Knex } from 'knex';
 import { montarPartidas } from '../dominio/importacao';
 import { lerPlanilha, type ErroLeitura } from '../dominio/planilha';
 import { erroDosPercentuais } from '../dominio/premio';
+import { situacaoDoCalculo, type SituacaoDoCalculo } from '../dominio/pronto-para-calcular';
 import { segundosParaTentarAgora } from '../dominio/tentar-agora';
 import { anteciparAguardando, contarAguardando } from '../repositorios/conferencia';
 import { apagarCientesDoTorneio } from '../repositorios/pendencias';
+import { calcularPendencias } from './pendencias';
 import { inserirLinhas } from '../repositorios/linhas-planilha';
 import { apagarPartidasDoTorneio, inserirPartidas, listarPartidas, type Partida } from '../repositorios/partidas';
 import {
@@ -37,16 +39,26 @@ export function listarTorneios(bd: Knex): Promise<ResumoTorneio[]> {
   return buscarTodosOsTorneios(bd);
 }
 
-export type TorneioComPartidas = Torneio & { partidas: Partida[]; segundosParaTentarAgora: number };
+export type TorneioComPartidas = Torneio & { partidas: Partida[]; segundosParaTentarAgora: number; calculo: SituacaoDoCalculo };
 
 export async function consultarTorneio(bd: Knex, id: number, agora = new Date()): Promise<TorneioComPartidas | null> {
   const torneio = await buscarTorneio(bd, id);
   if (!torneio) return null;
+  const [partidas, { resumo }] = await Promise.all([listarPartidas(bd, id), calcularPendencias(bd, id)]);
   return {
     ...torneio,
-    partidas: await listarPartidas(bd, id),
+    partidas,
     // a tela mostra a contagem a partir daqui, sem depender do relógio do navegador
     segundosParaTentarAgora: segundosParaTentarAgora(torneio.tentarAgoraEm, agora),
+    // calculado na hora, como as pendências: um Ciente desfeito ou um ID corrigido muda na hora (5c)
+    calculo: situacaoDoCalculo({
+      status: torneio.status,
+      calculadoEm: torneio.calculadoEm,
+      quantidadeDePartidas: partidas.length,
+      aguardandoSite: resumo.aguardandoSite,
+      bloqueios: resumo.bloqueantes,
+      semCiente: resumo.semCiente,
+    }),
   };
 }
 

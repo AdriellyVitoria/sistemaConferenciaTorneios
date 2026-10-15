@@ -559,7 +559,8 @@ p {
   min-height: var(--alvo-toque);
   cursor: pointer;
 }
-.segmento[aria-selected='true'] {
+.segmento[aria-selected='true'],
+.segmento[aria-pressed='true'] {
   background: var(--superficie);
   color: var(--texto);
   font-weight: var(--peso-forte);

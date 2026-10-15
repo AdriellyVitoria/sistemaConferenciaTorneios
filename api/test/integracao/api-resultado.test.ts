@@ -129,7 +129,7 @@ describe('GET /torneios/:id/resultado.csv', () => {
     expect(texto).toContain('Tubarões');
 
     const [cabecalho, ...linhas] = texto.split('\r\n').filter(Boolean);
-    expect(cabecalho).toBe('Posição;Time;Nick;Minutos;Kills;Valor (R$);Centavo de arredondamento');
+    expect(cabecalho).toBe('Posição;Time;Nick;Minutos;Kills;Valor (R$);Centavo de arredondamento;Pago');
     expect(linhas).toHaveLength(31);
     const centavos = linhas.map((l) => {
       const [reais, cent] = l.split(';')[5].split(',');
@@ -137,10 +137,11 @@ describe('GET /torneios/:id/resultado.csv', () => {
     });
     expect(centavos.reduce((s, c) => s + c, 0)).toBe(1_000_000);
 
-    expect(linhas).toContain('2;Corvos;Tuca;19;5;65,90;sim');
+    // a coluna "Pago" vazia no final, para a Maria marcar no Excel (D12)
+    expect(linhas).toContain('2;Corvos;Tuca;19;5;65,90;sim;');
     // ordem: posição, valor maior, nick; Falcões e Tubarões juntos no 3º lugar
     expect(linhas.map((l) => l.split(';')[0])).toEqual([...'11111', ...'222222', ...'3333333333', ...'55555', ...'66666']);
-    expect(linhas.slice(0, 1)[0]).toMatch(/^1;Lobos;Dona\.Tank;211;\d+;1000,00;não$/);
+    expect(linhas.slice(0, 1)[0]).toMatch(/^1;Lobos;Dona\.Tank;211;\d+;1000,00;não;$/);
     expect(linhas[11].split(';').slice(0, 3)).toEqual(['3', 'Falcões', 'Dudu.pro']);
   });
 

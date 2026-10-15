@@ -31,6 +31,8 @@ export interface Torneio extends NovoTorneio {
 
 export interface ResumoTorneio extends Torneio {
   quantidadeDePartidas: number;
+  /** A data da primeira partida da planilha ('aaaa-mm-dd'), ou null sem planilha: a lista agrupa por mês. */
+  primeiraPartidaEm: string | null;
 }
 
 export interface Partida {

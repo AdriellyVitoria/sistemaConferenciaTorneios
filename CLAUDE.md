@@ -63,4 +63,5 @@ Projeto: desafio técnico da PowerRev (Desenvolvedora Full Stack Júnior). Siste
 - Testes de integração com um relógio só (o do MySQL, `relogioDoBanco` em `api/test/integracao/banco-de-teste.ts`): concluído.
 - Etapa 7, pedaço 7c (tela da página pública, só web, rota `/publico/:codigo`): concluído. Rotas com `meta: { publica: true }` ficam sem menu, rodapé e links para as telas da Maria. Posição com 0% não conta como premiada (confirmado).
 - Etapa 7, pedaço 7d (tela do link do time em `/time/:codigo` e "Links para os times premiados" na tela do resultado, só web): pronto, aguardando aprovação. **Quando a Adrielly aprovar, marcar a etapa 7 no checklist do `plano.md`.**
-- Próximo passo: depois da aprovação do 7d, **Etapa 8** (documentação).
+- Pacote de melhorias em duas partes. **Parte 1 (M1)**, lista por mês, filtros de mês e divisão, total do mês no cartão e coluna "Pago" no CSV: aprovada. Um conceito só de mês na tela toda: o mês do torneio (primeira partida; sem planilha, a criação).
+- Próximo passo: **a parte 2 das melhorias, depois do commit da M1**; depois, **Etapa 8** (documentação). A etapa 7 ainda não foi marcada no checklist: falta a aprovação do 7d.

@@ -750,6 +750,45 @@ Só web, com a API do 7b (`GET /time/:codigo` e `GET /torneios/:id/links`). Rota
 
 ---
 
+## Melhorias, parte 1 (M1): lista por mês, filtros e coluna Pago, 15/10/2026
+
+Decisões da Adrielly: a lista agrupada por mês, os filtros de mês e de divisão, o total do mês no cartão e a coluna "Pago" no CSV. A API da lista ganhou a data da primeira partida; sem migration.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **O mês do torneio é o da primeira partida da planilha** (a menor data das linhas, `primeiraPartidaEm` em `GET /torneios`); sem planilha, o da criação, no fuso da tela | O mês da criação ou do cálculo | É quando o torneio aconteceu. A planilha nova (D22) muda a data (testado) |
+| A data vem das **linhas da planilha**, não das partidas | `partidas.data` | É o que a Maria digitou. Hoje as duas são iguais (o job não muda a data), mas "da planilha" é a regra |
+| **"Em andamento" sempre no topo, de qualquer mês**; abaixo, um grupo por mês, do mais recente para o mais antigo, só com os calculados | Pôr o torneio em andamento no grupo do mês dele | Um torneio de um mês anterior que ainda não terminou não pode sumir num grupo recolhido. **Sem arquivamento automático na virada do mês** |
+| **O mês atual aberto, os anteriores recolhidos**, mostrando "N torneios · R$ total" (a soma dos prêmios do grupo) | Todos abertos | A lista cresce todo mês; o recolhido ainda diz quanto foi pago |
+| Os grupos são **`<details>`/`<summary>`** do navegador, com uma seta que gira (sem animação para quem pede menos movimento) | Botões e JavaScript próprios | Abrir e fechar pelo teclado e o anúncio "recolhido/expandido" já vêm prontos. O `display: flex` do título escondia o triângulo padrão: a primeira foto no navegador mostrou isso, e a seta entrou no lugar |
+| **Com busca ou um mês escolhido, todos os grupos abrem**, e os grupos sem resultado somem | Manter recolhidos | O torneio procurado não pode ficar escondido num mês fechado |
+| **Um conceito só de mês na tela toda: o mês do torneio** (primeira partida; sem planilha, a criação). O grupo, o seletor e o cartão usam o mesmo | Somar o cartão pela data do cálculo | **Corrigido pela Adrielly na aprovação da M1** (o pedido anterior dizia "pela data do cálculo"). Com dois conceitos, o cartão "Prêmios calculados em setembro" não batia com o "R$ total" do grupo de setembro: o setembro calculado em outubro contava em outubro no cartão e em setembro no grupo |
+| **Seletor de mês** com "Todos os meses" e **só os meses dos torneios** | Pôr também os meses dos cálculos | Com um conceito só de mês, um mês sem torneio não tem o que mostrar |
+| O **filtro de mês vale para os em andamento também** (pelo mês das partidas) | Mostrar sempre todos os em andamento | Escolher agosto mostra o torneio de agosto que ainda está em andamento, e nada mais |
+| **"Divisão: Todas, Minutos, Kills"**, botões com `aria-pressed` num grupo com nome | — | Os filtros se combinam: situação, divisão, mês e busca |
+| As **contagens das abas de situação** seguem os outros filtros | Contar sempre a lista inteira | O número bate com o que aparece. O cartão "Em andamento" continua com o total geral |
+| **Cartão "Prêmios calculados"**: com um mês escolhido, "Prêmios calculados em setembro", a soma dos torneios **calculados daquele mês do torneio**, igual ao "R$ total" do grupo do mês (testado: o setembro calculado em outubro conta em setembro); com "Todos os meses", o total geral. O ano aparece só quando não é o do mês atual ("em dezembro de 2025") | A data do cálculo | Ver a linha do conceito único de mês. O ano evita confundir dezembro de 2025 com o de 2026 |
+| **CSV: coluna "Pago" vazia no final**, para a Maria marcar no Excel | Controlar o pagamento no sistema | O sistema não controla pagamento (D12); o "Pago" no sistema está em "Próximos passos" |
+| O cartão de cada torneio virou um componente (`CartaoDoTorneio`) | Repetir o cartão | Aparece no grupo "Em andamento" e em cada mês |
+
+**Testes:**
+- **API (integração):** a primeira partida de setembro é 05/09, sem planilha vem `null`, e a planilha nova muda a data; o CSV com o cabeçalho e as linhas com a coluna "Pago" vazia.
+- **API (unidade):** a coluna "Pago" no CSV.
+- **Web (unidade):**
+  - o mês pela primeira partida, e sem planilha pela criação, no fuso;
+  - o agrupamento, com "Em andamento" no topo e o mês atual aberto;
+  - o resumo do grupo, "N torneios · R$";
+  - os filtros juntos, os meses do seletor (só os dos torneios), o total pelo mês do torneio, igual ao do grupo, e o rótulo do cartão.
+- **Web (componente, com o relógio fixo em 15/10/2026):**
+  - o torneio de agosto em andamento no topo, e os grupos de outubro (aberto) e setembro (recolhido, "2 torneios · R$ 15.000,00");
+  - o filtro de mês, que abre o grupo, e o de divisão;
+  - a busca, que abre o mês recolhido;
+  - o total do mês no cartão.
+
+**No navegador** (Docker, com os torneios reais do banco): a lista em 1280 px e em 375 px, sem rolagem lateral; outubro aberto, setembro recolhido com "3 torneios · R$ 30.000,00".
+
+---
+
 ## Testes de integração com um relógio só, 15/10/2026
 
 **O problema:** um teste de `repositorios.test.ts` falhava de vez em quando. A partida nasce com o `NOW()` do MySQL, e o teste comparava esse horário com o `Date.now()` do Node. Os testes rodam no Windows e o MySQL no Docker, e os dois relógios chegam a ficar mais de 1 s diferentes. O mesmo padrão estava escondido em 8 arquivos: o "agora" do job era `Date.now() + 2 s`, e o job só pega a partida cuja próxima tentativa (gravada com o relógio do MySQL) já chegou. Com o MySQL mais de 2 s à frente, a partida não seria pega.

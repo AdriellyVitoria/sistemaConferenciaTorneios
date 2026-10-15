@@ -864,6 +864,24 @@ O code review de 15/10/2026 está em `code-review.md`. As correções entram em 
 
 **Os testes:** um por limite e por caso, com os números escritos por extenso (mudar a constante sem querer faz o teste falhar), mais as bordas que precisam continuar passando (80 caracteres, 19 dígitos, 100.000, anos 2000 e 2100, um CSV que começa com as letras "PK"). Pela rota, cada caso responde 400 com a linha e nada é gravado, e a correção do ID com 30 dígitos responde 400 e mantém o ID antigo.
 
+### R1b: coerência da resposta do site e erro de regra no cálculo (itens 3 e 4), 15/10/2026
+
+**O problema:** o site respondia no formato certo, mas com dados que não fechavam, e o sistema aceitava. Com o vencedor `"lobos"` e os times `"Lobos"` e `"Corvos"`, a classificação criava um time fantasma com 1 vitória e sem jogadores, e o cálculo parava com "Erro inesperado no servidor". Pelo desenho (D3, D16), a Maria **não tem como corrigir**: o site é a verdade e ela só edita o ID. O torneio ficaria travado para sempre.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **A resposta precisa fechar** (`superRefine` no esquema do cliente): o vencedor é um dos dois times; o time de todo jogador é um dos dois; cada time tem ao menos um jogador; o ID respondido é o consultado; os dois times não têm o mesmo nome | Validar só o formato | Dado incoerente do "site instável" chegava ao cálculo e travava o torneio sem saída |
+| Fora disso: **`resposta_invalida`**, que já é tentada de novo, com a frase na aba "Aguardando o site": "O site oficial respondeu dados que não fecham: o vencedor "lobos" não é nenhum dos dois times (Lobos x Corvos)." | Gravar a partida como conferida e avisar nas pendências | Não há o que a Maria possa fazer com um dado incoerente; esperar o site responder certo é o mesmo caminho de quando ele está fora do ar (D10) |
+| Nomes comparados **exatamente como o site escreveu** | Sem acentos e maiúsculas, como entre planilha e site (D19) | A D19 tolera a digitação da Maria. Dentro da própria resposta do site, "lobos" e "Lobos" no mesmo JSON é o site se contradizendo |
+| O esquema do site ganhou **os limites da planilha** (R1a): nick e time até 80 caracteres, minutos e kills até 100.000 | Deixar como estava | Um nick do site com 81 caracteres daria 500 ao gravar as participações: é o mesmo problema do R1a, pelo outro lado |
+| Primeiro o formato, depois a coerência: com um campo errado, a frase diz só "fora do formato (campos: ...)" | As duas listas juntas | Com um campo errado, a coerência não diz nada útil |
+| **`ErroDeRegra`** no domínio, só para as frases escritas para a Maria (time premiado sem minutos nem kills; percentuais que não somam 100; nenhum time). O cálculo captura e a rota responde **409 com a frase** | Responder todo erro do cálculo com 409 | Proteções de programação (valor que não é inteiro, nome repetido) são bug: o 500 é a resposta certa para elas, e o teste confere que continuam assim |
+| O cálculo monta o resultado **antes** de gravar qualquer coisa: com um `ErroDeRegra`, nada fica pela metade | Desfazer o que foi gravado | Não há o que desfazer; a ordem já garante |
+
+**A tela não muda:** no 409 do cálculo, ela já recarrega e mostra a frase da API num aviso âmbar (6d).
+
+**Os testes:** cada regra de coerência com o seu caso, incluindo o vencedor `"lobos"`; os limites; as 148 partidas dos dados do simulador, que continuam todas válidas; de ponta a ponta, o job deixa a `#48450` incoerente "aguardando o site", com o motivo e a próxima tentativa, e confere as outras 14; e o cálculo de setembro com os Lobos sem minutos nem kills responde 409 com a frase, sem gravar nada (antes, 500).
+
 ---
 
 ## Stack e ferramentas

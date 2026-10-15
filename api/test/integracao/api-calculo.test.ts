@@ -189,3 +189,24 @@ describe('menos times do que posições premiadas (D24)', () => {
     expect(corpo.jogadores.reduce((s: number, j: { premioCentavos: number }) => s + j.premioCentavos, 0)).toBe(1_000_000);
   });
 });
+
+describe('erro de regra no cálculo (code review, item 4)', () => {
+  it('time premiado sem nenhum minuto nem kill no site: 409 com a frase para a Maria, e nada é gravado', async () => {
+    const id = await setembroPronto();
+    // o site registrou os Lobos (1º lugar) sem minutos nem kills: não há como dividir o prêmio deles
+    const lobos = await bd('participacoes')
+      .join('partidas', 'partidas.id', 'participacoes.partida_id')
+      .where({ 'partidas.torneio_id': id, 'participacoes.time': 'Lobos' })
+      .select('participacoes.id');
+    await bd('participacoes').whereIn('id', lobos.map((l: { id: number }) => l.id)).update({ minutos: 0, kills: 0 });
+    // as divergências novas (planilha × site) recebem Ciente, para o cálculo liberar
+    expect((await pedir('POST', `/torneios/${id}/pendencias/ciente-de-todas`)).status).toBe(200);
+
+    const { status, corpo } = await calcular(id);
+    expect(status).toBe(409);
+    expect(corpo).toEqual({ erro: 'O time Lobos tem prêmio, mas nenhum minuto nem kill registrado no site: não há como dividir.' });
+    // nada foi gravado: o torneio não ficou calculado e não há resultado
+    expect((await bd('torneios').where({ id }).first()).status).not.toBe('calculado');
+    expect(await bd('calculos').where({ torneio_id: id })).toEqual([]);
+  });
+});

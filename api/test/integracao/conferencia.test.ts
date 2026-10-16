@@ -268,7 +268,8 @@ describe('concorrência', () => {
       await outra('partidas').whereIn('id', travadas).forUpdate().select('id');
       const inicio = Date.now();
       const reservadas = await reservarPartidas(bd, { limite: agora, agora, quantidade: 50 });
-      expect(Date.now() - inicio).toBeLessThan(2_000); // sem SKIP LOCKED, ficaria esperando a trava
+      // sem SKIP LOCKED, ficaria esperando a trava (50 s, o padrão do MySQL); a folga é para máquina lenta
+      expect(Date.now() - inicio).toBeLessThan(10_000);
       expect(reservadas).toHaveLength(12);
       expect(reservadas.some((r) => travadas.includes(r.id))).toBe(false);
     } finally {

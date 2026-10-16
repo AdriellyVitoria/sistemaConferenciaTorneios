@@ -6,6 +6,7 @@ import type { Knex } from 'knex';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { criarApp } from '../../src/app';
 import { conectarAoBancoDeTeste, esvaziarTabelas } from './banco-de-teste';
+import { COM_SENHA, SENHA_DE_TESTE } from '../ajudantes/senha';
 
 // As planilhas são só lidas.
 const RAIZ = path.resolve(__dirname, '../../..');
@@ -17,7 +18,7 @@ let base: string;
 
 beforeAll(async () => {
   bd = conectarAoBancoDeTeste();
-  servidor = criarApp({ bd, verificarBanco: async () => {} }).listen(0);
+  servidor = criarApp({ bd, verificarBanco: async () => {}, senhaDaOrganizadora: SENHA_DE_TESTE }).listen(0);
   await new Promise((pronto) => servidor.once('listening', pronto));
   base = `http://127.0.0.1:${(servidor.address() as AddressInfo).port}`;
 });
@@ -31,7 +32,7 @@ async function pedir(metodo: string, caminho: string, corpo?: unknown, cabecalho
   const ehArquivo = corpo instanceof Uint8Array;
   const resposta = await fetch(`${base}${caminho}`, {
     method: metodo,
-    headers: { ...(corpo && !ehArquivo ? { 'content-type': 'application/json' } : {}), ...cabecalhos },
+    headers: { ...COM_SENHA, ...(corpo && !ehArquivo ? { 'content-type': 'application/json' } : {}), ...cabecalhos },
     body: corpo === undefined ? undefined : ehArquivo ? corpo : JSON.stringify(corpo),
   });
   return { status: resposta.status, corpo: await resposta.json() };

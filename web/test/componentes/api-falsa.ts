@@ -4,6 +4,10 @@
  */
 
 import { vi } from 'vitest';
+import { esquecerSenha, guardarSenha, pedeSenha } from '../../src/servicos/sessao';
+
+/** A senha que a API falsa aceita (R3): como a de verdade, sem ela as rotas da Maria dão 401. */
+export const SENHA_FALSA = 'senha-da-api-falsa';
 
 type Pendencia = {
   chave: string;
@@ -42,9 +46,21 @@ export interface OpcoesApiFalsa {
   semPendencias?: boolean;
   /** O cálculo responde 409: algo mudou entre a tela e o clique. */
   recusarCalculo?: boolean;
+  /**
+   * A tela começa sem a senha guardada (R3). Sem esta opção, a Maria já entrou: a senha certa
+   * está guardada e vai em toda chamada. Com uma string, começa com ESSA senha guardada (uma
+   * senha antiga, que a API não aceita mais).
+   */
+  semSenha?: boolean;
+  senhaGuardada?: string;
 }
 
-export function criarApiFalsa({ calculado = false, semPlanilha = false, aguardando = 0, semPendencias = false, recusarCalculo = false }: OpcoesApiFalsa = {}) {
+export function criarApiFalsa({ calculado = false, semPlanilha = false, aguardando = 0, semPendencias = false, recusarCalculo = false, semSenha = false, senhaGuardada }: OpcoesApiFalsa = {}) {
+  // cada teste começa do zero: o que outro teste do arquivo guardou não vale aqui
+  esquecerSenha();
+  pedeSenha.value = false;
+  if (!semSenha) guardarSenha(senhaGuardada ?? SENHA_FALSA);
+
   const pendencias: Pendencia[] = [
     {
       chave: chave('a'), tipo: 'nao_encontrada', idPartida: '#52214', valorPlanilha: '#52214', valorSite: null, acao: 'corrigir_id',
@@ -83,6 +99,8 @@ export function criarApiFalsa({ calculado = false, semPlanilha = false, aguardan
     pedidos: [] as string[],
     /** O torneio foi removido (M2): some da lista. */
     removido: false,
+    /** O cabeçalho Authorization de cada pedido, na ordem (null = sem cabeçalho). */
+    autorizacoes: [] as { pedido: string; authorization: string | null }[],
   };
 
   const lista = () => {
@@ -117,8 +135,14 @@ export function criarApiFalsa({ calculado = false, semPlanilha = false, aguardan
     const caminho = String(url);
     const metodo = (opcoes.method ?? 'GET').toUpperCase();
     estado.pedidos.push(`${metodo} ${caminho}`);
+    const authorization = new Headers(opcoes.headers).get('authorization');
+    estado.autorizacoes.push({ pedido: `${metodo} ${caminho}`, authorization });
 
     if (metodo === 'GET' && caminho === '/api/saude') return json(200, { api: 'ok', banco: 'ok' });
+    // abertas, como na API de verdade: a página pública e o link do time (D11)
+    if (metodo === 'GET' && /^\/api\/(publico|time)\//.test(caminho)) return json(404, { erro: 'Página não encontrada.' });
+    if (authorization !== `Bearer ${SENHA_FALSA}`) return json(401, { erro: 'Acesso só da organizadora.' });
+    if (metodo === 'GET' && caminho === '/api/acesso') return new Response(null, { status: 204 });
     if (metodo === 'GET' && caminho === '/api/torneios/1') return json(200, torneio());
     if (metodo === 'GET' && caminho === '/api/torneios/1/pendencias') return json(200, lista());
 

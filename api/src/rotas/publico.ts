@@ -1,5 +1,5 @@
 /**
- * As páginas abertas por link (D11, etapas 7a e 7b). Sem login: quem tem o código vê.
+ * As páginas abertas por link (D11, etapas 7a e 7b). Sem senha (R3): quem tem o código vê.
  *
  *   GET /publico/:codigo   nome, data do cálculo, regras e classificação, sem dado de jogador.
  *   GET /time/:codigo      o extrato dos jogadores de UM time premiado, sem nada dos outros times.
@@ -53,6 +53,13 @@ export function rotasPublico(bd: Knex): Router {
     }
     res.json(pagina);
   }));
+
+  // o resto de /publico e /time (sem código, outro método, caminho mais longo): o mesmo 404. Sem
+  // isto, a requisição seguiria para as rotas da Maria e receberia o 401 da senha (R3), numa área
+  // que nunca pede senha.
+  rota.all(['/publico', '/publico/*', '/time', '/time/*'], (_req, res) => {
+    res.status(404).json(NAO_ENCONTRADA);
+  });
 
   return rota;
 }

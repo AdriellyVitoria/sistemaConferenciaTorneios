@@ -20,6 +20,12 @@ docker compose up --build
 | Modo demonstração do site | http://localhost:4000/demo (derrubar e religar o site) |
 | MySQL | `localhost:3307` (usuário `torneios`, senha `torneios`) |
 
+### Senha da organizadora
+
+As telas da Maria pedem uma senha, uma vez por aba do navegador. **A senha de demonstração é `organizadora-demo`.** A página pública e o link de cada time (`/publico/...` e `/time/...`) não pedem senha. O botão "Sair", no cabeçalho, esquece a senha.
+
+Essa senha está escrita aqui e no `docker-compose.yml`, então **só serve para demonstração**. Para trocar: crie um `.env` a partir do `.env.example`, mude `ADMIN_SENHA` (pelo menos 8 caracteres, sem acento) e reinicie a API (`docker compose up -d api`). Não é login: não há usuário nem recuperação de senha (detalhes no [DECISIONS.md](DECISIONS.md), R3).
+
 A página inicial lista os torneios. Por ela, a Maria cria um torneio (nome, prêmio, percentuais e forma de divisão) e sobe a planilha; as partidas aparecem aguardando o site oficial. O rodapé mostra se a API e o banco estão no ar. A API aplica as migrations do banco sozinha ao subir.
 
 Para parar: `docker compose down`. Para apagar também os dados do banco: `docker compose down -v`.
@@ -38,41 +44,49 @@ Os testes de integração usam um banco só deles, `torneios_teste`, recriado do
 
 ## Usar a API
 
+Toda rota, menos `/saude`, `/publico/:codigo` e `/time/:codigo`, pede a senha da organizadora no cabeçalho `Authorization: Bearer <senha>`; sem ela, a resposta é 401. Os exemplos usam a senha de demonstração numa variável:
+
 ```bash
+S='Authorization: Bearer organizadora-demo'
+
 # criar um torneio (prêmio em centavos: R$ 10.000,00 = 1000000)
-curl -X POST localhost:3000/torneios -H 'content-type: application/json' \
+curl -X POST localhost:3000/torneios -H "$S" -H 'content-type: application/json' \
   -d '{"nome":"Setembro/2026","premioCentavos":1000000,"percentuais":[50,30,20],"modoDivisao":"minutos"}'
 
 # subir a planilha do torneio 1 (o arquivo vai direto no corpo; enviar de novo substitui)
-curl -X PUT localhost:3000/torneios/1/planilha -H 'x-nome-arquivo: torneio-setembro.csv' \
+curl -X PUT localhost:3000/torneios/1/planilha -H "$S" -H 'x-nome-arquivo: torneio-setembro.csv' \
   --data-binary @torneio-setembro.csv
 
 # listar os torneios, o mais novo primeiro
-curl localhost:3000/torneios
+curl -H "$S" localhost:3000/torneios
 
-# ver o torneio, com as partidas e o status de cada uma (também pelo navegador)
-curl localhost:3000/torneios/1
+# ver o torneio, com as partidas e o status de cada uma
+curl -H "$S" localhost:3000/torneios/1
 
 # pendências (depois de o job conferir as partidas); cada uma tem uma "chave"
-curl localhost:3000/torneios/1/pendencias
+curl -H "$S" localhost:3000/torneios/1/pendencias
 
 # dar Ciente numa pendência, desfazer, ou dar Ciente em todas as não bloqueantes
-curl -X PUT    localhost:3000/torneios/1/pendencias/CHAVE/ciente
-curl -X DELETE localhost:3000/torneios/1/pendencias/CHAVE/ciente
-curl -X POST   localhost:3000/torneios/1/pendencias/ciente-de-todas
+curl -H "$S" -X PUT    localhost:3000/torneios/1/pendencias/CHAVE/ciente
+curl -H "$S" -X DELETE localhost:3000/torneios/1/pendencias/CHAVE/ciente
+curl -H "$S" -X POST   localhost:3000/torneios/1/pendencias/ciente-de-todas
 
 # corrigir o ID de uma partida (17 = o "id" interno da partida, de GET /torneios/1);
 # ela volta para a fila e o job consulta o ID novo
-curl -X PUT localhost:3000/torneios/1/partidas/17/id-partida -H 'content-type: application/json' \
+curl -X PUT localhost:3000/torneios/1/partidas/17/id-partida -H "$S" -H 'content-type: application/json' \
   -d '{"idPartida":"#52241"}'
 
 # calcular os prêmios (só quando o campo "calculo" do torneio diz podeCalcular: true);
 # depois disso, o torneio fica travado
-curl -X POST localhost:3000/torneios/1/calculo
+curl -H "$S" -X POST localhost:3000/torneios/1/calculo
 
 # o resultado gravado, e o CSV para pagar no Excel (UTF-8 com BOM, separador ";")
-curl localhost:3000/torneios/1/resultado
-curl -OJ localhost:3000/torneios/1/resultado.csv
+curl -H "$S" localhost:3000/torneios/1/resultado
+curl -H "$S" -OJ localhost:3000/torneios/1/resultado.csv
+
+# os códigos dos links; a página pública e o link de cada time abrem sem senha
+curl -H "$S" localhost:3000/torneios/1/links
+curl localhost:3000/publico/CODIGO_PUBLICO
 ```
 
 ## Ver o banco
@@ -98,6 +112,8 @@ Dentro do MySQL: `SHOW TABLES;`, `DESCRIBE partidas;`, `SELECT * FROM torneios;`
 ## Desenvolvimento sem Docker (opcional)
 
 Com só o MySQL no Docker (`docker compose up mysql`), cada parte roda com recarga automática:
+
+Fora do Docker, a API não lê o `.env`: defina a senha no terminal antes (`$env:ADMIN_SENHA='organizadora-demo'` no PowerShell, `export ADMIN_SENHA=organizadora-demo` no bash). Sem ela, a API não sobe.
 
 ```bash
 npm run dev -w api                     # http://localhost:3000

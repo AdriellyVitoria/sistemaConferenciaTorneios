@@ -3,10 +3,11 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createMemoryHistory, createRouter } from 'vue-router';
 import PaginaResultado from '../../src/paginas/PaginaResultado.vue';
 import { rotas } from '../../src/roteador';
+import { guardarSenha } from '../../src/servicos/sessao';
 import { espacosComuns, textoDe } from '../ajudantes/espacos';
 
 // O resultado de setembro como a API devolve, montado dos gabaritos de testes/esperado/ (só lidos)
@@ -38,6 +39,7 @@ function resultadoDeSetembro(modoDivisao: 'minutos' | 'kills' = 'minutos') {
   };
 }
 
+const SENHA = 'senha-do-teste';
 const montadas: VueWrapper[] = [];
 afterEach(() => {
   for (const p of montadas.splice(0)) p.unmount();
@@ -56,14 +58,27 @@ const LINKS = {
   ],
 };
 
+/** O CSV como a API devolve (6c): UTF-8 com BOM, e o nome do arquivo no Content-Disposition. */
+const CSV_DE_SETEMBRO = '﻿Posição;Time;Nick;Minutos;Kills;Valor (R$);Centavo de arredondamento;Pago\r\n2;Corvos;Tuca;19;5;65,90;sim;\r\n';
+const DISPOSICAO = `attachment; filename="resultado-torneio-de-setembro.csv"; filename*=UTF-8''${encodeURIComponent('resultado-Torneio de setembro.csv')}`;
+const csvOk = () => new Response(CSV_DE_SETEMBRO, { status: 200, headers: { 'content-type': 'text/csv; charset=utf-8', 'content-disposition': DISPOSICAO } });
+
+/** Cada pedido à API, com o cabeçalho Authorization (R3). */
+let pedidos: { url: string; authorization: string | null }[] = [];
+
 async function montar(
   resposta: { status: number; corpo: unknown } = { status: 200, corpo: resultadoDeSetembro() },
   links: { status: number; corpo: unknown } = { status: 200, corpo: LINKS },
+  csv: () => Response = csvOk,
 ) {
-  vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+  pedidos = [];
+  guardarSenha(SENHA);
+  vi.stubGlobal('fetch', vi.fn(async (url: string, opcoes: RequestInit = {}) => {
+    pedidos.push({ url: String(url), authorization: new Headers(opcoes.headers).get('authorization') });
     const json = (r: { status: number; corpo: unknown }) => new Response(JSON.stringify(r.corpo), { status: r.status, headers: { 'content-type': 'application/json' } });
     if (String(url) === '/api/torneios/1/resultado') return json(resposta);
     if (String(url) === '/api/torneios/1/links') return json(links);
+    if (String(url) === '/api/torneios/1/resultado.csv') return csv();
     return new Response('{}', { status: 404 });
   }));
   const roteador = createRouter({ history: createMemoryHistory(), routes: rotas });
@@ -73,6 +88,7 @@ async function montar(
   return pagina;
 }
 
+const botaoCsv = (pagina: VueWrapper) => pagina.findAll('button').find((b) => textoDe(b) === 'Baixar CSV')!;
 const tabela = (pagina: VueWrapper, legenda: string) => pagina.findAll('table').find((t) => textoDe(t.find('caption')) === legenda)!;
 /** O texto que aparece na tela: sem o que é só para o leitor de tela (.visualmente-oculto). */
 const visivel = (celula: Element) => {
@@ -104,14 +120,79 @@ describe('tela do resultado: cabeçalho', () => {
     expect(texto).toContain('Divisão por minutos jogados (travada)');
     expect(texto).toContain('Total distribuído: R$ 10.000,00');
     expect(texto).toContain('Premia 3 posições: 1º 50% · 2º 30% · 3º 20%');
-    const csv = pagina.findAll('a').find((a) => textoDe(a) === 'Baixar CSV')!;
-    expect(csv.attributes('href')).toBe('/api/torneios/1/resultado.csv');
+    expect(botaoCsv(pagina).exists()).toBe(true);
   });
 
   it('antes do cálculo (409): explica e leva de volta ao torneio', async () => {
     const pagina = await montar({ status: 409, corpo: { erro: 'O torneio ainda não foi calculado.' } });
     expect(textoDe(pagina)).toContain('O torneio ainda não foi calculado.');
     expect(pagina.findAll('a').some((a) => a.attributes('href') === '/torneios/1')).toBe(true);
+  });
+});
+
+describe('"Baixar CSV" com a senha (R3)', () => {
+  // um link comum não manda o cabeçalho Authorization: o CSV vem pelo fetch e a tela salva o arquivo
+  let baixados: { nome: string; href: string; conteudo: Blob }[] = [];
+  const originais = { criar: URL.createObjectURL, revogar: URL.revokeObjectURL };
+  const revogados: string[] = [];
+  beforeEach(() => {
+    baixados = [];
+    revogados.length = 0;
+    const blobs = new Map<string, Blob>();
+    URL.createObjectURL = vi.fn((blob: Blob) => {
+      const endereco = `blob:teste/${blobs.size}`;
+      blobs.set(endereco, blob);
+      return endereco;
+    });
+    URL.revokeObjectURL = vi.fn((endereco: string) => { revogados.push(endereco); });
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+      baixados.push({ nome: this.download, href: this.href, conteudo: blobs.get(this.href)! });
+    });
+  });
+  afterEach(() => {
+    URL.createObjectURL = originais.criar;
+    URL.revokeObjectURL = originais.revogar;
+    vi.restoreAllMocks();
+  });
+
+  it('é um botão, e não um link para a API (o link não levaria a senha)', async () => {
+    const pagina = await montar();
+    expect(botaoCsv(pagina).element.tagName).toBe('BUTTON');
+    expect(pagina.findAll('a').some((a) => a.attributes('href')?.includes('resultado.csv'))).toBe(false);
+  });
+
+  it('baixa com a senha no cabeçalho e salva com o nome que a API deu, com os acentos', async () => {
+    const pagina = await montar();
+    await botaoCsv(pagina).trigger('click');
+    await flushPromises();
+
+    const pedido = pedidos.find((p) => p.url === '/api/torneios/1/resultado.csv')!;
+    expect(pedido.authorization).toBe(`Bearer ${SENHA}`);
+    expect(baixados).toHaveLength(1);
+    expect(baixados[0].nome).toBe('resultado-Torneio de setembro.csv');
+    // o arquivo como veio, com o BOM, para o Excel abrir os acentos certos
+    const bytes = new Uint8Array(await baixados[0].conteudo.arrayBuffer());
+    expect([...bytes.slice(0, 3)]).toEqual([0xef, 0xbb, 0xbf]);
+    // o endereço temporário do arquivo é liberado depois
+    await new Promise((pronto) => setTimeout(pronto, 10));
+    expect(revogados).toEqual([baixados[0].href]);
+  });
+
+  it('enquanto baixa, o botão fica desabilitado: clique duplo baixa uma vez só', async () => {
+    const pagina = await montar();
+    await Promise.all([botaoCsv(pagina).trigger('click'), botaoCsv(pagina).trigger('click')]);
+    await flushPromises();
+    expect(pedidos.filter((p) => p.url === '/api/torneios/1/resultado.csv')).toHaveLength(1);
+    expect(baixados).toHaveLength(1);
+  });
+
+  it('falhou: avisa junto do botão, com a frase da API, e nada é salvo', async () => {
+    const pagina = await montar(undefined, undefined, () => new Response(JSON.stringify({ erro: 'Erro inesperado no servidor. Tente de novo.' }), { status: 500, headers: { 'content-type': 'application/json' } }));
+    await botaoCsv(pagina).trigger('click');
+    await flushPromises();
+    expect(textoDe(pagina.find('.acoes-topo [role="alert"]'))).toBe('Não foi possível baixar o CSV: Erro inesperado no servidor. Tente de novo.');
+    expect(baixados).toHaveLength(0);
+    expect(botaoCsv(pagina).attributes('disabled')).toBeUndefined();
   });
 });
 

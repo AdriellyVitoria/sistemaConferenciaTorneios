@@ -10,6 +10,7 @@ import { criarApp } from '../../src/app';
 import { executarRodada } from '../../src/conferencia/job';
 import { criarClienteSiteOficial, type SiteOficial } from '../../src/conferencia/site-oficial';
 import { conectarAoBancoDeTeste, esvaziarTabelas, relogioDoBanco } from './banco-de-teste';
+import { COM_SENHA, SENHA_DE_TESTE } from '../ajudantes/senha';
 
 const RAIZ = path.resolve(__dirname, '../../..');
 const arquivo = (relativo: string) => path.join(RAIZ, relativo);
@@ -42,7 +43,7 @@ let clienteDoSite: SiteOficial;
 beforeAll(async () => {
   bd = conectarAoBancoDeTeste();
   relogio = await relogioDoBanco(bd);
-  api = criarApp({ bd, verificarBanco: async () => {}, agora: () => relogio() }).listen(0);
+  api = criarApp({ bd, verificarBanco: async () => {}, agora: () => relogio(), senhaDaOrganizadora: SENHA_DE_TESTE }).listen(0);
   await new Promise((pronto) => api.once('listening', pronto));
   base = `http://127.0.0.1:${(api.address() as AddressInfo).port}`;
 });
@@ -64,7 +65,7 @@ afterEach(async () => {
 async function pedir(metodo: string, caminho: string, corpo?: unknown) {
   const resposta = await fetch(`${base}${caminho}`, {
     method: metodo,
-    headers: corpo instanceof Uint8Array ? {} : { 'content-type': 'application/json' },
+    headers: { ...COM_SENHA, ...(corpo instanceof Uint8Array ? {} : { 'content-type': 'application/json' }) },
     body: corpo === undefined ? undefined : corpo instanceof Uint8Array ? corpo : JSON.stringify(corpo),
   });
   return { status: resposta.status, corpo: await resposta.json() };

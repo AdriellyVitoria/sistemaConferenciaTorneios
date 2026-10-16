@@ -6,6 +6,7 @@ import type { Knex } from 'knex';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { criarApp } from '../../src/app';
 import { conectarAoBancoDeTeste, esvaziarTabelas } from './banco-de-teste';
+import { COM_SENHA, SENHA_DE_TESTE } from '../ajudantes/senha';
 
 /**
  * Code review, itens 2, 12 e 13, pela rota: valores maiores que as colunas do banco chegavam ao
@@ -25,7 +26,7 @@ let base: string;
 
 beforeAll(async () => {
   bd = conectarAoBancoDeTeste();
-  servidor = criarApp({ bd, verificarBanco: async () => {} }).listen(0);
+  servidor = criarApp({ bd, verificarBanco: async () => {}, senhaDaOrganizadora: SENHA_DE_TESTE }).listen(0);
   await new Promise((pronto) => servidor.once('listening', pronto));
   base = `http://127.0.0.1:${(servidor.address() as AddressInfo).port}`;
 });
@@ -42,7 +43,7 @@ beforeEach(async () => {
 async function pedir(metodo: string, caminho: string, corpo?: unknown) {
   const resposta = await fetch(`${base}${caminho}`, {
     method: metodo,
-    headers: corpo instanceof Uint8Array ? {} : { 'content-type': 'application/json' },
+    headers: { ...COM_SENHA, ...(corpo instanceof Uint8Array ? {} : { 'content-type': 'application/json' }) },
     body: corpo === undefined ? undefined : corpo instanceof Uint8Array ? corpo : JSON.stringify(corpo),
   });
   return { status: resposta.status, corpo: await resposta.json() };

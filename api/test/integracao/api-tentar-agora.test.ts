@@ -6,6 +6,7 @@ import type { Knex } from 'knex';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { criarApp } from '../../src/app';
 import { conectarAoBancoDeTeste, esvaziarTabelas } from './banco-de-teste';
+import { COM_SENHA, SENHA_DE_TESTE } from '../ajudantes/senha';
 
 const RAIZ = path.resolve(__dirname, '../../..');
 const MINUTO = 60_000;
@@ -29,7 +30,7 @@ afterEach(async () => {
 
 /** Sobe uma API; duas APIs no mesmo banco simulam uma reiniciada ou duas instâncias. */
 async function subirApi(): Promise<string> {
-  const servidor = criarApp({ bd, verificarBanco: async () => {}, agora: () => agora }).listen(0);
+  const servidor = criarApp({ bd, verificarBanco: async () => {}, agora: () => agora, senhaDaOrganizadora: SENHA_DE_TESTE }).listen(0);
   await new Promise((pronto) => servidor.once('listening', pronto));
   servidores.push(servidor);
   return `http://127.0.0.1:${(servidor.address() as AddressInfo).port}`;
@@ -38,7 +39,7 @@ async function subirApi(): Promise<string> {
 async function pedir(base: string, metodo: string, caminho: string, corpo?: unknown) {
   const resposta = await fetch(`${base}${caminho}`, {
     method: metodo,
-    headers: corpo instanceof Uint8Array ? {} : { 'content-type': 'application/json' },
+    headers: { ...COM_SENHA, ...(corpo instanceof Uint8Array ? {} : { 'content-type': 'application/json' }) },
     body: corpo === undefined ? undefined : corpo instanceof Uint8Array ? corpo : JSON.stringify(corpo),
   });
   return { status: resposta.status, cabecalhos: resposta.headers, corpo: await resposta.json() };

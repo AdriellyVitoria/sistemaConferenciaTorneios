@@ -2,15 +2,17 @@
 
 Confere as partidas da planilha da Maria Clara no site oficial do jogo e divide o prêmio entre os jogadores, mostrando a cada um como o seu valor foi calculado.
 
-> Em construção. O problema e as regras estão em [contexto.md](contexto.md), o plano em [plano.md](plano.md) e as decisões em [DECISIONS.md](DECISIONS.md).
+O problema e as regras de negócio estão em [contexto.md](contexto.md), o plano de construção em [plano.md](plano.md) e as decisões, com as alternativas descartadas e o que ficou de fora, em [DECISIONS.md](DECISIONS.md).
 
 ## Como rodar
 
-Pré-requisito: Docker (com Docker Compose).
+Pré-requisito: Docker (com Docker Compose). Um comando sobe tudo (banco, API, site oficial simulado e tela):
 
 ```bash
 docker compose up --build
 ```
+
+Abra http://localhost:5173. **Senha de demonstração: `organizadora-demo`.**
 
 | Serviço | Endereço |
 |---|---|
@@ -29,6 +31,36 @@ Essa senha está escrita aqui e no `docker-compose.yml`, então **só serve para
 A página inicial lista os torneios. Por ela, a Maria cria um torneio (nome, prêmio, percentuais e forma de divisão) e sobe a planilha; as partidas aparecem aguardando o site oficial. O rodapé mostra se a API e o banco estão no ar. A API aplica as migrations do banco sozinha ao subir.
 
 Para parar: `docker compose down`. Para apagar também os dados do banco: `docker compose down -v`.
+
+## Demonstração em 5 passos (setembro)
+
+Com os valores padrão, o site simulado demora de 2 a 10 s por consulta, como o real, e uma partida que falha espera 1 minuto para a nova tentativa. Para a demonstração, crie um `.env` na raiz com este bloco e suba de novo (`docker compose up -d`):
+
+```env
+SITE_DEMORA_MIN_MS=200
+SITE_DEMORA_MAX_MS=800
+CONFERENCIA_INTERVALOS_MS=2000,4000,8000
+```
+
+1. **Criar o torneio.** Em "Novo torneio": nome "Setembro/2026", prêmio R$ 10.000,00, percentuais 50/30/20 e divisão por minutos. "Criar torneio".
+2. **Subir a planilha.** Na página do torneio, "Escolher a planilha" e escolher `torneio-setembro.csv` (na raiz do repositório). As 15 partidas nascem "aguardando o site" e o sistema as confere sozinho, em segundo plano. Para ver as novas tentativas, derrube o site em http://localhost:4000/demo enquanto confere e religue depois.
+3. **Resolver as pendências.** Na aba "Pendências" aparecem três itens, cada um com a planilha e o site lado a lado: a linha duplicada de Pantera_X, o nick `xxsniperxx` (no site, `xXSniperXx`) e a partida `#40923`, zerada na planilha e preenchida pelo site (vitória de Falcões). Dê "Ciente" em cada um, ou "Ciente de todas" (que só libera depois que o site conferir todas as partidas).
+4. **Calcular.** "Calcular prêmios" e confirmar: o modo de divisão e a planilha ficam travados. O resultado mostra Lobos em 1º (R$ 5.000), Corvos em 2º pelas kills (R$ 3.000; Tuca, o reserva, recebe R$ 65,90) e Tubarões e Falcões empatados em vitórias e kills, dividindo o 3º lugar (R$ 1.000 cada), com a justificativa. Filtre por nick e baixe o CSV para pagar no Excel.
+5. **Abrir os links.** Em "Links para os times premiados", copie o link da página pública (classificação e regras, sem valores individuais) e o de um time (o extrato de cada jogador, com a conta e o centavo de arredondamento). Abra numa janela anônima: nenhum dos dois pede senha.
+
+## Por que essa stack
+
+- **Node.js com TypeScript, Vue e MySQL** fazem parte da stack da PowerRev. A tipagem ajuda a modelar regras que mexem com dinheiro, e o Vue é o framework com que tenho mais afinidade.
+- **Express, Knex, Zod e Vitest:** peças pequenas e conhecidas. O Knex deixa o SQL visível (sem ORM escondendo as consultas) e o Zod valida tudo o que entra na API.
+- **Conferência por uma tabela de tarefas no MySQL** (`SELECT ... FOR UPDATE SKIP LOCKED`), em vez de uma fila no Redis: para 15 a 28 partidas por torneio, a fila seria mais um serviço sem ganho real. O job fica atrás de uma interface e pode virar Redis ou SQS depois.
+- **Docker Compose** para subir tudo com um comando, e **monorepo com npm workspaces**, sem ferramenta extra.
+- Detalhes e alternativas descartadas: [DECISIONS.md](DECISIONS.md), seção "Stack e ferramentas".
+
+## Limitações
+
+- **Senha única, não é login:** quem sabe a senha faz tudo; não há usuários, recuperação nem limite de tentativas.
+- **Sem deploy e sem HTTPS:** roda localmente, com a tela servida pelo `vite preview`. Num deploy real, o HTTPS é obrigatório.
+- **Pix fora do escopo:** o sistema calcula e explica; o pagamento continua com a Maria, pelo CSV (D12).
 
 ## Testes
 

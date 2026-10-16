@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { contaDoJogador, enderecoDoLink, filtrarPorNick, passosDoCalculo } from '../src/dominio/link-do-time';
 import type { JogadorDaPaginaDoTime, PaginaDoTime } from '../src/servicos/api';
+import { comEspacosComuns } from './ajudantes/espacos';
 
 const jogador = (nick: string, base: number, centesimos: number, premioCentavos: number, extra: Partial<JogadorDaPaginaDoTime> = {}): JogadorDaPaginaDoTime => ({
   nick, base, baseUsada: 'minutos', centesimosDePercentual: centesimos, premioCentavos, recebeuCentavo: false, explicacao: null, ...extra,
@@ -24,7 +25,7 @@ const ARREDONDAMENTO = 'Os valores são arredondados para o centavo. O centavo q
 
 describe('passosDoCalculo: "Como o valor foi calculado", sem citar outros times', () => {
   it('Corvos: o percentual da posição com o valor, o desempate por kills, os minutos e o arredondamento', () => {
-    expect(passosDoCalculo(CORVOS)).toEqual([
+    expect(comEspacosComuns(passosDoCalculo(CORVOS))).toEqual([
       'O prêmio do torneio é R$ 10.000,00. O 2º lugar leva 30%: R$ 3.000,00.',
       'Houve empate em vitórias; o desempate foi pelas kills do time, e Corvos ficou em 2º.',
       'Dentro do time, o valor é dividido pelos minutos que cada um jogou, conforme o registro oficial de cada partida.',
@@ -41,7 +42,7 @@ describe('passosDoCalculo: "Como o valor foi calculado", sem citar outros times'
         empate: { posicoes: [3, 4], percentuais: [20, 0], quantidadeDeTimes: 2 }, modoDivisao: 'minutos',
       },
     };
-    expect(passosDoCalculo(falcoes)).toEqual([
+    expect(comEspacosComuns(passosDoCalculo(falcoes))).toEqual([
       'O prêmio do torneio é R$ 10.000,00. O 3º lugar leva 20%.',
       'Falcões empatou em vitórias e em kills com mais 1 time: os prêmios do 3º e do 4º lugar (20% e 0%) foram somados e divididos igualmente entre os 2 times. O prêmio do time ficou em R$ 1.000,00.',
       'Dentro do time, o valor é dividido pelos minutos que cada um jogou, conforme o registro oficial de cada partida.',
@@ -55,7 +56,7 @@ describe('passosDoCalculo: "Como o valor foi calculado", sem citar outros times'
       time: { ...CORVOS.time, nome: 'Lobos', posicao: 1, premioCentavos: 500_000 },
       comoFoiCalculado: { ...CORVOS.comoFoiCalculado, percentualDaPosicao: 50, criterio: null },
     };
-    expect(passosDoCalculo(lobos)).toEqual([
+    expect(comEspacosComuns(passosDoCalculo(lobos))).toEqual([
       'O prêmio do torneio é R$ 10.000,00. O 1º lugar leva 50%: R$ 5.000,00.',
       'Dentro do time, o valor é dividido pelos minutos que cada um jogou, conforme o registro oficial de cada partida.',
       ARREDONDAMENTO,
@@ -68,7 +69,7 @@ describe('passosDoCalculo: "Como o valor foi calculado", sem citar outros times'
       time: { ...CORVOS.time, posicao: 1, premioCentavos: 61_729 },
       comoFoiCalculado: { ...CORVOS.comoFoiCalculado, premioTotalCentavos: 123_457, percentualDaPosicao: 50, criterio: null },
     };
-    expect(passosDoCalculo(pagina)[0]).toBe('O prêmio do torneio é R$ 1.234,57. O 1º lugar leva 50%: R$ 617,29.');
+    expect(comEspacosComuns(passosDoCalculo(pagina)[0])).toBe('O prêmio do torneio é R$ 1.234,57. O 1º lugar leva 50%: R$ 617,29.');
   });
 
   it('menos times do que posições premiadas (D24): o prêmio do time não é só o percentual, e o passo explica', () => {
@@ -77,7 +78,7 @@ describe('passosDoCalculo: "Como o valor foi calculado", sem citar outros times'
       time: { ...CORVOS.time, posicao: 1, premioCentavos: 600_000 },
       comoFoiCalculado: { ...CORVOS.comoFoiCalculado, percentualDaPosicao: 50, criterio: null },
     };
-    expect(passosDoCalculo(pagina)[0]).toBe(
+    expect(comEspacosComuns(passosDoCalculo(pagina)[0])).toBe(
       'O prêmio do torneio é R$ 10.000,00. O 1º lugar leva 50%. O torneio teve menos times do que posições premiadas: o valor das posições sem time foi dividido igualmente entre todos os times, e o prêmio do time ficou em R$ 6.000,00.',
     );
   });
@@ -93,9 +94,9 @@ describe('passosDoCalculo: "Como o valor foi calculado", sem citar outros times'
 
 describe('contaDoJogador: a conta de cada cartão', () => {
   it('"173 de 865 minutos (20,00%) × R$ 3.000,00" e, no modo kills, "kills"', () => {
-    expect(contaDoJogador(CORVOS.jogadores[0], CORVOS.time)).toBe('173 de 865 minutos (20,00%) × R$ 3.000,00');
-    expect(contaDoJogador(CORVOS.jogadores[5], CORVOS.time)).toBe('19 de 865 minutos (2,20%) × R$ 3.000,00');
-    expect(contaDoJogador(jogador('Lua_', 88, 2493, 124_646, { baseUsada: 'kills' }), { ...CORVOS.time, premioCentavos: 500_000, baseTime: 353 }))
+    expect(comEspacosComuns(contaDoJogador(CORVOS.jogadores[0], CORVOS.time))).toBe('173 de 865 minutos (20,00%) × R$ 3.000,00');
+    expect(comEspacosComuns(contaDoJogador(CORVOS.jogadores[5], CORVOS.time))).toBe('19 de 865 minutos (2,20%) × R$ 3.000,00');
+    expect(comEspacosComuns(contaDoJogador(jogador('Lua_', 88, 2493, 124_646, { baseUsada: 'kills' }), { ...CORVOS.time, premioCentavos: 500_000, baseTime: 353 })))
       .toBe('88 de 353 kills (24,93%) × R$ 5.000,00');
   });
 });

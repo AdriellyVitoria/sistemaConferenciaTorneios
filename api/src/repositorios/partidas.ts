@@ -1,4 +1,5 @@
 import type { Executor } from '../banco/conexao';
+import { emSegundosInteiros } from './conferencia';
 
 export type StatusConferencia = 'aguardando' | 'em_consulta' | 'conferida' | 'nao_encontrada' | 'times_diferentes';
 export type OrigemDoErro = 'site' | 'interno';
@@ -50,15 +51,20 @@ interface LinhaPartida {
 }
 
 /**
- * Cria as partidas do torneio, todas "aguardando" e com a primeira tentativa para agora.
+ * Cria as partidas do torneio, todas "aguardando" e com a primeira tentativa para `agora`.
  * Devolve o ID interno de cada uma pelo ID do jogo ("#40923" -> 17), para ligar as linhas.
+ *
+ * R2a: a próxima tentativa vem do "agora" da API, e não do NOW() do MySQL: um relógio só no
+ * código, o mesmo do job e da correção de ID. Em segundos inteiros, como o job grava.
  */
 export async function inserirPartidas(
   bd: Executor,
   torneioId: number,
   partidas: NovaPartida[],
+  agora: Date,
 ): Promise<Map<string, number>> {
   if (partidas.length === 0) return new Map();
+  const proximaTentativaEm = emSegundosInteiros(agora);
   await bd('partidas').insert(
     partidas.map((p) => ({
       torneio_id: torneioId,
@@ -68,6 +74,7 @@ export async function inserirPartidas(
       data: p.data,
       time_a: p.timeA,
       time_b: p.timeB,
+      proxima_tentativa_em: proximaTentativaEm,
     })),
   );
   // um INSERT com várias linhas no MySQL só devolve o primeiro ID: busca todos pelo ID do jogo

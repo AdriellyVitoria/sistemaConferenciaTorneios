@@ -4,6 +4,10 @@
  */
 
 import { vi } from 'vitest';
+import { esquecerSenha, guardarSenha, pedeSenha } from '../../src/servicos/sessao';
+
+/** A senha que a API falsa aceita (R3): como a de verdade, sem ela as rotas da Maria dão 401. */
+export const SENHA_FALSA = 'senha-da-api-falsa';
 
 type Pendencia = {
   chave: string;
@@ -42,9 +46,21 @@ export interface OpcoesApiFalsa {
   semPendencias?: boolean;
   /** O cálculo responde 409: algo mudou entre a tela e o clique. */
   recusarCalculo?: boolean;
+  /**
+   * A tela começa sem a senha guardada (R3). Sem esta opção, a Maria já entrou: a senha certa
+   * está guardada e vai em toda chamada. Com uma string, começa com ESSA senha guardada (uma
+   * senha antiga, que a API não aceita mais).
+   */
+  semSenha?: boolean;
+  senhaGuardada?: string;
 }
 
-export function criarApiFalsa({ calculado = false, semPlanilha = false, aguardando = 0, semPendencias = false, recusarCalculo = false }: OpcoesApiFalsa = {}) {
+export function criarApiFalsa({ calculado = false, semPlanilha = false, aguardando = 0, semPendencias = false, recusarCalculo = false, semSenha = false, senhaGuardada }: OpcoesApiFalsa = {}) {
+  // cada teste começa do zero: o que outro teste do arquivo guardou não vale aqui
+  esquecerSenha();
+  pedeSenha.value = false;
+  if (!semSenha) guardarSenha(senhaGuardada ?? SENHA_FALSA);
+
   const pendencias: Pendencia[] = [
     {
       chave: chave('a'), tipo: 'nao_encontrada', idPartida: '#52214', valorPlanilha: '#52214', valorSite: null, acao: 'corrigir_id',
@@ -83,8 +99,11 @@ export function criarApiFalsa({ calculado = false, semPlanilha = false, aguardan
     pedidos: [] as string[],
     /** O torneio foi removido (M2): some da lista. */
     removido: false,
+    /** O cabeçalho Authorization de cada pedido, na ordem (null = sem cabeçalho). */
+    autorizacoes: [] as { pedido: string; authorization: string | null }[],
   };
 
+  const contarAguardando = () => partidas.filter((p) => p.statusConferencia === 'aguardando' || p.statusConferencia === 'em_consulta').length;
   const lista = () => {
     const bloqueantes = pendencias.filter((p) => p.bloqueante);
     const naoBloqueantes = pendencias.filter((p) => !p.bloqueante);
@@ -92,12 +111,15 @@ export function criarApiFalsa({ calculado = false, semPlanilha = false, aguardan
     return {
       bloqueantes,
       naoBloqueantes,
-      resumo: { bloqueantes: bloqueantes.length, naoBloqueantes: naoBloqueantes.length, comCiente, semCiente: naoBloqueantes.length - comCiente, aguardandoSite: 0 },
+      resumo: {
+        bloqueantes: bloqueantes.length, naoBloqueantes: naoBloqueantes.length, comCiente, semCiente: naoBloqueantes.length - comCiente,
+        aguardandoSite: contarAguardando(),
+      },
     };
   };
   const torneio = () => {
     const { resumo } = lista();
-    const aguardandoSite = partidas.filter((p) => p.statusConferencia === 'aguardando' || p.statusConferencia === 'em_consulta').length;
+    const aguardandoSite = contarAguardando();
     return {
       id: 1, nome: 'Torneio de setembro', premioCentavos: 1_000_000, percentuais: [50, 30, 20], modoDivisao: 'minutos',
       status: estado.calculado ? 'calculado' : 'importado', calculadoEm: estado.calculado ? '2026-10-15T13:00:00.000Z' : null,
@@ -117,8 +139,14 @@ export function criarApiFalsa({ calculado = false, semPlanilha = false, aguardan
     const caminho = String(url);
     const metodo = (opcoes.method ?? 'GET').toUpperCase();
     estado.pedidos.push(`${metodo} ${caminho}`);
+    const authorization = new Headers(opcoes.headers).get('authorization');
+    estado.autorizacoes.push({ pedido: `${metodo} ${caminho}`, authorization });
 
     if (metodo === 'GET' && caminho === '/api/saude') return json(200, { api: 'ok', banco: 'ok' });
+    // abertas, como na API de verdade: a página pública e o link do time (D11)
+    if (metodo === 'GET' && /^\/api\/(publico|time)\//.test(caminho)) return json(404, { erro: 'Página não encontrada.' });
+    if (authorization !== `Bearer ${SENHA_FALSA}`) return json(401, { erro: 'Acesso só da organizadora.' });
+    if (metodo === 'GET' && caminho === '/api/acesso') return new Response(null, { status: 204 });
     if (metodo === 'GET' && caminho === '/api/torneios/1') return json(200, torneio());
     if (metodo === 'GET' && caminho === '/api/torneios/1/pendencias') return json(200, lista());
 
@@ -143,6 +171,11 @@ export function criarApiFalsa({ calculado = false, semPlanilha = false, aguardan
 
     if (metodo === 'POST' && caminho === '/api/torneios/1/pendencias/ciente-de-todas') {
       if (estado.calculado) return json(409, { erro: 'O torneio já foi calculado: os Cientes não podem mais mudar.' });
+      const aguardandoSite = contarAguardando();
+      if (aguardandoSite) {
+        const quantas = aguardandoSite === 1 ? '1 partida ainda aguarda' : `${aguardandoSite} partidas ainda aguardam`;
+        return json(409, { erro: `${quantas} o site: o "Ciente de todas" só libera depois que o site conferir todas. Enquanto isso, dê Ciente uma a uma.` });
+      }
       const semCiente = pendencias.filter((p) => !p.bloqueante && !p.ciente);
       for (const p of semCiente) {
         p.ciente = true;

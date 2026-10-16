@@ -10,7 +10,8 @@
  *      tentativa agendada (D10). Resultado de partida apagada no meio (D22) é descartado;
  *   4. repete até não haver mais partidas prontas.
  *
- * A comparação com a planilha e as pendências são da etapa 5.
+ * O job só grava o que o site respondeu. As pendências saem da comparação com a planilha,
+ * feita na hora em que alguém as lê (etapa 5, `servicos/pendencias.ts`).
  */
 
 import type { Knex } from 'knex';

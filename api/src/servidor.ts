@@ -9,7 +9,11 @@ async function main() {
   const [, aplicadas] = await db.migrate.latest();
   if (aplicadas.length) console.log(`Migrations aplicadas: ${aplicadas.join(', ')}`);
 
-  const app = criarApp({ bd: db, verificarBanco: async () => { await db.raw('select 1'); } });
+  const app = criarApp({
+    bd: db,
+    verificarBanco: async () => { await db.raw('select 1'); },
+    senhaDaOrganizadora: config.ADMIN_SENHA,
+  });
   const servidor = app.listen(config.API_PORTA, () => {
     console.log(`API ouvindo na porta ${config.API_PORTA}`);
   });

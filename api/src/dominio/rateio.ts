@@ -12,6 +12,7 @@
 
 import type { PartidaSite } from './comparacao';
 import { dividirMaiorResto, SomaDosPesosZero } from './divisao';
+import { ErroDeRegra } from './erro-de-regra';
 import type { PremioTime } from './premio';
 import { compararAlfabetico } from './texto';
 
@@ -60,7 +61,7 @@ export function ratearEntreJogadores(
       partes = dividirMaiorResto(premioCentavos, participantes);
     } catch (erro) {
       if (!(erro instanceof SomaDosPesosZero)) throw erro;
-      throw new Error(`O time ${time} tem prêmio, mas nenhum minuto nem kill registrado no site: não há como dividir.`);
+      throw new ErroDeRegra(`O time ${time} tem prêmio, mas nenhum minuto nem kill registrado no site: não há como dividir.`);
     }
 
     partes.forEach((parte, i) => {

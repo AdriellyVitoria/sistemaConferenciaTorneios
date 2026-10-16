@@ -33,6 +33,9 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE:-torneios}
       MYSQL_USER: ${MYSQL_USER:-torneios}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-torneios}
+      # senha das telas da organizadora (R3). O padrão é a senha de DEMONSTRAÇÃO do README:
+      # fora da demonstração, defina outra no .env
+      ADMIN_SENHA: ${ADMIN_SENHA:-organizadora-demo}
       # consulta ao site oficial (etapa 4); o tempo limite precisa passar da demora máxima do site
       SITE_URL: http://site-oficial:4000
       SITE_DEMORA_MAX_MS: ${SITE_DEMORA_MAX_MS:-10000}

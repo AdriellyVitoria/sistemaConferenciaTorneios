@@ -146,12 +146,15 @@ export type ResultadoImportacao =
  * - Numa transação, com o torneio travado: apaga a planilha anterior, se houver (D22), cria uma
  *   partida por ID, "aguardando" o site, e guarda as linhas como foram digitadas.
  * - Depois do cálculo, a planilha fica travada (D22).
+ * - `agora` é o relógio da API (R2a): a primeira tentativa das partidas e o horário da importação
+ *   usam o mesmo relógio do job e da correção de ID, e não o NOW() do MySQL.
  */
 export async function importarPlanilha(
   bd: Knex,
   torneioId: number,
   conteudo: Uint8Array,
   arquivo: string,
+  agora = new Date(),
 ): Promise<ResultadoImportacao> {
   const leitura = lerPlanilha(conteudo);
   const { convertidoDeWindows1252 } = leitura;
@@ -168,9 +171,9 @@ export async function importarPlanilha(
     const substituiuPlanilhaAnterior = (await apagarPartidasDoTorneio(trx, torneioId)) > 0;
     // a conferência recomeça do zero, e os Cientes dados na planilha anterior também (D22)
     await apagarCientesDoTorneio(trx, torneioId);
-    const partidaIds = await inserirPartidas(trx, torneioId, montagem.partidas);
+    const partidaIds = await inserirPartidas(trx, torneioId, montagem.partidas, agora);
     await inserirLinhas(trx, torneioId, leitura.linhas, partidaIds);
-    await registrarImportacao(trx, torneioId, { arquivo, convertidoDeWindows1252 });
+    await registrarImportacao(trx, torneioId, { arquivo, convertidoDeWindows1252, agora });
 
     return {
       tipo: 'importada',

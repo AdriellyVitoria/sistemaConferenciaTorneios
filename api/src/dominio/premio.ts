@@ -13,6 +13,7 @@
 
 import type { ClassificacaoTime, CriterioClassificacao } from './classificacao';
 import { dividirMaiorResto } from './divisao';
+import { ErroDeRegra } from './erro-de-regra';
 
 export type CriterioPremio = CriterioClassificacao | 'divisão igual (empate em vitórias e kills)';
 
@@ -80,8 +81,8 @@ export function erroDosPercentuais(percentuais: number[]): string | null {
  */
 function valoresPorPosicao(premio: number, percentuais: number[], quantidadeDeTimes: number): (posicao: number) => number {
   const erro = erroDosPercentuais(percentuais);
-  if (erro) throw new Error(erro);
-  if (quantidadeDeTimes === 0) throw new Error('Não há times para receber o prêmio.');
+  if (erro) throw new ErroDeRegra(erro);
+  if (quantidadeDeTimes === 0) throw new ErroDeRegra('Não há times para receber o prêmio.');
 
   const partes = dividirMaiorResto(
     premio,

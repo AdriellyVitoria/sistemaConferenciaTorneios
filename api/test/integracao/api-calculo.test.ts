@@ -10,6 +10,7 @@ import { criarApp } from '../../src/app';
 import { executarRodada } from '../../src/conferencia/job';
 import { criarClienteSiteOficial } from '../../src/conferencia/site-oficial';
 import { conectarAoBancoDeTeste, esvaziarTabelas, relogioDoBanco } from './banco-de-teste';
+import { COM_SENHA, SENHA_DE_TESTE } from '../ajudantes/senha';
 
 const RAIZ = path.resolve(__dirname, '../../..');
 const arquivo = (relativo: string) => path.join(RAIZ, relativo);
@@ -26,7 +27,7 @@ let urlDoSite: string;
 beforeAll(async () => {
   bd = conectarAoBancoDeTeste();
   relogio = await relogioDoBanco(bd);
-  api = criarApp({ bd, verificarBanco: async () => {}, agora: () => relogio() }).listen(0);
+  api = criarApp({ bd, verificarBanco: async () => {}, agora: () => relogio(), senhaDaOrganizadora: SENHA_DE_TESTE }).listen(0);
   await new Promise((pronto) => api.once('listening', pronto));
   base = `http://127.0.0.1:${(api.address() as AddressInfo).port}`;
 });
@@ -48,7 +49,7 @@ afterEach(async () => {
 async function pedir(metodo: string, caminho: string, corpo?: unknown) {
   const resposta = await fetch(`${base}${caminho}`, {
     method: metodo,
-    headers: corpo instanceof Uint8Array ? {} : { 'content-type': 'application/json' },
+    headers: { ...COM_SENHA, ...(corpo instanceof Uint8Array ? {} : { 'content-type': 'application/json' }) },
     body: corpo === undefined ? undefined : corpo instanceof Uint8Array ? corpo : JSON.stringify(corpo),
   });
   return { status: resposta.status, corpo: await resposta.json() };
@@ -187,5 +188,26 @@ describe('menos times do que posições premiadas (D24)', () => {
     expect(status).toBe(200);
     expect(corpo.times.map((t: { time: string; premioCentavos: number }) => [t.time, t.premioCentavos])).toEqual([['Lobos', 600_000], ['Serpentes', 400_000]]);
     expect(corpo.jogadores.reduce((s: number, j: { premioCentavos: number }) => s + j.premioCentavos, 0)).toBe(1_000_000);
+  });
+});
+
+describe('erro de regra no cálculo (code review, item 4)', () => {
+  it('time premiado sem nenhum minuto nem kill no site: 409 com a frase para a Maria, e nada é gravado', async () => {
+    const id = await setembroPronto();
+    // o site registrou os Lobos (1º lugar) sem minutos nem kills: não há como dividir o prêmio deles
+    const lobos = await bd('participacoes')
+      .join('partidas', 'partidas.id', 'participacoes.partida_id')
+      .where({ 'partidas.torneio_id': id, 'participacoes.time': 'Lobos' })
+      .select('participacoes.id');
+    await bd('participacoes').whereIn('id', lobos.map((l: { id: number }) => l.id)).update({ minutos: 0, kills: 0 });
+    // as divergências novas (planilha × site) recebem Ciente, para o cálculo liberar
+    expect((await pedir('POST', `/torneios/${id}/pendencias/ciente-de-todas`)).status).toBe(200);
+
+    const { status, corpo } = await calcular(id);
+    expect(status).toBe(409);
+    expect(corpo).toEqual({ erro: 'O time Lobos tem prêmio, mas nenhum minuto nem kill registrado no site: não há como dividir.' });
+    // nada foi gravado: o torneio não ficou calculado e não há resultado
+    expect((await bd('torneios').where({ id }).first()).status).not.toBe('calculado');
+    expect(await bd('calculos').where({ torneio_id: id })).toEqual([]);
   });
 });

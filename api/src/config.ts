@@ -16,9 +16,21 @@ const listaDeMilissegundos = z.string().transform((texto, ctx) => {
   return partes.map(Number);
 });
 
+/**
+ * A senha única da organizadora (R3). Sem padrão: a API não sobe sem ela. Só caracteres que o
+ * navegador consegue mandar num cabeçalho HTTP (sem acento), e sem espaço nas pontas, que se
+ * perderia no caminho e faria a senha certa nunca bater.
+ */
+const senhaDaOrganizadora = z
+  .string({ required_error: 'ADMIN_SENHA não foi definida: é a senha das telas da organizadora. Defina no .env (veja o .env.example) ou, fora do Docker, no ambiente.' })
+  .min(8, 'ADMIN_SENHA precisa ter pelo menos 8 caracteres.')
+  .regex(/^[\x20-\x7e]*$/, 'ADMIN_SENHA só pode ter letras sem acento, números e símbolos (o navegador não manda acento num cabeçalho).')
+  .refine((s) => s.trim() === s, 'ADMIN_SENHA não pode começar nem terminar com espaço.');
+
 const esquema = z
   .object({
     API_PORTA: z.coerce.number().int().positive().default(3000),
+    ADMIN_SENHA: senhaDaOrganizadora,
     DB_HOST: z.string().min(1).default('localhost'),
     DB_PORT: z.coerce.number().int().positive().default(3307),
     MYSQL_DATABASE: z.string().min(1).default('torneios'),

@@ -77,7 +77,7 @@ const opcoes = (sobrescrever: Partial<OpcoesRodada> = {}): OpcoesRodada => ({
 async function torneioCom(planilha: string): Promise<number> {
   const criado = await criarTorneio(bd, { nome: planilha, premioCentavos: 1_000_000, percentuais: [50, 30, 20], modoDivisao: 'minutos' });
   if (!criado.ok) throw new Error('não criou o torneio');
-  const importada = await importarPlanilha(bd, criado.id, readFileSync(arquivo(planilha)), path.basename(planilha));
+  const importada = await importarPlanilha(bd, criado.id, readFileSync(arquivo(planilha)), path.basename(planilha), agora);
   if (importada.tipo !== 'importada') throw new Error(`não importou ${planilha}: ${JSON.stringify(importada)}`);
   return criado.id;
 }
@@ -268,7 +268,8 @@ describe('concorrência', () => {
       await outra('partidas').whereIn('id', travadas).forUpdate().select('id');
       const inicio = Date.now();
       const reservadas = await reservarPartidas(bd, { limite: agora, agora, quantidade: 50 });
-      expect(Date.now() - inicio).toBeLessThan(2_000); // sem SKIP LOCKED, ficaria esperando a trava
+      // sem SKIP LOCKED, ficaria esperando a trava (50 s, o padrão do MySQL); a folga é para máquina lenta
+      expect(Date.now() - inicio).toBeLessThan(10_000);
       expect(reservadas).toHaveLength(12);
       expect(reservadas.some((r) => travadas.includes(r.id))).toBe(false);
     } finally {
@@ -414,7 +415,7 @@ describe('partida apagada no meio da consulta (planilha substituída, D22)', () 
     const espiao = espiar(site, async (idPartida) => {
       if (idPartida === '#40923' && !substituiu) {
         substituiu = true;
-        const nova = await importarPlanilha(bd, id, readFileSync(arquivo('testes/planilhas/01-limpa.csv')), '01-limpa.csv');
+        const nova = await importarPlanilha(bd, id, readFileSync(arquivo('testes/planilhas/01-limpa.csv')), '01-limpa.csv', agora);
         expect(nova.tipo).toBe('importada');
       }
     });

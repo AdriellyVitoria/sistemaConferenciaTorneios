@@ -55,9 +55,42 @@ const COLUNAS: { chave: Chave; nome: string }[] = [
   { chave: 'venceu', nome: 'Venceu?' },
 ];
 
+/**
+ * Limites da entrada, num lugar só (code review, itens 2 e 13). Usados pela leitura da planilha e
+ * pela correção do ID (validarIdPartida). Os de texto e o da rodada acompanham as colunas do banco
+ * (migrations 003 e 004): o MySQL em modo estrito recusaria o INSERT, e a Maria veria um erro 500
+ * sem a linha do Excel. Se uma coluna mudar de tamanho, o limite aqui muda junto.
+ */
+export const LIMITES = {
+  /** nick e time: VARCHAR(80) */
+  nick: 80,
+  time: 80,
+  /** coluna "Partida": VARCHAR(200) */
+  partida: 200,
+  /** id_partida: VARCHAR(20), com o "#" na frente */
+  digitosIdPartida: 19,
+  /** nenhuma partida chega perto disso; também cabe com folga no INT UNSIGNED */
+  minutosEKills: 100_000,
+  /** só a capacidade da coluna (INT UNSIGNED): limite técnico, não regra de negócio */
+  rodada: 4_294_967_295,
+  /** "01/09/0226" (um "2" no lugar errado) não passa */
+  anoMinimo: 2000,
+  anoMaximo: 2100,
+} as const;
+
 const SEM_PARTIDAS = 'A planilha não tem nenhuma partida.';
 
+/** Um .xlsx é um arquivo ZIP: começa com os bytes "PK", 3 e 4 (code review, item 12). */
+const ASSINATURA_ZIP = [0x50, 0x4b, 0x03, 0x04];
+const ARQUIVO_DO_EXCEL =
+  'Este arquivo é do Excel (.xlsx). No Excel, use Salvar como → CSV UTF-8 (separado por vírgulas).';
+
 export function lerPlanilha(conteudo: Uint8Array): ResultadoLeitura {
+  // sem isso, o .xlsx seria lido como texto em Windows-1252 e daria nove "Falta a coluna"
+  if (ASSINATURA_ZIP.every((byte, i) => conteudo[i] === byte)) {
+    return { ok: false, erros: [{ mensagem: ARQUIVO_DO_EXCEL }], convertidoDeWindows1252: false };
+  }
+
   const { texto, convertidoDeWindows1252 } = decodificar(conteudo);
   const recusar = (erros: ErroLeitura[]): ResultadoLeitura => ({ ok: false, erros, convertidoDeWindows1252 });
 
@@ -203,9 +236,9 @@ function lerLinha(
     data: ler('data', lerData),
     rodada: ler('rodada', lerRodada),
     idPartida: ler('idPartida', lerIdPartida),
-    partida: celula('partida'),
-    time: ler('time', obrigatorio('O time está vazio.')),
-    nick: ler('nick', obrigatorio('O nick está vazio.')),
+    partida: ler('partida', textoAte(LIMITES.partida, 'A coluna Partida pode ter', 'Esta tem')),
+    time: ler('time', obrigatorio('O time está vazio.', textoAte(LIMITES.time, 'O nome do time pode ter', 'Este tem'))),
+    nick: ler('nick', obrigatorio('O nick está vazio.', textoAte(LIMITES.nick, 'O nick pode ter', 'Este tem'))),
     minutos: ler('minutos', lerMinutos),
     kills: ler('kills', lerKills),
     venceu: ler('venceu', lerVenceu),
@@ -213,8 +246,20 @@ function lerLinha(
   return erros.length ? { ok: false, erros } : { ok: true, linha };
 }
 
-const obrigatorio = (mensagemSeVazio: string) => (texto: string): Lido<string> =>
-  texto === '' ? invalido(mensagemSeVazio) : valido(texto);
+const obrigatorio = (mensagemSeVazio: string, depois: (texto: string) => Lido<string>) => (texto: string): Lido<string> =>
+  texto === '' ? invalido(mensagemSeVazio) : depois(texto);
+
+/**
+ * Texto com no máximo `limite` caracteres, contados como o MySQL conta: por caractere, e não pelo
+ * .length do JavaScript (que conta um emoji como 2).
+ */
+const textoAte = (limite: number, comeco: string, este: string) => (texto: string): Lido<string> => {
+  const caracteres = [...texto].length;
+  return caracteres > limite ? invalido(`${comeco} até ${limite} caracteres. ${este} ${caracteres}.`) : valido(texto);
+};
+
+/** 100000 -> "100.000", para as frases (sem depender do idioma do servidor). */
+const comPontos = (numero: number) => String(numero).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
 /** dd/mm/aaaa (aceita d/m/aaaa) -> aaaa-mm-dd. */
 function lerData(texto: string): Lido<string> {
@@ -223,6 +268,9 @@ function lerData(texto: string): Lido<string> {
   if (!partes) return invalido(`A data precisa estar no formato dd/mm/aaaa, como 05/09/2026. Veio "${texto}".`);
 
   const [dia, mes, ano] = [Number(partes[1]), Number(partes[2]), Number(partes[3])];
+  if (ano < LIMITES.anoMinimo || ano > LIMITES.anoMaximo) {
+    return invalido(`O ano da data precisa estar entre ${LIMITES.anoMinimo} e ${LIMITES.anoMaximo}. Veio "${texto}".`);
+  }
   // dia 0 do mês seguinte = último dia deste mês (em UTC, para não depender do fuso)
   const diasNoMes = mes >= 1 && mes <= 12 ? new Date(Date.UTC(ano, mes, 0)).getUTCDate() : 0;
   if (dia < 1 || dia > diasNoMes) return invalido(`A data "${texto}" não existe no calendário.`);
@@ -239,6 +287,10 @@ function inteiroNaoNegativo(texto: string): number | null {
 
 function lerRodada(texto: string): Lido<number> {
   if (texto === '') return invalido('A rodada está vazia.');
+  // só dígitos, mas além do que a coluna guarda (ou além do inteiro seguro do JavaScript)
+  if (/^\d+$/.test(texto) && (inteiroNaoNegativo(texto) ?? Infinity) > LIMITES.rodada) {
+    return invalido(`A rodada é grande demais. Veio "${texto}".`);
+  }
   const numero = inteiroNaoNegativo(texto);
   if (numero === null || numero === 0) {
     return invalido(`A rodada precisa ser um número inteiro maior que zero, como 1. Veio "${texto}".`);
@@ -246,7 +298,6 @@ function lerRodada(texto: string): Lido<number> {
   return valido(numero);
 }
 
-/** Aceita "#45659" ou "45659" e devolve sempre "#45659". */
 /**
  * O ID da partida com as mesmas regras da importação (D18): aceita "#45659", "45659" e espaços
  * em volta; devolve sempre "#45659". Usado também na correção do ID (5b).
@@ -262,24 +313,39 @@ function lerIdPartida(texto: string): Lido<string> {
   if (!/^\d+$/.test(digitos)) {
     return invalido(`O ID da partida precisa ter só números, como #45659. Veio "${texto}".`);
   }
+  if (digitos.length > LIMITES.digitosIdPartida) {
+    return invalido(`O ID da partida pode ter até ${LIMITES.digitosIdPartida} números. Veio "${texto}", com ${digitos.length}.`);
+  }
   return valido(`#${digitos}`);
 }
 
-function lerMinutos(texto: string): Lido<number> {
-  if (texto === '') return invalido('Os minutos estão vazios. Preencha com os minutos jogados (pode ser 0).');
-  if (/^-\d+$/.test(texto)) return invalido(`Os minutos não podem ser negativos. Veio "${texto}".`);
+/** Minutos ou kills: inteiro de 0 a LIMITES.minutosEKills. As frases mudam só no começo. */
+function lerQuantidade(
+  texto: string,
+  { vazio, negativo, comoNumero, faixa }: { vazio: string; negativo: string; comoNumero: string; faixa: string },
+): Lido<number> {
+  if (texto === '') return invalido(vazio);
+  if (/^-\d+$/.test(texto)) return invalido(`${negativo} Veio "${texto}".`);
+  if (!/^\d+$/.test(texto)) return invalido(`${comoNumero} Veio "${texto}".`);
+  // só dígitos: acima do limite, ou longo demais até para o JavaScript, é a mesma frase de faixa
   const numero = inteiroNaoNegativo(texto);
-  if (numero === null) return invalido(`Os minutos precisam ser um número inteiro, como 43. Veio "${texto}".`);
+  if (numero === null || numero > LIMITES.minutosEKills) return invalido(`${faixa} Veio "${texto}".`);
   return valido(numero);
 }
 
-function lerKills(texto: string): Lido<number> {
-  if (texto === '') return invalido('As kills estão vazias. Preencha com as kills do jogador (pode ser 0).');
-  if (/^-\d+$/.test(texto)) return invalido(`As kills não podem ser negativas. Veio "${texto}".`);
-  const numero = inteiroNaoNegativo(texto);
-  if (numero === null) return invalido(`As kills precisam ser um número inteiro, como 14. Veio "${texto}".`);
-  return valido(numero);
-}
+const lerMinutos = (texto: string) => lerQuantidade(texto, {
+  vazio: 'Os minutos estão vazios. Preencha com os minutos jogados (pode ser 0).',
+  negativo: 'Os minutos não podem ser negativos.',
+  comoNumero: 'Os minutos precisam ser um número inteiro, como 43.',
+  faixa: `Os minutos precisam estar entre 0 e ${comPontos(LIMITES.minutosEKills)}.`,
+});
+
+const lerKills = (texto: string) => lerQuantidade(texto, {
+  vazio: 'As kills estão vazias. Preencha com as kills do jogador (pode ser 0).',
+  negativo: 'As kills não podem ser negativas.',
+  comoNumero: 'As kills precisam ser um número inteiro, como 14.',
+  faixa: `As kills precisam estar entre 0 e ${comPontos(LIMITES.minutosEKills)}.`,
+});
 
 /** "sim" -> true; "não"/"nao" -> false; vazio -> null. Ignora maiúsculas (os espaços já saíram). */
 function lerVenceu(texto: string): Lido<boolean | null> {

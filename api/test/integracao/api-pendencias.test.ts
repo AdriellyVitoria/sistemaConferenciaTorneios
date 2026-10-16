@@ -10,6 +10,7 @@ import { criarApp } from '../../src/app';
 import { executarRodada } from '../../src/conferencia/job';
 import { criarClienteSiteOficial } from '../../src/conferencia/site-oficial';
 import { conectarAoBancoDeTeste, esvaziarTabelas, relogioDoBanco } from './banco-de-teste';
+import { COM_SENHA, SENHA_DE_TESTE } from '../ajudantes/senha';
 
 const RAIZ = path.resolve(__dirname, '../../..');
 const arquivo = (relativo: string) => path.join(RAIZ, relativo);
@@ -26,7 +27,7 @@ let urlDoSite: string;
 beforeAll(async () => {
   bd = conectarAoBancoDeTeste();
   relogio = await relogioDoBanco(bd);
-  api = criarApp({ bd, verificarBanco: async () => {}, agora: () => relogio() }).listen(0);
+  api = criarApp({ bd, verificarBanco: async () => {}, agora: () => relogio(), senhaDaOrganizadora: SENHA_DE_TESTE }).listen(0);
   await new Promise((pronto) => api.once('listening', pronto));
   base = `http://127.0.0.1:${(api.address() as AddressInfo).port}`;
 });
@@ -48,7 +49,7 @@ afterEach(async () => {
 async function pedir(metodo: string, caminho: string, corpo?: unknown) {
   const resposta = await fetch(`${base}${caminho}`, {
     method: metodo,
-    headers: corpo instanceof Uint8Array ? {} : { 'content-type': 'application/json' },
+    headers: { ...COM_SENHA, ...(corpo instanceof Uint8Array ? {} : { 'content-type': 'application/json' }) },
     body: corpo === undefined ? undefined : corpo instanceof Uint8Array ? corpo : JSON.stringify(corpo),
   });
   return { status: resposta.status, corpo: await resposta.json() };
@@ -226,6 +227,47 @@ describe('Ciente de todas', () => {
     const id = await torneioCom('testes/planilhas/02-id-inexistente.csv');
     expect((await cienteDeTodas(id)).corpo).toEqual({ marcadas: 0 });
     expect((await pendencias(id)).corpo.bloqueantes[0].ciente).toBe(false);
+  });
+
+  const quantosCientes = async (id: number) => Number((await bd('cientes').where({ torneio_id: id }).count({ n: '*' }))[0].n);
+
+  // senão, uma pendência que chegou do site depois de a Maria abrir a tela levaria o Ciente sem ela ter visto
+  it('com partida aguardando o site ou em consulta: 409, sem marcar nenhuma', async () => {
+    const id = await torneioCom('torneio-setembro.csv');
+    await bd('partidas').where({ torneio_id: id, id_partida: '#45659' }).update({ status_conferencia: 'aguardando' });
+    await bd('partidas').where({ torneio_id: id, id_partida: '#46903' }).update({ status_conferencia: 'em_consulta', em_consulta_desde: new Date() });
+
+    const { status, corpo } = await cienteDeTodas(id);
+    expect(status).toBe(409);
+    expect(corpo.erro).toBe('2 partidas ainda aguardam o site: o "Ciente de todas" só libera depois que o site conferir todas. Enquanto isso, dê Ciente uma a uma.');
+    expect(await quantosCientes(id)).toBe(0);
+  });
+
+  it('com partida aguardando o site, o Ciente de uma pendência continua liberado', async () => {
+    const id = await torneioCom('torneio-setembro.csv');
+    await bd('partidas').where({ torneio_id: id, id_partida: '#45659' }).update({ status_conferencia: 'aguardando' });
+    const [duplicata] = (await pendencias(id)).corpo.naoBloqueantes;
+    expect((await ciente(id, duplicata.chave)).status).toBe(200);
+  });
+
+  it('antes de o site responder qualquer partida: 409 com a contagem', async () => {
+    const id = await torneioCom('torneio-setembro.csv', { conferir: false });
+    expect((await cienteDeTodas(id)).corpo.erro).toMatch(/^15 partidas ainda aguardam o site/);
+  });
+
+  it('a verificação é feita dentro da transação, com o torneio travado', async () => {
+    const id = await torneioCom('torneio-setembro.csv');
+    // outra gravação (como uma correção de ID) trava o torneio e põe uma partida de volta na fila
+    const trx = await bd.transaction();
+    await trx('torneios').where({ id }).forUpdate().first();
+    const pedido = cienteDeTodas(id);
+    await new Promise((pronto) => setTimeout(pronto, 300));
+    await trx('partidas').where({ torneio_id: id, id_partida: '#45659' }).update({ status_conferencia: 'aguardando' });
+    await trx.commit();
+
+    // o "Ciente de todas" esperou a trava e viu a partida na fila
+    expect((await pedido).status).toBe(409);
+    expect(await quantosCientes(id)).toBe(0);
   });
 });
 

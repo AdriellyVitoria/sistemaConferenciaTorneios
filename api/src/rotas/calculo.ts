@@ -3,7 +3,8 @@
  *
  *   POST /torneios/:id/calculo   calcula, grava o resultado congelado e trava o torneio.
  *       200: o resultado gravado.
- *       409: ainda não dá para calcular (com as contagens do que falta), ou já foi calculado.
+ *       409: ainda não dá para calcular (com as contagens do que falta), já foi calculado, ou
+ *            uma regra de negócio impediu a conta (a frase do domínio para a Maria).
  */
 
 import { Router } from 'express';
@@ -40,6 +41,10 @@ export function rotasCalculo(bd: Knex, agora: () => Date = () => new Date()): Ro
         return;
       case 'ja_calculado':
         res.status(409).json({ erro: 'O torneio já foi calculado.' });
+        return;
+      case 'impossivel':
+        // a frase do domínio, escrita para a Maria (code review, item 4)
+        res.status(409).json({ erro: resultado.mensagem });
         return;
       case 'torneio_nao_encontrado':
         res.status(404).json({ erro: 'Torneio não encontrado.' });

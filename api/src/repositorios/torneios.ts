@@ -1,5 +1,6 @@
 import type { Executor } from '../banco/conexao';
 import type { ModoDivisao } from '../dominio/rateio';
+import { emSegundosInteiros } from './conferencia';
 
 export type StatusTorneio = 'criado' | 'importado' | 'conferindo' | 'pronto' | 'calculado';
 
@@ -89,16 +90,19 @@ export async function buscarTorneioParaAtualizar(trx: Executor, id: number): Pro
   return linha ? paraTorneio(linha) : null;
 }
 
-/** Marca o torneio como importado e guarda de onde veio a planilha. */
+/**
+ * Marca o torneio como importado e guarda de onde veio a planilha. O horário da importação vem do
+ * "agora" da API (R2a: um relógio só no código), em segundos inteiros, como a coluna guarda.
+ */
 export async function registrarImportacao(
   bd: Executor,
   id: number,
-  { arquivo, convertidoDeWindows1252 }: { arquivo: string; convertidoDeWindows1252: boolean },
+  { arquivo, convertidoDeWindows1252, agora }: { arquivo: string; convertidoDeWindows1252: boolean; agora: Date },
 ): Promise<void> {
   await bd('torneios').where({ id }).update({
     status: 'importado',
     planilha_arquivo: arquivo,
-    planilha_importada_em: bd.fn.now(),
+    planilha_importada_em: emSegundosInteiros(agora),
     planilha_convertida_windows1252: convertidoDeWindows1252,
   });
 }

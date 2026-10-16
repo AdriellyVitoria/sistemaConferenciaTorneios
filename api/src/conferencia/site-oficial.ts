@@ -7,12 +7,14 @@
  *   encontrada     200 com a partida no formato esperado
  *   nao_encontrada 404: o ID foi digitado errado; só uma correção do ID consulta de novo (D5, D16)
  *   indisponivel   qualquer outra coisa: 503, outro erro do servidor, tempo esgotado, erro de
- *                  rede ou resposta fora do formato. A partida fica "aguardando o site" e é
+ *                  rede, resposta fora do formato ou que não fecha (vencedor ou jogador de um
+ *                  time que não é da partida, time sem jogador, outra partida). A partida fica "aguardando o site" e é
  *                  tentada de novo (D10). O "detalhe" é a frase que a tela mostra.
  */
 
 import { z } from 'zod';
 import type { RespostaSite } from '../dominio/comparacao';
+import { LIMITES } from '../dominio/planilha';
 
 export type MotivoIndisponivel =
   | 'site_fora_do_ar' // 503
@@ -48,15 +50,51 @@ export interface OpcoesCliente {
 }
 
 // O formato que o site devolve (contexto.md, seção 9). Campos a mais são ignorados.
-const inteiroNaoNegativo = z.number().int().nonnegative();
+// Os limites são os mesmos da planilha (R1a): o que passa daqui cabe nas colunas do banco.
+const textoAte = (limite: number) =>
+  z.string().refine((texto) => [...texto].length <= limite, `passa de ${limite} caracteres`);
+const quantidade = z.number().int().nonnegative().max(LIMITES.minutosEKills);
 const esquemaPartida = z.object({
   id: z.string(),
   data: z.string(),
-  rodada: z.number().int().positive().optional(),
-  times: z.tuple([z.string(), z.string()]),
-  vencedor: z.string(),
-  jogadores: z.array(z.object({ nick: z.string(), time: z.string(), minutos: inteiroNaoNegativo, kills: inteiroNaoNegativo })),
+  rodada: z.number().int().positive().max(LIMITES.rodada).optional(),
+  times: z.tuple([textoAte(LIMITES.time), textoAte(LIMITES.time)]),
+  vencedor: textoAte(LIMITES.time),
+  jogadores: z.array(z.object({ nick: textoAte(LIMITES.nick), time: textoAte(LIMITES.time), minutos: quantidade, kills: quantidade })),
 });
+
+/** Marca as falhas de coerência, para separá-las das de formato na frase da tela. */
+const COERENCIA = { coerencia: true };
+
+/**
+ * Code review, item 3: além do formato, a resposta precisa fechar. Sem isso, um vencedor "lobos"
+ * (com os times "Lobos" e "Corvos") criava um time fantasma na classificação, e a Maria não teria
+ * como corrigir: o site é a verdade (D3). Os nomes são comparados exatamente como o site escreveu.
+ */
+function esquemaCoerente(idConsultado: string) {
+  return esquemaPartida.superRefine((partida, ctx) => {
+    const problema = (mensagem: string) => ctx.addIssue({ code: z.ZodIssueCode.custom, message: mensagem, params: COERENCIA });
+    const [timeA, timeB] = partida.times;
+    const osDois = `${timeA} x ${timeB}`;
+
+    if (partida.id !== idConsultado) problema(`a partida respondida é a ${partida.id}, e não a consultada (${idConsultado})`);
+    if (timeA === timeB) {
+      problema(`os dois times têm o mesmo nome (${timeA})`);
+      return;
+    }
+    if (!partida.times.includes(partida.vencedor)) {
+      problema(`o vencedor "${partida.vencedor}" não é nenhum dos dois times (${osDois})`);
+    }
+    for (const jogador of partida.jogadores) {
+      if (!partida.times.includes(jogador.time)) {
+        problema(`o jogador ${jogador.nick} está no time "${jogador.time}", que não é nenhum dos dois times (${osDois})`);
+      }
+    }
+    for (const time of partida.times) {
+      if (!partida.jogadores.some((j) => j.time === time)) problema(`o time ${time} não tem nenhum jogador`);
+    }
+  });
+}
 
 export function criarClienteSiteOficial({ urlBase, tempoLimiteMs, cronometro = cronometroDeVerdade }: OpcoesCliente): SiteOficial {
   if (!Number.isSafeInteger(tempoLimiteMs) || tempoLimiteMs <= 0) {
@@ -94,10 +132,16 @@ export function criarClienteSiteOficial({ urlBase, tempoLimiteMs, cronometro = c
         } catch {
           return indisponivel('resposta_invalida', 'O site oficial respondeu num formato que o sistema não entende (não é JSON).');
         }
-        const partida = esquemaPartida.safeParse(corpo);
+        const partida = esquemaCoerente(idPartida).safeParse(corpo);
         if (!partida.success) {
-          const campos = [...new Set(partida.error.issues.map((i) => i.path.join('.') || '(resposta)'))].join(', ');
-          return indisponivel('resposta_invalida', `O site oficial respondeu fora do formato esperado (campos: ${campos}).`);
+          const formato = partida.error.issues.filter((i) => !(i.code === 'custom' && i.params?.coerencia));
+          // primeiro o formato: com um campo errado, a coerência não diz nada
+          if (formato.length > 0) {
+            const campos = [...new Set(formato.map((i) => i.path.join('.') || '(resposta)'))].join(', ');
+            return indisponivel('resposta_invalida', `O site oficial respondeu fora do formato esperado (campos: ${campos}).`);
+          }
+          const problemas = partida.error.issues.map((i) => i.message).join('; ');
+          return indisponivel('resposta_invalida', `O site oficial respondeu dados que não fecham: ${problemas}.`);
         }
         return { status: 'encontrada', partida: partida.data };
       } catch (erro) {

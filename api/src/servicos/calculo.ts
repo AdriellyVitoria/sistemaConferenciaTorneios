@@ -2,13 +2,14 @@
  * Cálculo do resultado do torneio (etapa 6a): dos dados do site gravados pelo job (D3) e da
  * configuração do torneio, monta o resultado com o domínio e grava congelado.
  *
- * Fica para a etapa 6b: a rota, a trava (só calcular quando pode, D17, e travar o torneio
- * depois, D1, D22) e a concorrência (dois cliques em "Calcular" ao mesmo tempo). Por isso as
- * duas peças são separadas: a 6b as chama dentro da sua transação, com o torneio travado.
+ * `calcularTorneio` (etapa 6b) faz tudo numa transação: trava o torneio, confere de novo se
+ * pode calcular (D17), monta, grava e marca o torneio como calculado (D1, D22). Assim, dois
+ * cliques em "Calcular" ao mesmo tempo não gravam dois resultados.
  */
 
 import type { Knex } from 'knex';
 import type { Executor } from '../banco/conexao';
+import { ErroDeRegra } from '../dominio/erro-de-regra';
 import { situacaoDoCalculo, type SituacaoDoCalculo } from '../dominio/pronto-para-calcular';
 import { montarResultado, type Resultado } from '../dominio/resultado';
 import { listarPartidas } from '../repositorios/partidas';
@@ -35,6 +36,8 @@ export async function montarResultadoDoTorneio(bd: Executor, torneioId: number):
 export type ResultadoDoCalculo =
   | { tipo: 'calculado'; resultado: ResultadoGravado }
   | { tipo: 'nao_pode'; calculo: SituacaoDoCalculo }
+  /** uma regra de negócio impediu a conta (ErroDeRegra): a frase é para a Maria */
+  | { tipo: 'impossivel'; mensagem: string }
   | { tipo: 'ja_calculado' }
   | { tipo: 'torneio_nao_encontrado' };
 
@@ -66,19 +69,16 @@ export async function calcularTorneio(bd: Knex, torneioId: number, agora = new D
     // a hora em segundos inteiros: torneios.calculado_em guarda segundos (e o MySQL arredondaria a
     // fração), e a data do cálculo precisa ser a mesma nos dois lugares
     const calculadoEm = new Date(Math.floor(agora.getTime() / 1000) * 1000);
-    const montado = (await montarResultadoDoTorneio(trx, torneioId))!;
+    // a montagem vem ANTES de gravar qualquer coisa: com um ErroDeRegra, nada fica pela metade
+    let montado;
+    try {
+      montado = (await montarResultadoDoTorneio(trx, torneioId))!;
+    } catch (erro) {
+      if (erro instanceof ErroDeRegra) return { tipo: 'impossivel', mensagem: erro.message } as const;
+      throw erro;
+    }
     await gravarResultado(trx, torneioId, montado.config, montado.resultado, calculadoEm);
     await marcarCalculado(trx, torneioId, calculadoEm);
     return { tipo: 'calculado', resultado: (await buscarResultado(trx, torneioId))! } as const;
-  });
-}
-
-/** Calcula e grava o resultado, numa transação: ou grava tudo, ou nada. */
-export async function calcularEGravar(bd: Knex, torneioId: number, agora = new Date()): Promise<Resultado | null> {
-  return bd.transaction(async (trx) => {
-    const montado = await montarResultadoDoTorneio(trx, torneioId);
-    if (!montado) return null;
-    await gravarResultado(trx, torneioId, montado.config, montado.resultado, agora);
-    return montado.resultado;
   });
 }

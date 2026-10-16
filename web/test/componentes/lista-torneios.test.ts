@@ -5,6 +5,7 @@ import { createMemoryHistory, createRouter } from 'vue-router';
 import { rotas } from '../../src/roteador';
 import PaginaTorneios from '../../src/paginas/PaginaTorneios.vue';
 import type { ResumoTorneio } from '../../src/servicos/api';
+import { textoDe } from '../ajudantes/espacos';
 
 function torneio(extra: Partial<ResumoTorneio>): ResumoTorneio {
   return {
@@ -40,24 +41,24 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const nomesDe = (el: Pick<VueWrapper, 'findAll'>) => el.findAll('article').map((c) => c.find('a').text());
+const nomesDe = (el: Pick<VueWrapper, 'findAll'>) => el.findAll('article').map((c) => textoDe(c.find('a')));
 const emAndamento = (pagina: VueWrapper) => pagina.find('section[aria-labelledby="t-em-andamento"]');
 const grupos = (pagina: VueWrapper) => pagina.findAll('details.grupo-do-mes');
-const grupo = (pagina: VueWrapper, rotulo: string) => grupos(pagina).find((d) => d.find('.nome-do-mes').text() === rotulo)!;
-const resumo = (pagina: VueWrapper) => pagina.find('[aria-label="Resumo"]').text();
+const grupo = (pagina: VueWrapper, rotulo: string) => grupos(pagina).find((d) => textoDe(d.find('.nome-do-mes')) === rotulo)!;
+const resumo = (pagina: VueWrapper) => textoDe(pagina.find('[aria-label="Resumo"]'));
 const escolherMes = (pagina: VueWrapper, mes: string) => pagina.find('select#filtro-mes').setValue(mes);
-const divisao = (pagina: VueWrapper, rotulo: string) => pagina.find('[role="group"][aria-label="Divisão"]').findAll('button').find((b) => b.text() === rotulo)!;
+const divisao = (pagina: VueWrapper, rotulo: string) => pagina.find('[role="group"][aria-label="Divisão"]').findAll('button').find((b) => textoDe(b) === rotulo)!;
 
 describe('lista agrupada por mês', () => {
   it('"Em andamento" no topo, de qualquer mês (o de agosto não some na virada do mês)', async () => {
     const pagina = await montar();
-    expect(emAndamento(pagina).find('h2').text()).toBe('Em andamento');
+    expect(textoDe(emAndamento(pagina).find('h2'))).toBe('Em andamento');
     expect(nomesDe(emAndamento(pagina))).toEqual(['Torneio de outubro', 'Copa de Primavera']);
   });
 
   it('abaixo, um grupo por mês da primeira partida, do mais recente para o mais antigo', async () => {
     const pagina = await montar();
-    expect(grupos(pagina).map((d) => [d.find('.nome-do-mes').text(), nomesDe(d)])).toEqual([
+    expect(grupos(pagina).map((d) => [textoDe(d.find('.nome-do-mes')), nomesDe(d)])).toEqual([
       ['Outubro de 2026', ['Copa relâmpago']],
       // setembro foi calculado em outubro, mas as partidas foram em setembro
       ['Setembro de 2026', ['Torneio de setembro', 'Desafio de setembro']],
@@ -69,12 +70,12 @@ describe('lista agrupada por mês', () => {
     expect(grupo(pagina, 'Outubro de 2026').attributes('open')).toBeDefined();
     const setembro = grupo(pagina, 'Setembro de 2026');
     expect(setembro.attributes('open')).toBeUndefined();
-    expect(setembro.find('summary').text()).toContain('2 torneios · R$ 15.000,00');
+    expect(textoDe(setembro.find('summary'))).toContain('2 torneios · R$ 15.000,00');
   });
 
   it('cada torneio mostra a data de criação, o prêmio, a divisão, as partidas e a situação', async () => {
     const pagina = await montar();
-    const [outubro, primavera] = emAndamento(pagina).findAll('article').map((c) => c.text());
+    const [outubro, primavera] = emAndamento(pagina).findAll('article').map((c) => textoDe(c));
     expect(outubro).toContain('Criado em 13/10/2026');
     expect(outubro).toContain('R$ 12.000,00');
     expect(outubro).toContain('Sem planilha');
@@ -95,17 +96,17 @@ describe('resumo', () => {
     const pagina = await montar();
     await escolherMes(pagina, '2026-09');
     expect(resumo(pagina)).toMatch(/Prêmios calculados em setembro\s*R\$ 15\.000,00/);
-    expect(grupo(pagina, 'Setembro de 2026').find('summary').text()).toContain('R$ 15.000,00');
+    expect(textoDe(grupo(pagina, 'Setembro de 2026').find('summary'))).toContain('R$ 15.000,00');
     await escolherMes(pagina, '2026-10');
     expect(resumo(pagina)).toMatch(/Prêmios calculados em outubro\s*R\$ 3\.000,00/);
-    expect(grupo(pagina, 'Outubro de 2026').find('summary').text()).toContain('R$ 3.000,00');
+    expect(textoDe(grupo(pagina, 'Outubro de 2026').find('summary'))).toContain('R$ 3.000,00');
   });
 });
 
 describe('filtros', () => {
   it('situação: todos, em andamento e calculados', async () => {
     const pagina = await montar();
-    const filtro = (rotulo: string) => pagina.findAll('[role="tab"]').find((b) => b.text().startsWith(rotulo))!;
+    const filtro = (rotulo: string) => pagina.findAll('[role="tab"]').find((b) => textoDe(b).startsWith(rotulo))!;
     expect(filtro('Todos').attributes('aria-selected')).toBe('true');
 
     await filtro('Calculados').trigger('click');
@@ -120,12 +121,12 @@ describe('filtros', () => {
   it('mês: o seletor tem "Todos os meses" e os meses, com rótulo; escolher um mês mostra só ele, aberto', async () => {
     const pagina = await montar();
     const seletor = pagina.find('select#filtro-mes');
-    expect(pagina.find('label[for="filtro-mes"]').text()).toBe('Mês');
-    expect(seletor.findAll('option').map((o) => o.text())).toEqual(['Todos os meses', 'Outubro de 2026', 'Setembro de 2026', 'Agosto de 2026']);
+    expect(textoDe(pagina.find('label[for="filtro-mes"]'))).toBe('Mês');
+    expect(seletor.findAll('option').map((o) => textoDe(o))).toEqual(['Todos os meses', 'Outubro de 2026', 'Setembro de 2026', 'Agosto de 2026']);
 
     await escolherMes(pagina, '2026-09');
     expect(emAndamento(pagina).exists()).toBe(false);
-    expect(grupos(pagina).map((d) => d.find('.nome-do-mes').text())).toEqual(['Setembro de 2026']);
+    expect(grupos(pagina).map((d) => textoDe(d.find('.nome-do-mes')))).toEqual(['Setembro de 2026']);
     expect(grupo(pagina, 'Setembro de 2026').attributes('open')).toBeDefined();
 
     // o torneio de agosto ainda em andamento aparece no mês dele
@@ -148,16 +149,16 @@ describe('filtros', () => {
   it('busca pelo nome, sem diferenciar maiúsculas e acentos, abrindo o mês recolhido onde está o torneio', async () => {
     const pagina = await montar();
     await pagina.find('input[type="search"]').setValue('DESAFÍO');
-    expect(grupos(pagina).map((d) => [d.find('.nome-do-mes').text(), nomesDe(d)])).toEqual([['Setembro de 2026', ['Desafio de setembro']]]);
+    expect(grupos(pagina).map((d) => [textoDe(d.find('.nome-do-mes')), nomesDe(d)])).toEqual([['Setembro de 2026', ['Desafio de setembro']]]);
     expect(grupo(pagina, 'Setembro de 2026').attributes('open')).toBeDefined();
 
     await pagina.find('input[type="search"]').setValue('não existe');
     expect(pagina.findAll('article')).toHaveLength(0);
-    expect(pagina.text()).toContain('Nenhum torneio encontrado.');
+    expect(textoDe(pagina)).toContain('Nenhum torneio encontrado.');
   });
 });
 
 it('sem nenhum torneio: convida a criar o primeiro', async () => {
   const pagina = await montar([]);
-  expect(pagina.text()).toContain('Nenhum torneio ainda');
+  expect(textoDe(pagina)).toContain('Nenhum torneio ainda');
 });

@@ -1,7 +1,50 @@
 # Decisões
 
-> Registro das decisões do projeto, com as alternativas descartadas.
-> A tabela completa das regras de negócio (D1 a D17) está na seção 11 do `contexto.md`. Este arquivo é completado na etapa 8, com o que ficou de fora por falta de tempo.
+> Registro das decisões do projeto, com as alternativas descartadas. A tabela completa das regras de negócio (D1 a D24) está na seção 11 do `contexto.md`.
+> Esta primeira página é o resumo. Abaixo dela, o [registro detalhado](#registro-detalhado), escrito etapa por etapa, no momento de cada decisão.
+
+## Resumo
+
+### As decisões que mais mudaram o produto
+
+| # | Decisão | Onde |
+|---|---|---|
+| 1 | **O site oficial é a verdade** para vencedor, jogadores, minutos e kills. A Maria nunca digita resultado: ela dá "Ciente" na diferença e só pode corrigir o ID da partida (D3, D4, D5, D16) | [Revisão de 14/10](#revisão-de-14102026-o-site-oficial-é-a-verdade-de-ponta-a-ponta) |
+| 2 | **Nada é pago sem a Maria ter visto:** todo item da aba Pendências pede "Ciente" ou correção, e o cálculo só libera com Pendências e "Aguardando o site" vazias (D17) | [Regra única de pendências](#revisão-de-14102026-2-arredondamento-e-regra-única-de-pendências) |
+| 3 | **Uma regra só de arredondamento, o maior resto**, em centavos inteiros: entre posições, entre times empatados e dentro do time. O centavo vai para quem mais perdeu no corte (Tuca, e não Corvinho) (D9, D20, D24) | [Arredondamento](#revisão-de-14102026-2-arredondamento-e-regra-única-de-pendências) |
+| 4 | **Desempate por kills do time; empate também em kills divide igual**, com o critério visível na página pública (D2) | [Classificação](#classificação-d2-14102026) |
+| 5 | **Minutos ou kills, escolhido antes e travado no cálculo**, com o aviso das consequências do modo kills na criação (D1, D21, D22) | [Modo kills](#divisão-entre-jogadores-no-modo-kills-d21-14102026) |
+| 6 | **Conferência em segundo plano** por uma tabela de tarefas no MySQL com `SKIP LOCKED`, novas tentativas em 1, 2, 5 e 10 min e "tentar agora" sem consulta paralela (D10) | [Job da conferência](#job-da-conferência-etapa-4b-14102026) |
+| 7 | **Leitura da planilha tolerante na forma e rígida no conteúdo**, juntando todos os erros com a linha do Excel (D14, D18) | [Leitura da planilha](#leitura-da-planilha-d18-14102026) |
+| 8 | **Pendências calculadas na hora; só os Cientes são gravados.** O resultado, ao contrário, é **congelado** no cálculo e nunca recalculado | [Pendências e Ciente](#pendências-e-ciente-etapa-5a-15102026), [Rota de cálculo](#rota-de-cálculo-etapa-6b-15102026) |
+| 9 | **Transparência em duas camadas:** página pública sem valores individuais e um link por time premiado com o extrato de cada jogador (D11) | [Códigos de acesso](#códigos-de-acesso-e-página-pública-etapa-7a-15102026) |
+| 10 | **Senha única da organizadora**, em vez de login, para proteger as telas da Maria sem uma peça grande (R3) | [R3](#r3-senha-única-da-organizadora-item-1-crítico-15102026) |
+
+### O que ficou de fora e por quê
+
+| O quê | Por que ficou para depois |
+|---|---|
+| **Pix automático, comprovante e bot do Discord** | Dinheiro enviado errado não volta, e exigiria a chave Pix e o usuário do Discord de cada jogador (D12). A Maria paga pelo CSV, que já tem a coluna "Pago" |
+| **Login completo, limite de tentativas, HTTPS e deploy** (nginx expondo só `/publico` e `/time`) | Um projeto à parte para um sistema com uma organizadora só; a senha única fecha o furo principal (R3) |
+| **Ajuste manual auditado** para quando o site oficial estiver errado | Hoje não há saída se o site errar. Pede um registro de quem mudou, quando e por quê, separado do dado do site |
+| **Time ou nick escrito de dois jeitos pelo site, em partidas diferentes** | Viraria dois times (ou dois jogadores). Precisa de uma regra de negócio (bloquear ou unificar); com o simulador não acontece |
+| **Pool de consultas** no lugar do lote de 3 em `Promise.all` | É vazão, não defeito: hoje uma consulta lenta segura as outras duas do lote |
+| **Falha aleatória configurável no simulador** | O simulador só falha quando programado ou pelo botão da página `/demo` |
+| **A API mandar os dados da D24** em vez de o link do time deduzir | Com prêmios de poucos centavos, a frase pode sair errada; o valor pago está certo |
+| **Limites menores:** frase do 413 com o limite certo, nick repetido na resposta do site, tamanho máximo da resposta do site, agrupamento linear das linhas | Baixo risco, porque estão atrás da senha e não acontecem com os dados atuais |
+| **PDF, "jogou X de Y partidas", "Pago" por jogador, "Gerar novo link", "Arquivar", e-mail, aba "Aguardando o site" igual ao protótipo, limpar status sem uso** | Comodidades e polimento, sem regra nova. Detalhes em [Próximos passos](#próximos-passos) |
+
+### Limitações conhecidas
+
+- **Senha única:** quem sabe a senha faz tudo; não há usuários, registro de quem fez o quê nem limite de tentativas. A senha de demonstração está no README e no `docker-compose.yml`.
+- **Sem HTTPS e sem deploy:** a senha viaja aberta na rede, e a tela é servida pelo `vite preview`.
+- **"Ciente de todas" só libera depois que o site conferir todas as partidas.** Enquanto isso, o Ciente é um a um.
+- **Se o site oficial errar, não há como corrigir à mão** (é a consequência da decisão 1).
+- **O job roda no processo da API:** reiniciar a API pausa a conferência (partidas presas voltam para a fila sozinhas).
+
+---
+
+# Registro detalhado
 
 ---
 
@@ -164,9 +207,11 @@ Princípio: **tolerante na forma, rígida no conteúdo.** O que não muda o sent
 | `PUT /torneios/:id/planilha`, com o arquivo **direto no corpo** e o nome no cabeçalho `X-Nome-Arquivo` | `POST` com multipart (formulário de upload) | "A" planilha do torneio é um recurso único: enviar de novo substitui. O corpo direto dispensa uma biblioteca de upload; o navegador envia o `File` do mesmo jeito |
 | Prêmio sempre em **centavos inteiros** na API; a tela converte "R$ 10.000,00" | Aceitar texto em reais na API | Um formato só, sem ambiguidade de vírgula e ponto, e sem float |
 
-### Limitação conhecida: o sistema não tem login
+### Acesso às telas da Maria: senha única da organizadora (desde o R3)
 
-As confirmações na tela (substituir a planilha, calcular) evitam um **clique por engano**, mas **não impedem outra pessoa** que chegue à tela da Maria de criar torneios, subir planilhas ou calcular. Os links dos times premiados usam **token** (D11), então só quem recebeu o link vê os valores do time. **Autenticação da Maria fica como evolução:** num torneio amador, com a tela rodando no computador dela, o risco é baixo, e um login bem feito (senhas, sessão, recuperação de acesso) é um projeto à parte.
+**Até o R3, o sistema não tinha login**, e esta seção dizia que os links dos times premiados (D11) bastavam para proteger os valores. O code review (item 1) mostrou que não: sem login, qualquer um que chegasse à API lia `GET /torneios/:id/links` e tinha todos os códigos, ou lia o resultado inteiro direto. **Desde o R3, as telas e as rotas da Maria pedem uma senha única** (`ADMIN_SENHA`); a página pública e os links dos times continuam sem senha. Detalhes em "Correções do code review", R3.
+
+As confirmações na tela (substituir a planilha, calcular) continuam evitando um **clique por engano**. A senha resolve outra coisa: **outra pessoa** não cria, calcula nem lê nada sem ela. **Login completo continua como evolução** ("Próximos passos").
 
 ---
 
@@ -603,14 +648,14 @@ Só API. Decisões da Adrielly (D11): os códigos nascem no cálculo, um públic
 | Decisão | Alternativa descartada | Por que descartada |
 |---|---|---|
 | **Os códigos são gerados no cálculo, na mesma transação do 6b** (dentro de `gravarResultado`): **um público do torneio** e **um para cada time premiado** (prêmio maior que zero). Times sem prêmio não recebem código: veem a página pública | Gerar ao abrir a tela de links | Nasce junto com o resultado: não existe cálculo sem link nem link sem cálculo. Dois cálculos ao mesmo tempo continuam esperando um pelo outro (6b), então sai um conjunto só (testado com três pedidos juntos) |
-| **24 bytes do gerador criptográfico do Node** (`crypto.randomBytes`, 192 bits) em **base64url**: exatamente **32 caracteres** de letras, números, "-" e "_", que vão na URL sem escape | id do torneio, número sequencial ou `Math.random` | Sem login, o código é a única proteção: quem tem o link vê. Um número em sequência deixaria qualquer um tentar o próximo; `Math.random` não é feito para ser imprevisível |
+| **24 bytes do gerador criptográfico do Node** (`crypto.randomBytes`, 192 bits) em **base64url**: exatamente **32 caracteres** de letras, números, "-" e "_", que vão na URL sem escape | id do torneio, número sequencial ou `Math.random` | As páginas por link não pedem senha: o código é a única proteção, e quem tem o link vê. Um número em sequência deixaria qualquer um tentar o próximo; `Math.random` não é feito para ser imprevisível |
 | **Código público na própria tabela `calculos`** (`codigo_publico`, obrigatório e único); os dos times numa tabela **`codigos_time`**, ligada à linha do time no cálculo (`premios_time`), também única | Uma tabela só, com o tipo "público" ou "time" | Na tabela única, a coluna do time ficaria vazia no público, e o MySQL não impede dois públicos para o mesmo cálculo com chave única sobre coluna vazia. Assim, o próprio banco garante um público por cálculo e um código por time |
 | Os códigos ficam com **collation binária** (`utf8mb4_bin`) | A collation padrão do banco | Em base64url, "a" e "A" são caracteres diferentes. A padrão ignora maiúsculas: "abc" acharia "ABC", e a chave única recusaria códigos que são diferentes |
 | **Torneios calculados antes desta mudança ganham os códigos na própria migration**: a coluna nasce aceitando vazio, a migration preenche cada cálculo e cada time premiado, e só depois a coluna vira obrigatória | Um script à parte, ou gerar na primeira leitura | Ninguém precisa lembrar de rodar nada, e nenhum cálculo fica sem link. Testado: a migration é desfeita, um cálculo "antigo" é gravado sem código, ela é refeita, e o público e os dois times premiados aparecem |
 | A migration **repete a geração do código** (3 linhas) em vez de importar do domínio | Importar `gerarCodigoDeAcesso` | Uma migration é uma foto: precisa fazer sempre a mesma coisa, mesmo que o domínio mude depois |
 | **`GET /publico/:codigo`**: nome do torneio, data do cálculo, **regras** (prêmio total, percentuais por posição, modo de divisão e o **critério de desempate em texto simples**) e a **classificação** (posição, time, vitórias, kills, prêmio do time e critério) | Devolver o resultado inteiro e a tela esconder os jogadores | A API não pode mandar o que a página não pode mostrar: qualquer um abriria a resposta no navegador e veria os valores (D11) |
 | A página é montada **campo a campo** (`montarPaginaPublica`, função pura), e não "o resultado sem a lista de jogadores" | Tirar `jogadores` do objeto | Se um dia o resultado ganhar um campo novo com dado de jogador, ele não vaza para a página pública sem alguém decidir |
-| **Sem o id interno do torneio** na resposta | Devolver o id | Com o id, dá para chegar às rotas da Maria, que não têm login (limitação da etapa 3b). A página pública não precisa dele |
+| **Sem o id interno do torneio** na resposta | Devolver o id | Com o id, dá para chegar às rotas da Maria, que na época não tinham login (limitação da etapa 3b; desde o R3, pedem a senha da organizadora). A página pública não precisa dele |
 | **Só o resultado congelado:** nada é recalculado (teste: mudar o prêmio, os percentuais e o modo no banco depois não muda a página) | — | Mesmo princípio do 6c |
 | **Qualquer erro dá o mesmo 404**, com a mesma frase "Página não encontrada.": código que não existe, fora do formato, com uma letra trocada de maiúscula, o código de um time e o id do torneio. Fora do formato, **nem consulta o banco** | 400 para formato inválido, 409 para "não calculado" | A resposta não pode ajudar quem tenta adivinhar: não diz se o torneio existe nem se o código "quase" acertou |
 | O **código de um time não abre a página pública** | Aceitar os dois | Cada código tem um papel; o link do time é da etapa 7b |
@@ -680,7 +725,7 @@ Só web, com a API do 7a (`GET /publico/:codigo`). Rota `/publico/:codigo` na we
 | **`/publico/` sem código** mostra "Página não encontrada" sem chamar a API: o código é opcional na rota | Deixar como estava | Antes, o endereço caía na regra "qualquer outra rota", que **leva à lista de torneios da Maria** (os testes que falharam antes da implementação mostraram isso) |
 | Código errado (404): **"Página não encontrada"** e "Confira se o link foi copiado inteiro.", sem a palavra "torneio" e sem links | "Torneio não encontrado" | A tela não pode dizer se existe um torneio por trás |
 | Servidor fora do ar ou outro erro: **"Não foi possível carregar"**, com "Tente de novo em alguns minutos." | Tratar como 404 | O jogador acharia que o link está errado e pediria outro à Maria |
-| **`<meta name="robots" content="noindex">` no `index.html`**, valendo para o app inteiro | Pôr o meta só nesta página, por JavaScript | No `index.html` vale também para buscadores que não executam JavaScript. Nenhuma tela do sistema deve aparecer em buscador: as da Maria não têm login |
+| **`<meta name="robots" content="noindex">` no `index.html`**, valendo para o app inteiro | Pôr o meta só nesta página, por JavaScript | No `index.html` vale também para buscadores que não executam JavaScript. Nenhuma tela do sistema deve aparecer em buscador: as da Maria não tinham login (desde o R3, pedem a senha) |
 | O título da aba é **"Nome do torneio · Classificação"** | O título genérico do app | É o que aparece na aba e no histórico do jogador |
 | No celular, a tabela **rola dentro da caixa**, como no resultado (6e) | Empilhar as linhas | Mantém um jeito só de ler a classificação nas duas telas |
 | **Prêmio logo depois do Time**, nas duas telas (pedido da Adrielly na revisão do 7c) | Prêmio depois das kills | No celular, a primeira tela mostra posição, time e prêmio sem arrastar a tabela: é o que o jogador procura |
@@ -840,7 +885,141 @@ Decisões da Adrielly (plano, seção 9): remover só antes do cálculo, com con
 - **Sem desvio:** a integração rodou 5 vezes seguidas, todas com 152 de 152.
 - **Com desvio simulado:** rodou de novo com o relógio do Node deslocado 5 s para frente e 5 s para trás, bem acima da folga antiga, e passou nas duas. Um teste temporário confirmou que o desvio valia dentro dos testes.
 
-**Observação sobre o código da API (sem mudança agora):** a importação grava a próxima tentativa com o relógio do MySQL, e o job e a correção de ID usam o do Node. No Docker, a API e o MySQL rodam na mesma máquina virtual e têm o mesmo relógio, então não há problema em produção. Ainda assim, um relógio só também no código seria mais simples de explicar: a importação passaria a gravar o "agora" da API.
+**Observação sobre o código da API (resolvida no R2a, em "Correções do code review"):** a importação grava a próxima tentativa com o relógio do MySQL, e o job e a correção de ID usam o do Node. No Docker, a API e o MySQL rodam na mesma máquina virtual e têm o mesmo relógio, então não há problema em produção. Ainda assim, um relógio só também no código seria mais simples de explicar: a importação passaria a gravar o "agora" da API.
+
+---
+
+## Correções do code review
+
+O code review de 15/10/2026 está em `code-review.md`. As correções entram em pedaços pequenos, cada um com testes vistos falhando antes.
+
+### R1a: limites na entrada da planilha (itens 2, 12 e 13), 15/10/2026
+
+**O problema:** a leitura aceitava texto de qualquer tamanho e números até 9×10¹⁵. O MySQL, em modo estrito, recusava o INSERT, e a Maria via "Erro inesperado no servidor. Tente de novo." (500), sem a linha do Excel. Tentar de novo não resolvia. O mesmo valia para a correção do ID. Os testes pela rota reproduziram o 500 antes da correção.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **Limites num lugar só** (`LIMITES`, em `api/src/dominio/planilha.ts`), usados pela leitura e pela correção do ID: nick e time até 80 caracteres, coluna Partida até 200, ID até 19 dígitos, minutos e kills de 0 a 100.000 | Validar só no banco e traduzir o erro do MySQL | O erro do banco chega depois da leitura: perderia a linha do Excel e a regra de juntar todos os erros (D18) |
+| A mesma frase das outras validações, com a linha e a coluna: "O nick pode ter até 80 caracteres. Este tem 81." | Uma frase genérica ("valor grande demais") | A Maria precisa saber o que mudar e onde |
+| Caracteres **contados como o MySQL conta** (por caractere, não pelo `.length` do JavaScript) | `texto.length` | Um emoji no nick conta 2 no JavaScript e 1 no MySQL: o limite não bateria com a coluna |
+| Número só com dígitos, mas acima do limite ou longo demais até para o JavaScript: **a frase do limite** | "Precisa ser um número inteiro" | "99999999999999999999" é um número inteiro; a frase confundiria |
+| **Rodada limitada à capacidade da coluna** (`INT UNSIGNED`, 4.294.967.295), com "A rodada é grande demais" | Um limite realista (ex.: 100 rodadas) | Não estava na lista de limites; um limite realista seria regra de negócio a decidir. O técnico só garante que nada vira 500 |
+| **Ano da data de 2000 a 2100**: "O ano da data precisa estar entre 2000 e 2100" | Aceitar qualquer ano de 4 dígitos | `01/01/0001` entrava no banco, e `01/09/0226` (um "2" no lugar errado) também passaria |
+| **Arquivo do Excel (.xlsx)**, reconhecido pelos 4 primeiros bytes (`PK`, 3, 4: todo .xlsx é um ZIP), recebe **uma frase só**: "Este arquivo é do Excel (.xlsx). No Excel, use Salvar como → CSV UTF-8 (separado por vírgulas)." | Deixar a leitura seguir | O .xlsx era lido como texto em Windows-1252 e dava nove "Falta a coluna", sem dizer o que fazer. É o erro mais provável de uma usuária não técnica |
+
+**Os testes:** um por limite e por caso, com os números escritos por extenso (mudar a constante sem querer faz o teste falhar), mais as bordas que precisam continuar passando (80 caracteres, 19 dígitos, 100.000, anos 2000 e 2100, um CSV que começa com as letras "PK"). Pela rota, cada caso responde 400 com a linha e nada é gravado, e a correção do ID com 30 dígitos responde 400 e mantém o ID antigo.
+
+### R1b: coerência da resposta do site e erro de regra no cálculo (itens 3 e 4), 15/10/2026
+
+**O problema:** o site respondia no formato certo, mas com dados que não fechavam, e o sistema aceitava. Com o vencedor `"lobos"` e os times `"Lobos"` e `"Corvos"`, a classificação criava um time fantasma com 1 vitória e sem jogadores, e o cálculo parava com "Erro inesperado no servidor". Pelo desenho (D3, D16), a Maria **não tem como corrigir**: o site é a verdade e ela só edita o ID. O torneio ficaria travado para sempre.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **A resposta precisa fechar** (`superRefine` no esquema do cliente): o vencedor é um dos dois times; o time de todo jogador é um dos dois; cada time tem ao menos um jogador; o ID respondido é o consultado; os dois times não têm o mesmo nome | Validar só o formato | Dado incoerente do "site instável" chegava ao cálculo e travava o torneio sem saída |
+| Fora disso: **`resposta_invalida`**, que já é tentada de novo, com a frase na aba "Aguardando o site": "O site oficial respondeu dados que não fecham: o vencedor "lobos" não é nenhum dos dois times (Lobos x Corvos)." | Gravar a partida como conferida e avisar nas pendências | Não há o que a Maria possa fazer com um dado incoerente; esperar o site responder certo é o mesmo caminho de quando ele está fora do ar (D10) |
+| Nomes comparados **exatamente como o site escreveu** | Sem acentos e maiúsculas, como entre planilha e site (D19) | A D19 tolera a digitação da Maria. Dentro da própria resposta do site, "lobos" e "Lobos" no mesmo JSON é o site se contradizendo |
+| O esquema do site ganhou **os limites da planilha** (R1a): nick e time até 80 caracteres, minutos e kills até 100.000 | Deixar como estava | Um nick do site com 81 caracteres daria 500 ao gravar as participações: é o mesmo problema do R1a, pelo outro lado |
+| Primeiro o formato, depois a coerência: com um campo errado, a frase diz só "fora do formato (campos: ...)" | As duas listas juntas | Com um campo errado, a coerência não diz nada útil |
+| **`ErroDeRegra`** no domínio, só para as frases escritas para a Maria (time premiado sem minutos nem kills; percentuais que não somam 100; nenhum time). O cálculo captura e a rota responde **409 com a frase** | Responder todo erro do cálculo com 409 | Proteções de programação (valor que não é inteiro, nome repetido) são bug: o 500 é a resposta certa para elas, e o teste confere que continuam assim |
+| O cálculo monta o resultado **antes** de gravar qualquer coisa: com um `ErroDeRegra`, nada fica pela metade | Desfazer o que foi gravado | Não há o que desfazer; a ordem já garante |
+
+**A tela não muda (R1b):** no 409 do cálculo, ela já recarrega e mostra a frase da API num aviso âmbar (6d).
+
+**Os testes:** cada regra de coerência com o seu caso, incluindo o vencedor `"lobos"`; os limites; as 148 partidas dos dados do simulador, que continuam todas válidas; de ponta a ponta, o job deixa a `#48450` incoerente "aguardando o site", com o motivo e a próxima tentativa, e confere as outras 14; e o cálculo de setembro com os Lobos sem minutos nem kills responde 409 com a frase, sem gravar nada (antes, 500).
+
+### R1c: ajustes pequenos (itens 10, 15 e 18), 15/10/2026
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **CSV:** célula que começa com tab (`\t`) ou `\r` também ganha o apóstrofo, como `=`, `+`, `-` e `@` (lista da OWASP) | Só os quatro sinais | O Excel também interpreta como fórmula o que vem depois de um tab ou `\r` no início da célula |
+| **`calcularEGravar` saiu do serviço** e virou um auxiliar de teste (`api/test/integracao/calcular-sem-trava.ts`) | Fazê-la chamar `calcularTorneio` | Os testes do 6a usam a função para conferir a montagem e a gravação em torneios que nem sempre estão prontos; passar pela trava mudaria o que eles provam. No serviço, exportada, ela calculava sem trava e sem conferir pendências: alguém poderia chamá-la de uma rota |
+| **`app.disable('x-powered-by')`** | `helmet` | Uma linha resolve o que o review apontou; `helmet` traria uma lista de cabeçalhos para uma API que não serve páginas |
+
+**Status que vieram do rascunho do banco e nunca são gravados** (ficam no `enum`, sem uso):
+- **Torneio:** `conferindo` e `pronto`. O torneio passa de `criado` a `importado` e depois a `calculado`. Se ele "pode calcular" é calculado na hora (5c), e não gravado.
+- **Partida (`status_conferencia`):** `times_diferentes`. "Times diferentes" é um **tipo de pendência**, que sai da comparação na hora (D19); a partida fica `conferida`. O serviço de pendências só lê esse valor, por segurança.
+- **Por que não foram removidos:** tirar um valor de um `enum` exige uma migration que altera a coluna, e o ganho é só de limpeza. Fica em "Próximos passos".
+
+### R4: "Limpar filtros" na lista de torneios, 15/10/2026
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| O botão **aparece só com algum filtro fora do padrão** (situação, divisão, mês ou busca) e some quando tudo volta ao padrão | Sempre visível | Um botão que não faz nada no estado padrão confunde; aparecer é o sinal de que há filtro ligado |
+| O padrão fica **numa constante só** (`PADRAO`), usada para começar a página e para limpar | Os valores iniciais repetidos no botão | Se o padrão de um filtro mudar, o botão continua voltando ao lugar certo |
+| Ao limpar, **o foco vai para o primeiro filtro** ("Todos", da situação) | Deixar o foco onde estava | O botão some ao ser clicado: o foco cairia no começo da página e quem navega pelo teclado perderia o lugar |
+| **Anúncio ao leitor de tela** num `role="status"` próprio, fora do botão: "Filtros limpos: 3 torneios." | Contar com o `aria-live` da lista | A lista inteira seria lida de novo; a frase curta diz o que aconteceu e quanto apareceu |
+| Fica **junto dos filtros**, e no celular ocupa a largura toda, como eles | Num lugar à parte | É uma ação sobre os filtros |
+
+### R2a: fuso e relógio (seção "Os dois itens que você já conhecia"), 15/10/2026
+
+**O risco era o fuso, não só o desvio.** A seção "Testes de integração com um relógio só" falava do desvio entre os relógios do Node e do MySQL e concluía que "no Docker não há problema". O review mostrou um risco maior: o `timezone: 'Z'` do mysql2 só diz como converter as datas do JavaScript; o `NOW()` e o `CURRENT_TIMESTAMP` usam o **fuso da sessão do MySQL**. No contêiner, a sessão é UTC por acaso; num MySQL configurado em `-03:00`, os horários gravados por ele saem **3 horas errados**. O teste reproduziu isso: com o servidor em `-03:00`, o horário de criação do torneio ficou exatamente 10.800.000 ms (3 h) atrás da hora real, e a próxima tentativa das partidas saiu com o relógio do MySQL, e não com o da API.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **Sessão do MySQL fixada em UTC** em toda conexão nova do pool (`SET time_zone = '+00:00'`, no `afterCreate`) | Confiar na configuração do servidor | Um MySQL gerenciado, ou instalado no computador da Maria, pode vir em `-03:00`. O horário de criação define o "mês do torneio" sem planilha (M1) e erraria perto da virada do mês |
+| **Um relógio só no código:** a importação recebe `agora`, o mesmo relógio do job e da correção de ID, e grava com ele a primeira tentativa das partidas e o horário da importação, em segundos inteiros | A primeira tentativa vir do padrão `NOW()` da coluna | Com dois relógios, o job (relógio da API) e a importação (relógio do MySQL) podiam discordar sobre se a partida "já está pronta". Um relógio só é mais simples de explicar e de testar |
+| O `created_at` continua com o `CURRENT_TIMESTAMP` do banco | Gravá-lo também com o relógio da API | Com a sessão em UTC ele sai certo, e mudar todas as tabelas seria uma mudança grande para o mesmo resultado |
+
+**Os testes:** um teste de integração põe o servidor em `-03:00` (fuso global, com o root), abre uma conexão nova e confere: a sessão é UTC; a importação grava a primeira tentativa e o horário da importação com o `agora` recebido; o `created_at` bate com a hora real (segundos desde 1970, que não dependem de fuso). O fuso global original volta no fim, mesmo se o teste falhar, porque vale para o servidor todo. Os testes que importam direto passaram a dar à importação o mesmo relógio do job, e o teste "nasce agora" do repositório compara o valor exato, sem precisar da hora do MySQL.
+
+### R2b: "R$" com espaço que não quebra, 15/10/2026
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| Entre "R$" e o número, um **espaço que não quebra** (U+00A0), no formatador da web | `white-space: nowrap` nas células de valor | Resolve a tabela, mas não as frases do link do time, que também têm valores |
+| No código, o caractere vai como `String.fromCharCode(0x00a0)`, com nome | Escrever o caractere | Ele é invisível e igual ao espaço comum: ninguém saberia qual dos dois está ali (o mesmo problema que já apareceu num regex) |
+| Os testes comparam o texto **como se lê**, com espaço comum: os de componente leem a tela sempre por `textoDe(…)`, e os de domínio passam o valor por `comEspacosComuns(…)` (`web/test/ajudantes/espacos.ts`) | Escrever o espaço que não quebra nos textos esperados | Espalharia o caractere invisível por dezenas de testes. Um teste próprio confere que o formatador usa mesmo o U+00A0 |
+| O **CSV não muda** | Usar o mesmo formatador | O CSV tem o seu formato (sem "R$" e sem ponto de milhar, para o Excel somar) |
+
+Colar o valor formatado de volta no campo do prêmio continua funcionando: a leitura já aceitava qualquer espaço depois do "R$".
+
+### R3: senha única da organizadora (item 1, crítico), 15/10/2026
+
+**O furo:** sem login, a garantia da D11 ("só quem recebeu o link vê os valores do time") não valia. Qualquer pessoa que chegasse à API podia ler `GET /torneios/:id/links` e ter os códigos de todos os times, ou ler `GET /torneios/:id/resultado` com o valor de cada jogador. Também podia criar, remover e calcular torneios. Os testes reproduziram isso antes da correção: sem senha, as rotas respondiam 200, e criar torneio respondia 201.
+
+**Decidido pela Adrielly:** uma senha única no `.env` (`ADMIN_SENHA`), exigida em tudo, menos `/saude`, `/publico/*` e `/time/*`. **Não é login:** não há usuário, cadastro nem recuperação. Para trocar a senha, edita-se o `.env` e reinicia-se a API.
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **A API não sobe sem `ADMIN_SENHA`**, com a frase do que fazer. Mínimo de 8 caracteres, sem acento e sem espaço nas pontas | Um padrão no código | Uma senha padrão no código vale para todo mundo que baixar o repositório. **Sem acento:** o navegador não manda acento num cabeçalho HTTP, e a senha nunca bateria. **Sem espaço nas pontas:** o espaço se perde no caminho, pelo mesmo motivo |
+| No `docker-compose.yml`, o padrão é **a senha de demonstração** do README (`organizadora-demo`), como os outros valores | Exigir o `.env` (`${ADMIN_SENHA:?}`) | Quebraria o "um comando para subir" do desafio. A senha de demonstração é pública: **fora da demonstração, troca-se no `.env`**, e o README e o `.env.example` dizem isso |
+| Cabeçalho **`Authorization: Bearer <senha>`**, e não cookie | Cookie de sessão | O cookie exigiria uma rota de entrada, uma sessão guardada e proteção contra CSRF (outro site mandando pedidos com o cookie da Maria). O cabeçalho só vai quando o código da tela o põe |
+| Comparação com **`crypto.timingSafeEqual` sobre o resumo SHA-256** das duas senhas | `===` | O `===` para no primeiro caractere diferente: medindo o tempo, dá para descobrir a senha aos poucos. O resumo tem sempre 32 bytes, então a comparação também não conta o tamanho da senha |
+| As rotas abertas são montadas **antes** do middleware; depois dele, **tudo** pede senha, inclusive uma rota que não existe (401, e não 404) | Uma lista de rotas protegidas | Uma rota nova da Maria já nasce protegida; esquecer de pôr na lista abriria o furo de novo. O 401 para rota desconhecida também não conta quais rotas existem |
+| **Tudo em `/publico` e `/time` termina no mesmo 404**, inclusive sem código ou com outro método | Deixar cair no middleware | `/publico/` sem código respondia "Acesso só da organizadora." numa área que nunca pede senha. Achado testando pelo proxy |
+| A senha é conferida **antes de ler o corpo** (JSON ou planilha) | Ler o corpo antes | Sem a senha, ninguém faz a API ler 5 MB |
+| Resposta: **401 `{ erro: "Acesso só da organizadora." }`**, com `WWW-Authenticate: Bearer` | Só o 401 | A frase segue o padrão das outras respostas de erro; o `WWW-Authenticate` é o que a norma do HTTP pede num 401 |
+| **`GET /acesso`** (204) para a tela conferir a senha digitada | Conferir chamando `GET /torneios` | Conferir a senha não deveria buscar dados |
+| Na tela, **qualquer 401** troca a página pela tela "Senha da organizadora" (campo com rótulo, "Entrar", "Senha incorreta. Confira e tente de novo."). Com a senha certa, a página volta a ser montada e carrega de novo | Uma página de login com rota própria | A Maria volta para onde estava, sem redirecionamento. Uma senha guardada que deixou de valer (trocaram o `.env`) cai no mesmo caminho e é esquecida |
+| Senha no **`sessionStorage`** (vale para a aba e some ao fechá-la), e também na memória; **"Sair"** no cabeçalho esquece | `localStorage` | O `localStorage` guardaria a senha no computador para sempre. Na memória, a tela funciona mesmo com o armazenamento bloqueado (janela anônima) |
+| Páginas por link **nunca** mandam a senha nem mostram a tela de senha: usam `lerPorLink`, separado do `chamar` das telas da Maria | Um `fetch` só para tudo | O jogador que abre o link do time no computador da Maria não leva a senha junto, e um 401 ali nunca mostraria a tela da Maria a um jogador |
+| **"Baixar CSV" virou botão:** baixa com `fetch` e o cabeçalho, e entrega o arquivo ao navegador por um endereço temporário (`blob:`), com o nome do `Content-Disposition` | Senha na URL (`?senha=`) | Um link comum não manda o cabeçalho. Senha na URL fica no histórico do navegador e nos logs. Nome com barra ou ".." vira `resultado.csv` |
+
+**O que a senha resolve:** o furo do item 1. Sem a senha, ninguém lê os códigos dos links nem o resultado com os valores de cada jogador, e ninguém cria, calcula ou remove torneio. A D11 volta a valer: só quem recebeu o link de um time vê os valores daquele time.
+
+**O que a senha não resolve:**
+- **Não há usuários:** quem sabe a senha faz tudo, e o sistema não registra quem fez o quê.
+- **Não há recuperação:** esqueceu, olha no `.env`. Vazou, troca no `.env` e reinicia, e todos precisam da nova.
+- **Não há limite de tentativas:** dá para tentar senhas sem parar. O mínimo de 8 caracteres atrasa, mas não impede; um limite por endereço de IP seria o próximo passo.
+- **Sem HTTPS, a senha viaja aberta na rede**, como tudo o mais. Num deploy real, o HTTPS é obrigatório.
+- **Um script malicioso na página (XSS) leria a senha** do `sessionStorage`. O risco é baixo: o Vue escapa todo texto que mostra (nicks e nomes de time vêm da planilha e do site), e a tela não usa `v-html` nem `innerHTML`.
+
+O login completo fica em "Próximos passos".
+
+**Os testes:** sem banco, a frase e o `WWW-Authenticate`; senha errada, só o começo da senha, em maiúsculas, outro esquema (`Basic`) e sem "Bearer" dão 401; `bearer` em minúsculas vale; rota desconhecida dá 401; a planilha de 6 MB sem senha dá 401, e não 413; tudo em `/publico` e `/time` dá 404 sem senha. Na configuração: sem `ADMIN_SENHA`, curta, com acento ou com espaço nas pontas, a API não sobe. Na integração, com setembro calculado de verdade: sem senha ou com a senha errada, 401 em `/torneios`, no torneio, nos links, no resultado, no CSV e nas pendências, sem nada do torneio na resposta; criar, remover e calcular sem senha dão 401 e nada muda; com a senha, 200; `/publico` e `/time` abrem sem senha, e até com uma senha errada no cabeçalho. Na tela: o 401 mostra a tela de senha, com o campo em foco; senha errada, vazia ou com acento; a certa carrega a página e vai em todo pedido seguinte; "Sair" esquece; a senha antiga é esquecida; as páginas por link não pedem nem mandam a senha; o CSV é baixado com o cabeçalho, com o nome e o BOM, uma vez só no clique duplo, e a falha aparece junto do botão. Os testes que já existiam passaram a mandar a senha, e a API falsa da tela agora responde 401 sem ela, como a de verdade.
+
+### Item 1 do segundo review: "Ciente de todas" só depois que o site conferir todas as partidas, 15/10/2026
+
+**O problema:** o modal perguntava "Marcar Ciente em N pendências?" com o N da tela, mas a API marcava **todas as que existissem no momento do clique**. Enquanto a Maria lia o modal, o job podia conferir outra partida e trazer uma divergência de kills, que recebia o Ciente sem ela ter visto. Era o único caminho que furava a D17 ("nada é pago sem a Maria ter visto").
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **O "Ciente de todas" só libera com nenhuma partida aguardando o site ou em consulta.** Sem partida a conferir, nenhuma pendência nova pode aparecer entre olhar e clicar (a correção de ID e a planilha nova também travam o torneio) | **A tela mandar as chaves das pendências que mostrou**, e a API marcar só essas | Resolveria também com o site conferindo, mas exige o aviso de "pendências novas" e uma regra a mais para explicar. Com 15 a 28 partidas, esperar o site terminar custa pouco, e a Maria pode dar Ciente um a um enquanto isso |
+| A API confere **dentro da transação, com o torneio travado**, e responde **409** sem marcar nada: "2 partidas ainda aguardam o site: o "Ciente de todas" só libera depois que o site conferir todas. Enquanto isso, dê Ciente uma a uma." | Conferir só na tela | Uma partida pode voltar para a fila entre a tela e o clique; só a verificação dentro da transação garante |
+| O Ciente de **uma** pendência continua liberado | Travar todos os Cientes até o site terminar | A pendência individual é a que a Maria está vendo; travar só atrasaria a revisão (D10) |
+| Na tela, o botão fica **desabilitado com o motivo e o progresso visíveis** ("5 de 8 até agora"), ligados por `aria-describedby`; a regra pura é `motivoDoCienteDeTodasTravado` | Esconder o botão | Um botão que some não diz por que nem quando volta |
+
+**Os testes:** na integração, 409 com partida aguardando e em consulta, 409 antes de o site responder, Ciente individual liberado e um teste de concorrência que trava o torneio, põe uma partida de volta na fila e só passa se a verificação estiver dentro da transação. Na tela, o botão desabilitado com o motivo, liberado sem motivo e o 409 com a frase da API.
 
 ---
 
@@ -869,11 +1048,12 @@ Decididos com a Adrielly em 15/10/2026 (no fim da etapa 6, nas etapas 7a e 7d e 
 | Próximo passo | O que é | Por que ficou para depois |
 |---|---|---|
 | **Aba "Aguardando o site" igual ao protótipo 1c** | O quadro "O site oficial está instável agora" com o "Tentar agora" dentro da aba; um estado por partida ("Consultando o site", "Na fila", "O site falhou · 3 tentativas", "Erro interno, não é o site") e a espera ao lado da próxima tentativa ("(espera de 5 min)") | A aba do 4c já mostra o motivo, as tentativas e "última às X, próxima às Y" (D10), que é o que a Maria precisa para não vigiar o site. O que falta é polimento visual, sem regra nova |
-| **Relógio único na API** | A importação passa a gravar a próxima tentativa com o "agora" da API, em vez do `NOW()` do MySQL | Hoje a importação usa o relógio do MySQL, e o job e a correção de ID usam o do Node. No Docker os dois são o mesmo relógio (a mesma máquina virtual), então não há problema em produção; os testes já usam um relógio só. Um relógio só também no código seria mais simples de explicar |
+| **Limpar os status sem uso** | Tirar `conferindo` e `pronto` do status do torneio e `times_diferentes` do `status_conferencia` da partida (R1c) | Vieram do rascunho do banco e nunca são gravados; removê-los do `enum` exige uma migration que altera as colunas, e o ganho é só de limpeza |
 | **PDF do resultado** | Pela impressão do navegador ("Salvar como PDF"), com um CSS de impressão na tela do resultado: sem cabeçalho do sistema, sem filtro e sem botões, com as tabelas inteiras | O CSV já permite pagar (6c); o PDF é para guardar ou enviar. Pela impressão do navegador, não precisa de biblioteca nova nem de rota na API |
 | **"Jogou X de Y partidas" no resultado** | O cálculo passa a gravar, para cada jogador, em quantas partidas jogou por aquele time e quantas o time jogou; a tela mostra isso no lugar de deduzir "Reserva" pelos minutos (6e) | Exige uma coluna nova em `premios_jogador` e uma mudança no cálculo. Deduzir pelos minutos marcaria errado quem só saiu mais cedo numa partida (Bia.gg) |
 | **Controle de "Pago" por jogador** | Marcar, na tela do resultado, quem já recebeu, com a data; o resultado continua congelado, só o pagamento muda | O sistema não controla pagamento (D12). Hoje a Maria paga com o CSV no Excel, que já tem a coluna "Pago" vazia para ela marcar (M1); o controle dentro do sistema é uma comodidade, não uma regra do desafio |
 | **Integração com Pix**, depois do "Pago" | Enviar o Pix pelo sistema | Continua fora do escopo pela D12: dinheiro enviado errado não volta, e exigiria a chave Pix de cada jogador |
 | **"Gerar novo link"** (decidido com a Adrielly na etapa 7a) | Trocar o código público ou o de um time, e o antigo para de funcionar | Serve para quando um link vaza (por exemplo, o de um time colado no canal geral do Discord). Hoje o código nasce no cálculo e não muda. Precisa decidir antes se a troca pede confirmação e como a Maria avisa o time do link novo |
 | **"Arquivar" torneio calculado, à mão** | A Maria escolhe arquivar: o torneio sai da lista principal e tudo continua no banco (planilha, conferência, Cientes, resultado e links) | Para **responder contestações depois**: o CSV do resultado é gerado do banco a cada download, então apagar perderia também o relatório. **À mão, e não na virada do mês**: um torneio antigo pode ainda estar sendo contestado (M1). Com a lista por mês (M1), os meses anteriores já ficam recolhidos, então a lista não incomoda tanto |
-| **Envio de cópia por e-mail** | Mandar para a Maria, por e-mail, o CSV e os links de cada torneio calculado | Depende de **login e cadastro da organizadora** (o sistema não tem login, limitação da etapa 3b): sem saber quem é a Maria e qual o e-mail dela, não há para quem mandar. Também exigiria um serviço de envio de e-mail |
+| **Login completo da organizadora** (do R3) | Usuário e senha por pessoa, com a senha guardada só como hash, sessão que expira, recuperação de acesso por e-mail, limite de tentativas e registro de quem fez o quê | A senha única do R3 fecha o furo do item 1 do code review com uma peça pequena. O login completo é um projeto à parte (cadastro, e-mail, sessões) para um sistema com uma organizadora só |
+| **Envio de cópia por e-mail** | Mandar para a Maria, por e-mail, o CSV e os links de cada torneio calculado | Depende de **login e cadastro da organizadora** (o sistema só tem a senha única do R3, sem usuário nem e-mail): sem saber quem é a Maria e qual o e-mail dela, não há para quem mandar. Também exigiria um serviço de envio de e-mail |

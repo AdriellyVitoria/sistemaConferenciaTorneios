@@ -10,6 +10,7 @@ import { criarApp } from '../../src/app';
 import { executarRodada } from '../../src/conferencia/job';
 import { criarClienteSiteOficial } from '../../src/conferencia/site-oficial';
 import { conectarAoBancoDeTeste, esvaziarTabelas, relogioDoBanco } from './banco-de-teste';
+import { COM_SENHA, SENHA_DE_TESTE } from '../ajudantes/senha';
 
 const RAIZ = path.resolve(__dirname, '../../..');
 const arquivo = (relativo: string) => path.join(RAIZ, relativo);
@@ -26,7 +27,7 @@ let urlDoSite: string;
 beforeAll(async () => {
   bd = conectarAoBancoDeTeste();
   relogio = await relogioDoBanco(bd);
-  api = criarApp({ bd, verificarBanco: async () => {}, agora: () => relogio() }).listen(0);
+  api = criarApp({ bd, verificarBanco: async () => {}, agora: () => relogio(), senhaDaOrganizadora: SENHA_DE_TESTE }).listen(0);
   await new Promise((pronto) => api.once('listening', pronto));
   base = `http://127.0.0.1:${(api.address() as AddressInfo).port}`;
 });
@@ -48,7 +49,7 @@ afterEach(async () => {
 async function pedir(metodo: string, caminho: string, corpo?: unknown) {
   const resposta = await fetch(`${base}${caminho}`, {
     method: metodo,
-    headers: corpo instanceof Uint8Array ? {} : { 'content-type': 'application/json' },
+    headers: { ...COM_SENHA, ...(corpo instanceof Uint8Array ? {} : { 'content-type': 'application/json' }) },
     body: corpo === undefined ? undefined : corpo instanceof Uint8Array ? corpo : JSON.stringify(corpo),
   });
   return { status: resposta.status, corpo: await resposta.json() };
@@ -118,7 +119,7 @@ describe('GET /torneios/:id/resultado', () => {
 describe('GET /torneios/:id/resultado.csv', () => {
   it('UTF-8 com BOM e ";": abre no Excel com os acentos certos, e a soma dá exatamente 10.000,00', async () => {
     const id = await setembro();
-    const resposta = await fetch(`${base}/torneios/${id}/resultado.csv`);
+    const resposta = await fetch(`${base}/torneios/${id}/resultado.csv`, { headers: COM_SENHA });
     expect(resposta.status).toBe(200);
     expect(resposta.headers.get('content-type')).toBe('text/csv; charset=utf-8');
 
@@ -147,7 +148,7 @@ describe('GET /torneios/:id/resultado.csv', () => {
 
   it('o nome do arquivo tem o nome do torneio', async () => {
     const id = await setembro();
-    const disposicao = (await fetch(`${base}/torneios/${id}/resultado.csv`)).headers.get('content-disposition')!;
+    const disposicao = (await fetch(`${base}/torneios/${id}/resultado.csv`, { headers: COM_SENHA })).headers.get('content-disposition')!;
     expect(disposicao).toContain('attachment');
     expect(disposicao).toContain('filename="resultado-torneio-de-setembro-2026.csv"');
     expect(disposicao).toContain(`filename*=UTF-8''${encodeURIComponent('resultado-Torneio de Setembro-2026.csv')}`);
@@ -155,12 +156,12 @@ describe('GET /torneios/:id/resultado.csv', () => {
 
   it('antes do cálculo: 409', async () => {
     const id = await setembro({ calcular: false });
-    const resposta = await fetch(`${base}/torneios/${id}/resultado.csv`);
+    const resposta = await fetch(`${base}/torneios/${id}/resultado.csv`, { headers: COM_SENHA });
     expect(resposta.status).toBe(409);
     expect((await resposta.json()).erro).toBe('O torneio ainda não foi calculado.');
   });
 
   it('torneio que não existe: 404', async () => {
-    expect((await fetch(`${base}/torneios/999999/resultado.csv`)).status).toBe(404);
+    expect((await fetch(`${base}/torneios/999999/resultado.csv`, { headers: COM_SENHA })).status).toBe(404);
   });
 });

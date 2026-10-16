@@ -10,7 +10,7 @@ import { executarRodada } from '../../src/conferencia/job';
 import { criarClienteSiteOficial, type SiteOficial } from '../../src/conferencia/site-oficial';
 import type { ModoDivisao } from '../../src/dominio/rateio';
 import { buscarResultado } from '../../src/repositorios/resultado';
-import { calcularEGravar } from '../../src/servicos/calculo';
+import { calcularEGravar } from './calcular-sem-trava';
 import { corrigirId } from '../../src/servicos/partidas';
 import { criarTorneio, importarPlanilha } from '../../src/servicos/torneios';
 import { conectarAoBancoDeTeste, esvaziarTabelas, relogioDoBanco } from './banco-de-teste';
@@ -47,7 +47,7 @@ afterEach(async () => {
 async function torneioConferido(planilha: string, modoDivisao: ModoDivisao = 'minutos'): Promise<number> {
   const criado = await criarTorneio(bd, { nome: planilha, premioCentavos: 1_000_000, percentuais: [50, 30, 20], modoDivisao });
   if (!criado.ok) throw new Error('não criou');
-  const importada = await importarPlanilha(bd, criado.id, readFileSync(arquivo(planilha)), path.basename(planilha));
+  const importada = await importarPlanilha(bd, criado.id, readFileSync(arquivo(planilha)), path.basename(planilha), relogio());
   if (importada.tipo !== 'importada') throw new Error(`não importou ${planilha}`);
   await conferirTudo(criado.id);
   return criado.id;

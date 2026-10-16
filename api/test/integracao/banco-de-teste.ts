@@ -25,10 +25,12 @@ export async function horaDoBanco(bd: Knex): Promise<Date> {
  * Um relógio que anda junto com o do MySQL, para o "agora" do job e da API nos testes.
  *
  * Os testes rodam no Windows e o MySQL no Docker, e os dois relógios podem estar um ou dois
- * segundos diferentes. A importação grava a próxima tentativa com o NOW() do MySQL, e o job compara
- * com o "agora" que recebe: se esse "agora" viesse do Node, o teste dependeria da diferença entre
- * os dois relógios. Mede-se uma vez quanto o MySQL está à frente (ou atrás) do Node, descontando a
+ * segundos diferentes. Mede-se uma vez quanto o MySQL está à frente (ou atrás) do Node, descontando a
  * metade do tempo da consulta, e o relógio devolvido soma essa diferença ao Date.now().
+ *
+ * Desde o R2a, a API usa um relógio só (a importação, o job e a correção de ID gravam com o "agora"
+ * que recebem), então os testes só precisam passar o MESMO relógio a todos. Este continua útil
+ * para os testes que comparam com horários que o MySQL ainda grava sozinho (o created_at).
  */
 export async function relogioDoBanco(bd: Knex): Promise<() => Date> {
   const antes = Date.now();

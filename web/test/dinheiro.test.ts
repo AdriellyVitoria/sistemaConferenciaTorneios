@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { formatarCentavos, formatarReais, lerReais } from '../src/dominio/dinheiro';
+import { comEspacosComuns, ESPACO_QUE_NAO_QUEBRA, espacosComuns } from './ajudantes/espacos';
 
 describe('lerReais: o prêmio digitado no formato brasileiro, em centavos inteiros', () => {
   it.each([
@@ -46,8 +47,8 @@ describe('lerReais: o prêmio digitado no formato brasileiro, em centavos inteir
   it('recusa prêmio maior que o banco guarda (R$ 42.949.672,95), sem perder precisão com números enormes', () => {
     expect(lerReais('42.949.672,95')).toEqual({ ok: true, centavos: 4_294_967_295 });
     const grandeDemais = { ok: false, mensagem: 'O prêmio pode ser de até R$ 42.949.672,95.' };
-    expect(lerReais('42.949.672,96')).toEqual(grandeDemais);
-    expect(lerReais('99999999999999999999999')).toEqual(grandeDemais);
+    expect(comEspacosComuns(lerReais('42.949.672,96'))).toEqual(grandeDemais);
+    expect(comEspacosComuns(lerReais('99999999999999999999999'))).toEqual(grandeDemais);
   });
 });
 
@@ -58,8 +59,18 @@ describe('formatarCentavos e formatarReais', () => {
     [1, 'R$ 0,01', '0,01'],
     [0, 'R$ 0,00', '0,00'],
   ])('%i centavos', (centavos, comSimbolo, semSimbolo) => {
-    expect(formatarCentavos(centavos)).toBe(comSimbolo);
+    expect(espacosComuns(formatarCentavos(centavos))).toBe(comSimbolo);
     expect(formatarReais(centavos)).toBe(semSimbolo);
+  });
+
+  it('entre "R$" e o número vai um espaço que não quebra: "R$" nunca fica sozinho no fim da linha (R2b)', () => {
+    expect(formatarCentavos(1_000_000)).toBe(`R$${ESPACO_QUE_NAO_QUEBRA}10.000,00`);
+    expect(formatarCentavos(-150)).toBe(`-R$${ESPACO_QUE_NAO_QUEBRA}1,50`);
+    expect(formatarCentavos(6_590)).not.toContain(' ');
+  });
+
+  it('o valor formatado, colado de volta no campo do prêmio, ainda é lido', () => {
+    expect(lerReais(formatarCentavos(1_000_000))).toEqual({ ok: true, centavos: 1_000_000 });
   });
 
   it('o que formatarReais escreve, lerReais lê de volta', () => {

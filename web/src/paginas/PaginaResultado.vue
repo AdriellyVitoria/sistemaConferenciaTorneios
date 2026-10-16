@@ -13,7 +13,8 @@ import { formatarHora } from '../dominio/conferencia';
 import { formatarCentavos } from '../dominio/dinheiro';
 import { buscarNoResultado, observacaoDoJogador, percentualDoTime } from '../dominio/resultado';
 import { formatarDataDeCriacao, rotuloDoModo } from '../dominio/torneio';
-import { buscarResultado, enderecoDoCsv, type ResultadoDoTorneio } from '../servicos/api';
+import { baixarCsvDoResultado, buscarResultado, type ResultadoDoTorneio } from '../servicos/api';
+import { salvarArquivo } from '../utilitarios/arquivo';
 
 const props = defineProps<{ id: number }>();
 
@@ -29,6 +30,19 @@ onMounted(async () => {
     erro.value = (e as Error).message;
   }
 });
+
+// R3: o CSV vem pelo fetch, com a senha; um link comum não mandaria o cabeçalho
+const baixando = ref(false);
+const erroDoCsv = ref<string | null>(null);
+async function baixarCsv() {
+  if (baixando.value) return;
+  baixando.value = true;
+  erroDoCsv.value = null;
+  const baixado = await baixarCsvDoResultado(props.id);
+  baixando.value = false;
+  if (baixado.tipo === 'ok') salvarArquivo(baixado.arquivo, baixado.nome);
+  else erroDoCsv.value = `Não foi possível baixar o CSV: ${baixado.mensagem}`;
+}
 
 const busca = ref('');
 const idDoFiltro = `filtro-nick-${useId()}`;
@@ -73,7 +87,8 @@ const resumo = computed(() => {
           <p class="texto-suave">Calculado em {{ quando }} · {{ rotuloDoModo(resultado.modoDivisao) }} (travada)</p>        </div>
         <div class="acoes-topo">
           <span class="selo sucesso redondo total">Total distribuído: {{ formatarCentavos(totalDistribuido) }}</span>
-          <a :href="enderecoDoCsv(id)" class="botao secundario" download>Baixar CSV</a>
+          <button type="button" class="botao secundario" :disabled="baixando" @click="baixarCsv">Baixar CSV</button>
+          <p v-if="erroDoCsv" class="aviso erro" role="alert">{{ erroDoCsv }}</p>
         </div>
       </div>
 

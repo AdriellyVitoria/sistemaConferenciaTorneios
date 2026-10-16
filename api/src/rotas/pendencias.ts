@@ -7,7 +7,8 @@
  *   DELETE /torneios/:id/pendencias/:chave/ciente       desfaz o Ciente
  *   POST   /torneios/:id/pendencias/ciente-de-todas     marca as não bloqueantes sem Ciente
  *
- * Bloqueantes não aceitam Ciente (409). Depois do cálculo, nada muda (409).
+ * Bloqueantes não aceitam Ciente (409). "Ciente de todas" com partida aguardando o site: 409.
+ * Depois do cálculo, nada muda (409).
  */
 
 import { Router, type Response } from 'express';
@@ -57,6 +58,12 @@ export function rotasPendencias(bd: Knex, agora: () => Date = () => new Date()):
       case 'marcadas':
         res.json({ marcadas: resultado.marcadas });
         return;
+      case 'aguardando_site': {
+        const n = resultado.aguardandoSite;
+        const quantas = n === 1 ? '1 partida ainda aguarda' : `${n} partidas ainda aguardam`;
+        res.status(409).json({ erro: `${quantas} o site: o "Ciente de todas" só libera depois que o site conferir todas. Enquanto isso, dê Ciente uma a uma.` });
+        return;
+      }
       case 'torneio_calculado':
         res.status(409).json({ erro: TORNEIO_CALCULADO });
         return;

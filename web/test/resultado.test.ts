@@ -8,6 +8,7 @@ import {
   rotuloDoCriterio,
 } from '../src/dominio/resultado';
 import type { JogadorDoResultado, TimeDoResultado } from '../src/servicos/api';
+import { comEspacosComuns } from './ajudantes/espacos';
 
 const time = (posicao: number, nome: string, vitorias: number, killsTime: number, premioCentavos: number, criterio: string | null = null): TimeDoResultado => ({
   posicao, time: nome, vitorias, killsTime, premioCentavos, criterio, recebeuCentavo: false,
@@ -25,7 +26,7 @@ const SETEMBRO: TimeDoResultado[] = [
 
 describe('explicarEmpates: a frase sai dos dados gravados, nada fixo no código', () => {
   it('setembro: o empate triplo, o desempate por kills e a divisão do 3º lugar', () => {
-    expect(explicarEmpates(SETEMBRO, [50, 30, 20])).toEqual([
+    expect(comEspacosComuns(explicarEmpates(SETEMBRO, [50, 30, 20]))).toEqual([
       'Corvos, Falcões e Tubarões terminaram com 3 vitórias. Corvos fez mais kills (368) e ficou em 2º. Falcões e Tubarões empataram também em kills (310) e dividiram o prêmio do 3º lugar: R$ 2.000,00, metade para cada time.',
     ]);
   });
@@ -39,7 +40,7 @@ describe('explicarEmpates: a frase sai dos dados gravados, nada fixo no código'
       time(4, 'Ursos', 2, 300, 0, 'empate em vitórias e kills'),
       time(6, 'Águias', 0, 200, 0),
     ];
-    expect(explicarEmpates(times, [50, 30, 20])).toEqual([
+    expect(comEspacosComuns(explicarEmpates(times, [50, 30, 20]))).toEqual([
       'Fênix e Leões terminaram com 3 vitórias e empataram também em kills (398): dividiram os prêmios do 2º e do 3º lugar, R$ 5.000,00, metade para cada time.',
       'Lobos-Guará e Ursos terminaram com 2 vitórias e empataram também em kills (300): ficaram em 4º. Este torneio premia só 3 posições.',
     ]);
@@ -74,7 +75,7 @@ describe('explicarEmpates: a frase sai dos dados gravados, nada fixo no código'
 
   it('três times empatados em tudo: um terço para cada', () => {
     const times = ['A', 'B', 'C'].map((n) => time(1, n, 2, 100, 333_334, 'divisão igual (empate em vitórias e kills)'));
-    expect(explicarEmpates(times, [50, 30, 20])[0]).toContain('dividiram os prêmios do 1º, do 2º e do 3º lugar, R$ 10.000,02, um terço para cada time.');
+    expect(comEspacosComuns(explicarEmpates(times, [50, 30, 20])[0])).toContain('dividiram os prêmios do 1º, do 2º e do 3º lugar, R$ 10.000,02, um terço para cada time.');
   });
 
   it('sem empate em vitórias: nenhuma frase', () => {

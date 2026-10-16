@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router';
+import TelaDeSenha from './componentes/TelaDeSenha.vue';
 import { buscarSaude } from './servicos/api';
+import { pedeSenha, sair, temSenha } from './servicos/sessao';
 
 // Páginas para jogadores (D11): sem o menu, sem a marca como link e sem o rodapé, que são da Maria.
 const rota = useRoute();
 const roteador = useRouter();
 const publica = computed(() => rota.meta.publica === true);
+// R3: um 401 nas telas da Maria troca a página pela tela de senha; as páginas por link nunca
+// pedem. Quando a senha é aceita, a página volta a ser montada e carrega de novo.
+const mostrarSenha = computed(() => !publica.value && pedeSenha.value);
 
 // O rodapé mostra se a API e o banco estão no ar (o que a página inicial da etapa 0 fazia).
 type Estado = 'verificando' | 'ok' | 'erro';
@@ -40,11 +45,13 @@ const rotulo: Record<Estado, string> = { verificando: 'verificando…', ok: 'no 
       <span>Premiação de torneios</span>
     </component>
     <nav v-if="!publica">
-      <RouterLink to="/">Torneios</RouterLink>
+      <RouterLink v-if="!mostrarSenha" to="/">Torneios</RouterLink>
+      <button v-if="temSenha" type="button" class="sair" @click="sair">Sair</button>
     </nav>
   </header>
 
-  <RouterView />
+  <TelaDeSenha v-if="mostrarSenha" />
+  <RouterView v-else />
 
   <footer v-if="!publica" class="rodape">
     <span :class="api">API {{ rotulo[api] }}</span>
@@ -88,9 +95,31 @@ nav a {
   font-size: var(--texto-md);
   text-decoration: none;
 }
+nav {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-4);
+}
 nav a:hover,
 nav a.router-link-exact-active {
   color: var(--cabecalho-texto);
+}
+.sair {
+  min-height: var(--alvo-toque);
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--cabecalho-texto-suave);
+  font: inherit;
+  font-size: var(--texto-md);
+  cursor: pointer;
+}
+.sair:hover {
+  color: var(--cabecalho-texto);
+}
+.sair:focus-visible {
+  outline: 2px solid var(--cabecalho-texto);
+  outline-offset: 2px;
 }
 .rodape {
   max-width: var(--largura-pagina);

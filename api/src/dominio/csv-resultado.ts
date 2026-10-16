@@ -32,7 +32,8 @@ function reais(centavos: number): string {
 }
 
 function celula(texto: string): string {
-  const seguro = /^[=+\-@]/.test(texto) ? `'${texto}` : texto;
+  // começa como fórmula no Excel: ganha um apóstrofo (lista da OWASP, com tab e \r)
+  const seguro = /^[=+\-@\t\r]/.test(texto) ? `'${texto}` : texto;
   return /[;"\r\n]/.test(seguro) ? `"${seguro.replace(/"/g, '""')}"` : seguro;
 }
 

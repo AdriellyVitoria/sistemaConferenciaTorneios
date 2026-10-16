@@ -1,5 +1,8 @@
 // Chamadas à API. Todas passam pelo prefixo /api, que o Vite repassa para o servidor.
 
+import { nomeDoArquivoBaixado } from '../utilitarios/arquivo';
+import { guardarSenha, senhaGuardada, senhaRecusada } from './sessao';
+
 export interface Saude {
   api: 'ok';
   banco: 'ok' | 'erro';
@@ -296,7 +299,23 @@ export async function buscarResultado(torneioId: number): Promise<{ tipo: 'ok'; 
   };
 }
 
-export const enderecoDoCsv = (torneioId: number) => `/api/torneios/${torneioId}/resultado.csv`;
+/**
+ * O CSV do resultado (6c), pelo fetch, para levar a senha (R3): um link comum não manda o
+ * cabeçalho. O nome do arquivo vem do Content-Disposition da API.
+ */
+export async function baixarCsvDoResultado(torneioId: number): Promise<{ tipo: 'ok'; arquivo: Blob; nome: string } | { tipo: 'erro'; mensagem: string }> {
+  let resposta: Response;
+  try {
+    resposta = await chamar(`/api/torneios/${torneioId}/resultado.csv`);
+  } catch (e) {
+    return { tipo: 'erro', mensagem: (e as Error).message };
+  }
+  if (!resposta.ok) {
+    const corpo = await resposta.json().catch(() => ({}));
+    return { tipo: 'erro', mensagem: corpo.erro ?? `O servidor respondeu com erro ${resposta.status}.` };
+  }
+  return { tipo: 'ok', arquivo: await resposta.blob(), nome: nomeDoArquivoBaixado(resposta.headers.get('content-disposition'), 'resultado.csv') };
+}
 
 /** A página pública do torneio (7a): só o que é do torneio e dos times, sem dado de jogador. */
 export interface PaginaPublica {
@@ -409,12 +428,47 @@ export async function removerTorneio(torneioId: number): Promise<{ tipo: 'removi
   return { tipo: 'erro', mensagem: corpo.erro ?? `Não foi possível remover o torneio (erro ${resposta.status}).` };
 }
 
-async function chamar(caminho: string, opcoes?: RequestInit): Promise<Response> {
+const SEM_SERVIDOR = 'Não foi possível falar com o servidor. Confira se o sistema está no ar e tente de novo.';
+
+/**
+ * Toda chamada das telas da Maria passa por aqui (R3): leva a senha guardada no cabeçalho e, no
+ * 401, liga a tela de senha. As páginas por link (lerPorLink) não passam por aqui: nunca mandam
+ * a senha nem pedem.
+ */
+async function chamar(caminho: string, opcoes: RequestInit = {}): Promise<Response> {
+  const cabecalhos = new Headers(opcoes.headers);
+  const senha = senhaGuardada();
+  if (senha !== null) cabecalhos.set('authorization', `Bearer ${senha}`);
+  let resposta: Response;
   try {
-    return await fetch(caminho, opcoes);
+    resposta = await fetch(caminho, { ...opcoes, headers: cabecalhos });
   } catch {
-    throw new ErroDaApi('Não foi possível falar com o servidor. Confira se o sistema está no ar e tente de novo.');
+    throw new ErroDaApi(SEM_SERVIDOR);
   }
+  if (resposta.status === 401) {
+    senhaRecusada();
+    throw new ErroDaApi('Acesso só da organizadora.');
+  }
+  return resposta;
+}
+
+/**
+ * Confere a senha digitada na tela de senha (GET /acesso: 204 = certa) e, se certa, guarda.
+ * Uma senha com acento nem é enviada: o navegador não manda acento num cabeçalho, e a API não
+ * aceita uma senha assim (ela não sobe com ADMIN_SENHA com acento).
+ */
+export async function entrar(senha: string): Promise<{ tipo: 'ok' } | { tipo: 'incorreta' } | { tipo: 'erro'; mensagem: string }> {
+  if (!/^[\x20-\x7e]+$/.test(senha)) return { tipo: 'incorreta' };
+  let resposta: Response;
+  try {
+    resposta = await fetch('/api/acesso', { headers: { authorization: `Bearer ${senha}` } });
+  } catch {
+    return { tipo: 'erro', mensagem: SEM_SERVIDOR };
+  }
+  if (resposta.status === 401) return { tipo: 'incorreta' };
+  if (!resposta.ok) return { tipo: 'erro', mensagem: `O servidor respondeu com erro ${resposta.status}. Tente de novo.` };
+  guardarSenha(senha);
+  return { tipo: 'ok' };
 }
 
 async function lerOuFalhar<T>(resposta: Response): Promise<T> {

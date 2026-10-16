@@ -9,6 +9,7 @@ import {
   rotuloDosPremios,
 } from '../src/dominio/lista-torneios';
 import type { ResumoTorneio } from '../src/servicos/api';
+import { comEspacosComuns } from './ajudantes/espacos';
 
 const FUSO = 'America/Sao_Paulo';
 
@@ -56,7 +57,7 @@ describe('agruparPorMes', () => {
 
   it('o mês atual aberto, os anteriores recolhidos; cada grupo com a quantidade e o total dos prêmios', () => {
     const { meses } = agruparPorMes(LISTA, MES_ATUAL, { fuso: FUSO });
-    expect(meses.map((m) => [m.rotulo, m.aberto, m.resumo])).toEqual([
+    expect(comEspacosComuns(meses.map((m) => [m.rotulo, m.aberto, m.resumo]))).toEqual([
       ['Outubro de 2026', true, '1 torneio · R$ 3.000,00'],
       ['Setembro de 2026', false, '2 torneios · R$ 15.000,00'],
     ]);

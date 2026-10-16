@@ -1,7 +1,50 @@
 # Decisões
 
-> Registro das decisões do projeto, com as alternativas descartadas.
-> A tabela completa das regras de negócio (D1 a D17) está na seção 11 do `contexto.md`. Este arquivo é completado na etapa 8, com o que ficou de fora por falta de tempo.
+> Registro das decisões do projeto, com as alternativas descartadas. A tabela completa das regras de negócio (D1 a D24) está na seção 11 do `contexto.md`.
+> Esta primeira página é o resumo. Abaixo dela, o [registro detalhado](#registro-detalhado), escrito etapa por etapa, no momento de cada decisão.
+
+## Resumo
+
+### As decisões que mais mudaram o produto
+
+| # | Decisão | Onde |
+|---|---|---|
+| 1 | **O site oficial é a verdade** para vencedor, jogadores, minutos e kills. A Maria nunca digita resultado: ela dá "Ciente" na diferença e só pode corrigir o ID da partida (D3, D4, D5, D16) | [Revisão de 14/10](#revisão-de-14102026-o-site-oficial-é-a-verdade-de-ponta-a-ponta) |
+| 2 | **Nada é pago sem a Maria ter visto:** todo item da aba Pendências pede "Ciente" ou correção, e o cálculo só libera com Pendências e "Aguardando o site" vazias (D17) | [Regra única de pendências](#revisão-de-14102026-2-arredondamento-e-regra-única-de-pendências) |
+| 3 | **Uma regra só de arredondamento, o maior resto**, em centavos inteiros: entre posições, entre times empatados e dentro do time. O centavo vai para quem mais perdeu no corte (Tuca, e não Corvinho) (D9, D20, D24) | [Arredondamento](#revisão-de-14102026-2-arredondamento-e-regra-única-de-pendências) |
+| 4 | **Desempate por kills do time; empate também em kills divide igual**, com o critério visível na página pública (D2) | [Classificação](#classificação-d2-14102026) |
+| 5 | **Minutos ou kills, escolhido antes e travado no cálculo**, com o aviso das consequências do modo kills na criação (D1, D21, D22) | [Modo kills](#divisão-entre-jogadores-no-modo-kills-d21-14102026) |
+| 6 | **Conferência em segundo plano** por uma tabela de tarefas no MySQL com `SKIP LOCKED`, novas tentativas em 1, 2, 5 e 10 min e "tentar agora" sem consulta paralela (D10) | [Job da conferência](#job-da-conferência-etapa-4b-14102026) |
+| 7 | **Leitura da planilha tolerante na forma e rígida no conteúdo**, juntando todos os erros com a linha do Excel (D14, D18) | [Leitura da planilha](#leitura-da-planilha-d18-14102026) |
+| 8 | **Pendências calculadas na hora; só os Cientes são gravados.** O resultado, ao contrário, é **congelado** no cálculo e nunca recalculado | [Pendências e Ciente](#pendências-e-ciente-etapa-5a-15102026), [Rota de cálculo](#rota-de-cálculo-etapa-6b-15102026) |
+| 9 | **Transparência em duas camadas:** página pública sem valores individuais e um link por time premiado com o extrato de cada jogador (D11) | [Códigos de acesso](#códigos-de-acesso-e-página-pública-etapa-7a-15102026) |
+| 10 | **Senha única da organizadora**, em vez de login, para proteger as telas da Maria sem uma peça grande (R3) | [R3](#r3-senha-única-da-organizadora-item-1-crítico-15102026) |
+
+### O que ficou de fora e por quê
+
+| O quê | Por que ficou para depois |
+|---|---|
+| **Pix automático, comprovante e bot do Discord** | Dinheiro enviado errado não volta, e exigiria a chave Pix e o usuário do Discord de cada jogador (D12). A Maria paga pelo CSV, que já tem a coluna "Pago" |
+| **Login completo, limite de tentativas, HTTPS e deploy** (nginx expondo só `/publico` e `/time`) | Um projeto à parte para um sistema com uma organizadora só; a senha única fecha o furo principal (R3) |
+| **Ajuste manual auditado** para quando o site oficial estiver errado | Hoje não há saída se o site errar. Pede um registro de quem mudou, quando e por quê, separado do dado do site |
+| **Time ou nick escrito de dois jeitos pelo site, em partidas diferentes** | Viraria dois times (ou dois jogadores). Precisa de uma regra de negócio (bloquear ou unificar); com o simulador não acontece |
+| **Pool de consultas** no lugar do lote de 3 em `Promise.all` | É vazão, não defeito: hoje uma consulta lenta segura as outras duas do lote |
+| **Falha aleatória configurável no simulador** | O simulador só falha quando programado ou pelo botão da página `/demo` |
+| **A API mandar os dados da D24** em vez de o link do time deduzir | Com prêmios de poucos centavos, a frase pode sair errada; o valor pago está certo |
+| **Limites menores:** frase do 413 com o limite certo, nick repetido na resposta do site, tamanho máximo da resposta do site, agrupamento linear das linhas | Baixo risco, porque estão atrás da senha e não acontecem com os dados atuais |
+| **PDF, "jogou X de Y partidas", "Pago" por jogador, "Gerar novo link", "Arquivar", e-mail, aba "Aguardando o site" igual ao protótipo, limpar status sem uso** | Comodidades e polimento, sem regra nova. Detalhes em [Próximos passos](#próximos-passos) |
+
+### Limitações conhecidas
+
+- **Senha única:** quem sabe a senha faz tudo; não há usuários, registro de quem fez o quê nem limite de tentativas. A senha de demonstração está no README e no `docker-compose.yml`.
+- **Sem HTTPS e sem deploy:** a senha viaja aberta na rede, e a tela é servida pelo `vite preview`.
+- **"Ciente de todas" só libera depois que o site conferir todas as partidas.** Enquanto isso, o Ciente é um a um.
+- **Se o site oficial errar, não há como corrigir à mão** (é a consequência da decisão 1).
+- **O job roda no processo da API:** reiniciar a API pausa a conferência (partidas presas voltam para a fila sozinhas).
+
+---
+
+# Registro detalhado
 
 ---
 
@@ -964,6 +1007,19 @@ Colar o valor formatado de volta no campo do prêmio continua funcionando: a lei
 O login completo fica em "Próximos passos".
 
 **Os testes:** sem banco, a frase e o `WWW-Authenticate`; senha errada, só o começo da senha, em maiúsculas, outro esquema (`Basic`) e sem "Bearer" dão 401; `bearer` em minúsculas vale; rota desconhecida dá 401; a planilha de 6 MB sem senha dá 401, e não 413; tudo em `/publico` e `/time` dá 404 sem senha. Na configuração: sem `ADMIN_SENHA`, curta, com acento ou com espaço nas pontas, a API não sobe. Na integração, com setembro calculado de verdade: sem senha ou com a senha errada, 401 em `/torneios`, no torneio, nos links, no resultado, no CSV e nas pendências, sem nada do torneio na resposta; criar, remover e calcular sem senha dão 401 e nada muda; com a senha, 200; `/publico` e `/time` abrem sem senha, e até com uma senha errada no cabeçalho. Na tela: o 401 mostra a tela de senha, com o campo em foco; senha errada, vazia ou com acento; a certa carrega a página e vai em todo pedido seguinte; "Sair" esquece; a senha antiga é esquecida; as páginas por link não pedem nem mandam a senha; o CSV é baixado com o cabeçalho, com o nome e o BOM, uma vez só no clique duplo, e a falha aparece junto do botão. Os testes que já existiam passaram a mandar a senha, e a API falsa da tela agora responde 401 sem ela, como a de verdade.
+
+### Item 1 do segundo review: "Ciente de todas" só depois que o site conferir todas as partidas, 15/10/2026
+
+**O problema:** o modal perguntava "Marcar Ciente em N pendências?" com o N da tela, mas a API marcava **todas as que existissem no momento do clique**. Enquanto a Maria lia o modal, o job podia conferir outra partida e trazer uma divergência de kills, que recebia o Ciente sem ela ter visto. Era o único caminho que furava a D17 ("nada é pago sem a Maria ter visto").
+
+| Decisão | Alternativa descartada | Por que descartada |
+|---|---|---|
+| **O "Ciente de todas" só libera com nenhuma partida aguardando o site ou em consulta.** Sem partida a conferir, nenhuma pendência nova pode aparecer entre olhar e clicar (a correção de ID e a planilha nova também travam o torneio) | **A tela mandar as chaves das pendências que mostrou**, e a API marcar só essas | Resolveria também com o site conferindo, mas exige o aviso de "pendências novas" e uma regra a mais para explicar. Com 15 a 28 partidas, esperar o site terminar custa pouco, e a Maria pode dar Ciente um a um enquanto isso |
+| A API confere **dentro da transação, com o torneio travado**, e responde **409** sem marcar nada: "2 partidas ainda aguardam o site: o "Ciente de todas" só libera depois que o site conferir todas. Enquanto isso, dê Ciente uma a uma." | Conferir só na tela | Uma partida pode voltar para a fila entre a tela e o clique; só a verificação dentro da transação garante |
+| O Ciente de **uma** pendência continua liberado | Travar todos os Cientes até o site terminar | A pendência individual é a que a Maria está vendo; travar só atrasaria a revisão (D10) |
+| Na tela, o botão fica **desabilitado com o motivo e o progresso visíveis** ("5 de 8 até agora"), ligados por `aria-describedby`; a regra pura é `motivoDoCienteDeTodasTravado` | Esconder o botão | Um botão que some não diz por que nem quando volta |
+
+**Os testes:** na integração, 409 com partida aguardando e em consulta, 409 antes de o site responder, Ciente individual liberado e um teste de concorrência que trava o torneio, põe uma partida de volta na fila e só passa se a verificação estiver dentro da transação. Na tela, o botão desabilitado com o motivo, liberado sem motivo e o 409 com a frase da API.
 
 ---
 

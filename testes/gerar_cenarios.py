@@ -1,29 +1,3 @@
-"""
-Gera as planilhas de teste e os dados do site oficial simulado.
-
-Saídas:
-  testes/planilhas/*.csv          planilhas no formato exportado pelo Excel da Maria Clara
-                                  (UTF-8 com BOM, separador ';', quebra de linha CRLF)
-  testes/site-oficial.json        "verdade" do site oficial, por ID de partida
-  testes/esperado/*.csv           resultados esperados (oráculo para testes automatizados)
-  testes/resumo-geracao.json      resumo do que foi gerado
-
-Regras usadas nos resultados esperados (ver contexto.md, seção 11):
-  - colocação por vitórias; desempate por total de kills do time; empate também em kills
-    -> soma os prêmios das posições empatadas e divide igual
-  - divisão dentro do time proporcional aos minutos
-  - arredondamento (D9), igual entre times empatados e dentro do time: método do maior resto.
-    Cada um recebe a parte inteira em centavos; os centavos que sobram vão, um por vez, para
-    quem tem a maior parte fracionária; empate na fração -> ordem alfabética
-
-Setembro: a planilha da Maria Clara não é gerada aqui, só lida. O esperado de setembro usa os
-dados que o site simulado terá (D15): a planilha sem a linha duplicada, com o nick `xXSniperXx`
-correto e a partida #40923 preenchida.
-
-Uso: python3 testes/gerar_cenarios.py                  (determinístico: sempre gera os mesmos arquivos)
-     python3 testes/gerar_cenarios.py --so-esperado    (só esperado/ e o resumo; não grava planilhas
-                                                        nem o site-oficial.json)
-"""
 import csv
 import io
 import json
@@ -37,17 +11,14 @@ BASE = Path(__file__).parent
 PLANILHAS = BASE / "planilhas"
 ESPERADO = BASE / "esperado"
 CABECALHO = ["Data", "Rodada", "ID Partida", "Partida", "Time", "Nick", "Minutos", "Kills", "Venceu?"]
-PREMIO_CENTAVOS = 1_000_000  # R$ 10.000,00
+PREMIO_CENTAVOS = 1_000_000
 PERCENTUAIS = [50, 30, 20]
 SO_ESPERADO = "--so-esperado" in sys.argv
 
 site_oficial: dict[str, dict] = {}
 
 
-# ---------------------------------------------------------------- utilitários
-
 def round_robin(times):
-    """Tabela todos contra todos (método do círculo). Retorna lista de rodadas [(a, b), ...]."""
     ts = list(times)
     if len(ts) % 2:
         ts.append(None)
@@ -61,11 +32,6 @@ def round_robin(times):
 
 
 def gerar_torneio(rng, elencos, id_base, data_inicio, vencedor_de, minutos_especiais=None):
-    """
-    Gera as partidas (verdade do site).
-    vencedor_de(a, b) -> nome do time vencedor.
-    minutos_especiais: {(rodada, nick): minutos} para quem saiu mais cedo.
-    """
     minutos_especiais = minutos_especiais or {}
     partidas = []
     proximo_id = id_base
@@ -97,7 +63,6 @@ def gerar_torneio(rng, elencos, id_base, data_inicio, vencedor_de, minutos_espec
 
 
 def para_linhas(partidas):
-    """Converte partidas (verdade do site) em linhas de planilha."""
     linhas = []
     for p in partidas:
         a, b = p["times"]
@@ -132,20 +97,12 @@ def registrar_no_site(partidas, **extras):
         site_oficial[p["id"]] = {**p, **extras.get(p["id"], {})}
 
 
-# ---------------------------------------------------------- cálculo esperado
-
 def chave_alfabetica(nome):
-    """Ordem alfabética de dicionário: ignora acentos e maiúsculas ("Águias" vem antes de "Ursos")."""
     sem_acento = "".join(c for c in unicodedata.normalize("NFD", nome) if not unicodedata.combining(c))
     return (sem_acento.casefold(), nome)
 
 
 def dividir_maior_resto(total, pesos):
-    """
-    Divide `total` centavos proporcionalmente a `pesos` ({nome: peso}) pelo maior resto.
-    Tudo em inteiros: a parte fracionária de cada um é `total * peso % soma` (mesmo denominador).
-    Retorna ({nome: centavos}, {nomes que receberam centavo de arredondamento}).
-    """
     soma = sum(pesos.values())
     valores = {n: total * p // soma for n, p in pesos.items()}
     resto = {n: total * p % soma for n, p in pesos.items()}
@@ -158,7 +115,6 @@ def dividir_maior_resto(total, pesos):
 
 
 def calcular(partidas, premio=PREMIO_CENTAVOS):
-    """Aplica as regras do contexto.md e devolve (classificação, prêmios por jogador)."""
     vitorias, kills_time, minutos = {}, {}, {}
     for p in partidas:
         for t in p["times"]:
@@ -170,7 +126,6 @@ def calcular(partidas, premio=PREMIO_CENTAVOS):
             minutos.setdefault(j["time"], {}).setdefault(j["nick"], 0)
             minutos[j["time"]][j["nick"]] += j["minutos"]
 
-    # agrupa por (vitórias, kills); grupos empatados dividem a soma das posições
     ordem = sorted(vitorias, key=lambda t: (-vitorias[t], -kills_time[t], t))
     grupos, i = [], 0
     while i < len(ordem):
@@ -189,7 +144,6 @@ def calcular(partidas, premio=PREMIO_CENTAVOS):
             criterio[t] = "divisão igual (empate em vitórias e kills)" if len(g) > 1 else ""
         posicao += len(g)
 
-    # marca desempate por kills (mesmas vitórias, kills diferentes)
     for t in ordem:
         if any(vitorias[o] == vitorias[t] and o != t for o in ordem) and not criterio[t]:
             criterio[t] = "desempate por kills do time"
@@ -216,7 +170,6 @@ def salvar_esperado(nome, partidas, premio=PREMIO_CENTAVOS):
     with open(ESPERADO / f"{nome}-classificacao.csv", "w", encoding="utf-8", newline="") as f:
         w = csv.writer(f, delimiter=";")
         w.writerow(["Posição", "Time", "Vitórias", "Kills do time", "Prêmio (R$)", "Critério"])
-        # empatados em vitórias e kills dividem a posição; o próximo pula (1, 2, 3, 3, 5)
         chave = lambda c: (c["vitorias"], c["kills_time"])
         for c in classificacao:
             posicao = 1 + sum(1 for o in classificacao if chave(o) > chave(c))
@@ -232,13 +185,9 @@ def salvar_esperado(nome, partidas, premio=PREMIO_CENTAVOS):
 
 
 def vencedor_por_ranking(ranking):
-    """O time melhor colocado no ranking sempre vence: classificação sem empates."""
     return lambda a, b: a if ranking.index(a) < ranking.index(b) else b
 
 
-# ----------------------------------------------------------------- setembro
-
-# D15: o que o site registra para a #40923 (Falcões x Panteras), que está zerada na planilha
 SETEMBRO_40923 = {
     "minutos": 38,
     "vencedor": "Falcões",
@@ -249,14 +198,13 @@ SETEMBRO_NICK_CORRETO = {"xxsniperxx": "xXSniperXx"}
 
 
 def partidas_setembro():
-    """Monta as partidas de setembro como o site as registra (D15). Só lê a planilha."""
     with open(PLANILHAS / "torneio-setembro.csv", encoding="utf-8-sig", newline="") as f:
         linhas = list(csv.DictReader(f, delimiter=";"))
     partidas, vistos = {}, set()
     for l in linhas:
         nick = SETEMBRO_NICK_CORRETO.get(l["Nick"], l["Nick"])
         chave = (l["ID Partida"], l["Time"], nick)
-        if chave in vistos:  # linha duplicada (Pantera_X na #46065)
+        if chave in vistos:
             continue
         vistos.add(chave)
         p = partidas.setdefault(l["ID Partida"], {
@@ -278,8 +226,6 @@ def partidas_setembro():
     return list(partidas.values())
 
 
-# ------------------------------------------------------------------ elencos
-
 ELENCOS_6 = {
     "Dragões": ["Fogaréu", "Escama", "Brasa.gg", "Rugido", "Labareda"],
     "Fênix": ["Cinzas", "Phoenix_BR", "Plumada", "Renasce", "Chama.exe"],
@@ -300,7 +246,6 @@ def main():
     ESPERADO.mkdir(exist_ok=True)
     resumo = {}
 
-    # 01 — planilha limpa: caminho feliz, um jogador saiu mais cedo (gera centavos que sobram)
     rng = random.Random(1)
     ranking = list(ELENCOS_6)
     p01 = gerar_torneio(rng, ELENCOS_6, 51003, date(2026, 10, 3), vencedor_por_ranking(ranking),
@@ -309,22 +254,21 @@ def main():
     registrar_no_site(p01)
     resumo["01"] = salvar_esperado("01-limpa", p01)
 
-    # 02 — ID que não existe no site (digitado errado na planilha)
     rng = random.Random(2)
     p02 = gerar_torneio(rng, ELENCOS_6, 52011, date(2026, 10, 3), vencedor_por_ranking(ranking))
     registrar_no_site(p02)
     linhas02 = para_linhas(p02)
     id_real = p02[4]["id"]
-    id_errado = id_real[:-2] + id_real[-1] + id_real[-2]  # inverte os dois últimos dígitos
+    id_errado = id_real[:-2] + id_real[-1] + id_real[-2]
     if id_errado == id_real or id_errado in site_oficial:
         id_errado = id_real + "0"
     for l in linhas02:
         if l["ID Partida"] == id_real:
             l["ID Partida"] = id_errado
     salvar_csv("02-id-inexistente.csv", linhas02)
-    resumo["02"] = {"id_real": id_real, "id_errado": id_errado}
+    resumo["02"] = {"id_real": id_real, "id_errado": id_errado,
+                    "classificacao": salvar_esperado("02-id-inexistente", p02)}
 
-    # 03 — divergências de kills e minutos entre planilha e site
     rng = random.Random(3)
     p03 = gerar_torneio(rng, ELENCOS_6, 53007, date(2026, 10, 3), vencedor_por_ranking(ranking))
     registrar_no_site(p03)
@@ -339,9 +283,8 @@ def main():
                 divergencias.append({"partida": l["ID Partida"], "nick": nick, "campo": campo,
                                      "planilha": l[campo], "site": str(site)})
     salvar_csv("03-divergencias.csv", linhas03)
-    resumo["03"] = divergencias
+    resumo["03"] = {"divergencias": divergencias, "classificacao": salvar_esperado("03-divergencias", p03)}
 
-    # 04 — empate em vitórias E em kills no 2º/3º lugar -> divisão igual
     rng = random.Random(4)
     resultados = {
         frozenset(("Dragões", x)): "Dragões" for x in ELENCOS_6 if x != "Dragões"
@@ -354,7 +297,6 @@ def main():
     })
     p04 = gerar_torneio(rng, ELENCOS_6, 54019, date(2026, 10, 3),
                         lambda a, b: resultados[frozenset((a, b))])
-    # iguala o total de kills de Fênix e Leões ajustando um jogador de Leões
     kt = lambda t: sum(j["kills"] for p in p04 for j in p["jogadores"] if j["time"] == t)
     diff = kt("Fênix") - kt("Leões")
     for p in p04:
@@ -367,37 +309,34 @@ def main():
     registrar_no_site(p04)
     resumo["04"] = salvar_esperado("04-empate-em-kills", p04)
 
-    # 05 — torneio maior: 8 times, 7 rodadas, 28 partidas
     rng = random.Random(5)
     p05 = gerar_torneio(rng, ELENCOS_8, 55023, date(2026, 10, 3), vencedor_por_ranking(list(ELENCOS_8)))
     salvar_csv("05-oito-times.csv", para_linhas(p05))
     registrar_no_site(p05)
     resumo["05"] = salvar_esperado("05-oito-times", p05)
 
-    # 06 — arquivos inválidos
     rng = random.Random(6)
     p06 = gerar_torneio(rng, ELENCOS_6, 56029, date(2026, 10, 3), vencedor_por_ranking(ranking))
     salvar_csv("06a-coluna-faltando.csv", para_linhas(p06), cabecalho=[c for c in CABECALHO if c != "Kills"])
     salvar_csv("06b-separador-virgula.csv", para_linhas(p06), separador=",")
 
-    # 07 — jogador em dois times diferentes
     rng = random.Random(7)
     elencos07 = {t: list(n) for t, n in ELENCOS_6.items()}
     p07 = gerar_torneio(rng, elencos07, 57031, date(2026, 10, 3), vencedor_por_ranking(ranking))
-    for p in p07:  # na rodada 4, "Garra" (Leões) joga pelos Ursos no lugar de "Pardo"
+    for p in p07:
         if p["rodada"] == 4:
             for j in p["jogadores"]:
                 if j["time"] == "Ursos" and j["nick"] == "Pardo":
                     j["nick"] = "Garra"
     salvar_csv("07-jogador-em-dois-times.csv", para_linhas(p07))
     registrar_no_site(p07)
+    resumo["07"] = salvar_esperado("07-jogador-em-dois-times", p07)
 
-    # Importação extra 1 — outubro: torneio realista, uma substituição, sem erros
     rng = random.Random(10)
     elencos_out = {t: list(n) for t, n in ELENCOS_6.items()}
     ranking_out = ["Leões", "Águias", "Dragões", "Ursos", "Fênix", "Lobos-Guará"]
     p_out = gerar_torneio(rng, elencos_out, 61037, date(2026, 10, 10), vencedor_por_ranking(ranking_out))
-    for p in p_out:  # rodada 3: "Bico" (Águias) sai aos 15 min e entra o reserva "Sabiá"
+    for p in p_out:
         if p["rodada"] == 3:
             for j in list(p["jogadores"]):
                 if j["nick"] == "Bico":
@@ -408,7 +347,6 @@ def main():
     registrar_no_site(p_out)
     resumo["outubro"] = salvar_esperado("torneio-outubro", p_out)
 
-    # Importação extra 2 — novembro: mesmos problemas de digitação de setembro + site instável
     rng = random.Random(11)
     ranking_nov = ["Ursos", "Dragões", "Leões", "Águias", "Lobos-Guará", "Fênix"]
     p_nov = gerar_torneio(rng, ELENCOS_6, 62041, date(2026, 11, 7), vencedor_por_ranking(ranking_nov))
@@ -416,16 +354,14 @@ def main():
                  p_nov[9]["id"]: {"falhas_antes_de_responder": 5}}
     registrar_no_site(p_nov, **instaveis)
     linhas_nov = para_linhas(p_nov)
-    # nick com caixa diferente na rodada 2 e uma linha duplicada na rodada 4
     for l in linhas_nov:
         if l["Rodada"] == "2" and l["Nick"] == "Mel.zinho":
             l["Nick"] = "mel.zinho"
     dup = next(i for i, l in enumerate(linhas_nov) if l["Rodada"] == "4" and l["Nick"] == "Rapina")
     linhas_nov.insert(dup + 1, dict(linhas_nov[dup]))
     salvar_csv("torneio-novembro.csv", linhas_nov)
-    resumo["novembro"] = {"instaveis": instaveis}
+    resumo["novembro"] = {"instaveis": instaveis, "classificacao": salvar_esperado("torneio-novembro", p_nov)}
 
-    # Setembro — a planilha da Maria Clara; só o esperado (os dados do site entram na etapa 2)
     resumo["setembro"] = salvar_esperado("torneio-setembro", partidas_setembro())
 
     if not SO_ESPERADO:

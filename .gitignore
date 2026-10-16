@@ -2,3 +2,5 @@
 dist/
 .env
 __pycache__/
+.claude/
+code-review.md

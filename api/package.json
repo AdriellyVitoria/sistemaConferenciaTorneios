@@ -10,6 +10,7 @@
     "start": "node dist/servidor.js",
     "migrar": "tsx src/banco/migrar.ts",
     "test": "vitest run",
+    "test:integracao": "vitest run -c vitest.integracao.config.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

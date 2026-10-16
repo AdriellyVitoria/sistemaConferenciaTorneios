@@ -56,7 +56,6 @@ describe('dividirMaiorResto', () => {
   });
 
   it('desempate pela ordem da lista: no empate da fração, ganha quem vem primeiro', () => {
-    // entre posições do pódio: o centavo vai para a melhor colocada, não pela ordem alfabética
     const r = dividirMaiorResto(
       123_457,
       [{ nome: 'Zebras', peso: 50 }, { nome: 'Águias', peso: 50 }],
@@ -87,7 +86,6 @@ describe('dividirMaiorResto', () => {
       { nome: 'B', peso: 0 },
       { nome: 'C', peso: 2 },
     ]);
-    // A: 33,33… -> 33; C: 66,66… -> 66; sobra 1 centavo, para C (fração maior)
     expect(r).toEqual([
       { nome: 'A', valor: 33, recebeuCentavo: false },
       { nome: 'B', valor: 0, recebeuCentavo: false },
@@ -111,7 +109,6 @@ describe('dividirMaiorResto', () => {
   });
 
   it('muitos valores aleatórios: a soma sempre fecha e ninguém fica a 1 centavo ou mais do valor exato', () => {
-    // gerador com semente fixa: o teste dá sempre o mesmo resultado
     let semente = 20260914;
     const aleatorio = (max: number) => {
       semente = (semente * 1103515245 + 12345) % 2147483648;
@@ -131,7 +128,6 @@ describe('dividirMaiorResto', () => {
       expect(soma(r)).toBe(total);
       expect(r.filter((p) => p.recebeuCentavo).length).toBeLessThan(participantes.length);
       r.forEach((p, i) => {
-        // |valor − exato| < 1 centavo, em inteiros: |valor × somaPesos − total × peso| < somaPesos
         expect(Math.abs(p.valor * somaPesos - total * participantes[i].peso)).toBeLessThan(somaPesos);
       });
     }

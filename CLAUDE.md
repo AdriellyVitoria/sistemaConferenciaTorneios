@@ -32,4 +32,40 @@ Projeto: desafio técnico da PowerRev (Desenvolvedora Full Stack Júnior). Siste
 - Etapa 1, parte 4b (prêmio por time, `api/src/dominio/premio.ts`): concluída. D20: percentuais somam 100 (`erroDosPercentuais`, para a criação do torneio reaproveitar) e o prêmio é dividido entre as posições pelo maior resto, com empate para a melhor colocada.
 - Etapa 1, parte 4c (rateio entre jogadores, `api/src/dominio/rateio.ts`): pronta, aguardando aprovação. D21: no modo kills, 0 kills recebe R$ 0; time sem kills é dividido pelos minutos. **Com ela, a etapa 1 está completa.**
 - Forma de trabalho: em cada pedaço, escrever os testes, **rodar e mostrar que falham**, e só depois implementar.
-- Próximo passo: **Etapa 2 — Site oficial simulado**, depois da aprovação da Adrielly.
+- Etapas 0 e 1 integradas na `develop` por pull request.
+- Etapa 2, pedaço 2a (consulta de partida, `site-oficial-simulado/src/app.ts`): concluído. `GET /partidas/40923`; dados montados somente leitura no Docker.
+- Etapa 2, pedaço 2b (demora e falhas): concluído. Demora 2–10 s por `SITE_DEMORA_MIN_MS`/`SITE_DEMORA_MAX_MS`; falha = 503 `indisponivel`.
+- Etapa 2, pedaço 2c (modo demonstração, página em `http://localhost:4000/demo`): concluído. Etapa 2 completa e integrada.
+- Etapa 3, pedaço 3a (banco: migrations 002 a 004 e repositórios em `api/src/repositorios/`): concluído. Testes de integração com `npm run test:integracao` (precisa do `docker compose up -d mysql`), num banco `torneios_teste` recriado a cada execução.
+- Quem tenta consultar de novo é o job da **etapa 4**, em dois casos: 503 e site sem resposta (tempo esgotado).
+- Etapa 3, pedaço 3b (API: `POST /torneios`, `GET /torneios/:id`, `PUT /torneios/:id/planilha`): concluído. D22 (reenvio substitui, travado depois do cálculo) e D23 (dois times por partida) decididas. Sem login até o R3 (senha única, abaixo).
+- Etapa 3, pedaço 3c (telas): concluído; etapa 3 integrada por pull request. Nova lista de torneios e excluir torneio: melhorias pendentes (plano.md, seção 9), sem implementar. `GET /torneios` (lista); web com vue-router 4, Vitest (regras puras em `web/src/dominio/`, testes em `web/test/`) e fontes IBM Plex locais (`@fontsource`). Páginas: lista, novo torneio (prêmio em reais convertido só com inteiros, percentuais 50/30/20 com soma ao vivo) e torneio (envio da planilha com confirmação de substituir, erros por linha, partidas).
+- Visual: protótipo em `C:\Users\mende\Downloads\prototipo\prototipo` (três HTML de editor de design; usar só o visual, tokens em `web/src/estilos.css`).
+- Etapa 4, pedaço 4a (cliente do site e agenda das novas tentativas): concluído.
+- Etapa 4, pedaço 4b (job de conferência): concluído.
+- Etapa 4, pedaço 4c (tela de progresso e "tentar agora"): concluído.
+- Pedaço visual (base de tokens em `web/src/estilos.css` e nova lista de torneios): concluído.
+- Etapa 5, pedaço 5a (pendências e Ciente, só API): concluído.
+- Etapa 5, pedaço 5b (correção do ID, só API): concluído.
+- Etapa 5, pedaço 5c (pronto para calcular, só API): concluído.
+- Etapa 5, pedaço 5d (tela das pendências, só web): concluído.
+- Etapa 5, pedaço 5e (correção do ID e "pronto para calcular" na tela, só web): concluído.
+- Etapa 5, pedaço 5f (aba Conferidas): concluído. Etapas 4 e 5 completas e marcadas no checklist do `plano.md`.
+- Regras de negócio: D24 (menos times do que posições premiadas) decidida em 15/10/2026.
+- `testes/gerar_cenarios.py --so-esperado` agora gera também os gabaritos de 02, 03, 07 e novembro.
+- Etapa 6, pedaço 6a (calcular e gravar o resultado, só API, sem rota): concluído.
+- Etapa 6, pedaço 6b (rota de cálculo, só API): concluído.
+- Etapa 6, pedaço 6c (ler o resultado e baixar o CSV, só API): concluído.
+- Etapa 6, pedaço 6d (botão Calcular com confirmação, só web): concluído.
+- Etapa 6, pedaço 6e (tela do resultado, só web): concluído. Etapa 6 completa e marcada no checklist. Sem 6f: PDF, "jogou X de Y partidas" e "Pago"/Pix estão em "Próximos passos" no `DECISIONS.md`.
+- Etapa 7, pedaço 7a (códigos de acesso e `GET /publico/:codigo`, só API, migration 010): concluído. Código de time não abre a página pública. "Gerar novo link" em "Próximos passos" no `DECISIONS.md`.
+- Etapa 7, pedaço 7b (`GET /time/:codigo` e `GET /torneios/:id/links`, só API): concluído.
+- Testes de integração com um relógio só (o do MySQL, `relogioDoBanco` em `api/test/integracao/banco-de-teste.ts`): concluído.
+- Etapa 7, pedaço 7c (tela da página pública, só web, rota `/publico/:codigo`): concluído. Rotas com `meta: { publica: true }` ficam sem menu, rodapé e links para as telas da Maria. Posição com 0% não conta como premiada (confirmado).
+- Etapa 7, pedaço 7d (tela do link do time em `/time/:codigo` e "Links para os times premiados" na tela do resultado, só web): concluído. Etapa 7 completa e marcada no checklist do `plano.md`.
+- Pacote de melhorias em duas partes. **Parte 1 (M1)**, lista por mês, filtros de mês e divisão, total do mês no cartão e coluna "Pago" no CSV: aprovada. Um conceito só de mês na tela toda: o mês do torneio (primeira partida; sem planilha, a criação).
+- **Parte 2 (M2)**, remover torneio não calculado (`DELETE /torneios/:id`, "Remover" na lista e no topo do torneio, com modal): aprovada.
+- Correções do code review (`code-review.md`), em pedaços: **R1a** (limites na entrada da planilha e na correção do ID; .xlsx; ano de 2000 a 2100) concluído. **R1b** (coerência da resposta do site, com os mesmos limites; `ErroDeRegra` com 409 no cálculo) concluído. **R1c** (CSV com `\t` e `\r`; `calcularEGravar` virou auxiliar de teste; sem `X-Powered-By`; status sem uso registrados) concluído. **R4** ("Limpar filtros" na lista de torneios), **R2a** (sessão do MySQL em UTC; a importação recebe `agora`: um relógio só no código) e **R2b** ("R$" com espaço que não quebra; nos testes, `textoDe` e `comEspacosComuns` em `web/test/ajudantes/espacos.ts`) aprovados. **R3** (senha única da organizadora, item 1): pronto, aguardando aprovação. `ADMIN_SENHA` obrigatória (a API não sobe sem ela; demonstração: `organizadora-demo`, padrão do compose); middleware em `api/src/rotas/acesso.ts`, montado depois de `/saude`, `/publico` e `/time`; `criarApp` recebe `senhaDaOrganizadora`; nos testes, `SENHA_DE_TESTE` e `COM_SENHA` em `api/test/ajudantes/senha.ts`, e os dois vitest.config definem `ADMIN_SENHA`. Na web, `servicos/sessao.ts` (sessionStorage), tela `TelaDeSenha.vue` no 401, "Sair" no cabeçalho, CSV pelo fetch (`utilitarios/arquivo.ts`); a API falsa dos testes exige a senha (`SENHA_FALSA`, opção `semSenha`). Registro em "Correções do code review", no `DECISIONS.md`.
+- Item 1 do segundo review ("Ciente de todas" só depois que o site conferir todas as partidas): concluído e registrado no `DECISIONS.md` e na D17.
+- **Etapa 8 (documentação): pronta, aguardando aprovação.** README com demonstração em 5 passos (bloco de `.env` curto), "Por que essa stack" e "Limitações"; DECISIONS com um resumo de uma página no topo (10 decisões, o que ficou de fora, limitações) e o diário como "Registro detalhado". Também: comentários velhos em `calculo.ts` e `job.ts`, `contexto.md` da antiga linha 306 e folga de 10 s no teste de SKIP LOCKED.
+- Próximo passo: a **Etapa 9** (revisão final), quando a Adrielly pedir.

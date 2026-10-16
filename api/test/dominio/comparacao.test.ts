@@ -10,12 +10,10 @@ import {
 } from '../../src/dominio/comparacao';
 import { lerPlanilha, type LinhaPlanilha } from '../../src/dominio/planilha';
 
-// Arquivos só lidos: nenhuma planilha nem o site-oficial.json são alterados.
 const RAIZ = path.resolve(__dirname, '../../..');
 const SITE_OFICIAL: Record<string, PartidaSite> = JSON.parse(
   readFileSync(path.join(RAIZ, 'testes/site-oficial.json'), 'utf8'),
 );
-// D15: o que o site registra para setembro (a etapa 2 pode reaproveitar)
 const SITE_SETEMBRO: Record<string, PartidaSite> = JSON.parse(
   readFileSync(path.join(__dirname, '../fixtures/site-setembro.json'), 'utf8'),
 );
@@ -26,7 +24,6 @@ function lerLinhas(caminho: string): LinhaPlanilha[] {
   return resultado.linhas;
 }
 
-/** Responde cada partida da planilha como o site responderia. */
 function respostasDoSite(linhas: LinhaPlanilha[], site: Record<string, PartidaSite>) {
   const respostas: Record<string, RespostaSite> = {};
   for (const { idPartida } of linhas) {
@@ -102,12 +99,9 @@ describe('compararComSite — cenários de testes/', () => {
     ]);
     expect(r.pendencias[0].mensagem).toContain('linhas 38 e 39');
     expect(r.pendencias[1]).toMatchObject({ valorPlanilha: 'xxsniperxx', valorSite: 'xXSniperXx' });
-    // o cálculo usa sempre os dados do site (D3), inclusive a #40923
     expect(r.partidasOficiais).toEqual(Object.values(SITE_SETEMBRO));
   });
 });
-
-// ---------------------------------------------------------------- casos pequenos
 
 let proximaLinha = 2;
 function linha(
@@ -123,7 +117,6 @@ function encontrada(id: string, times: [string, string], vencedor: string, jogad
   return { status: 'encontrada', partida: { id, data: '2026-09-05', rodada: 1, times, vencedor, jogadores } };
 }
 
-/** Partida Lobos x Serpentes, igual na planilha e no site; cada teste muda só o que interessa. */
 function lobosSerpentes(id = '#100') {
   return {
     planilha: [
@@ -155,7 +148,6 @@ describe('compararComSite — casos pequenos', () => {
       [
         linha('#201', 'Leões x Águias', 'Leões', 'Garra', 30, 5, true),
         linha('#201', 'Leões x Águias', 'Águias', 'Bico', 30, 2, false),
-        // na planilha, Garra está nos Leões; no site, ele jogou pelos Ursos
         linha('#202', 'Leões x Ursos', 'Leões', 'Garra', 30, 6, false),
         linha('#202', 'Leões x Ursos', 'Ursos', 'Panda', 30, 4, true),
       ],

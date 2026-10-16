@@ -125,20 +125,26 @@ erDiagram
         int premio_centavos
         json percentuais
         enum modo_divisao "minutos | kills"
-        enum status "importado | conferindo | pronto | calculado"
+        enum status "criado | importado | conferindo | pronto | calculado"
         datetime calculado_em "depois disso o modo trava"
+        varchar planilha_arquivo
+        datetime planilha_importada_em
+        boolean planilha_convertida_windows1252 "D18: a tela avisa"
     }
     linhas_planilha {
         int id PK
         int torneio_id FK
-        int numero_linha
-        varchar id_partida
+        int partida_id FK "pela chave: corrigir o ID não quebra a ligação"
+        int numero_linha "UNIQUE com torneio_id"
+        date data
+        int rodada
+        varchar id_partida "como foi digitado"
+        varchar partida
         varchar time
         varchar nick
         int minutos
         int kills
-        varchar venceu
-        enum situacao "ok | duplicada"
+        boolean venceu "nulo = célula vazia"
     }
     partidas {
         int id PK
@@ -152,8 +158,10 @@ erDiagram
         varchar vencedor "segundo o site"
         enum status_conferencia "aguardando | em_consulta | conferida | nao_encontrada | times_diferentes"
         int tentativas
-        datetime proxima_tentativa_em
+        datetime proxima_tentativa_em "nasce agora"
         datetime ultima_tentativa_em
+        datetime em_consulta_desde "recupera partida presa se o job cair"
+        varchar ultimo_erro
     }
     participacoes {
         int id PK
@@ -210,6 +218,8 @@ erDiagram
 - `linhas_planilha` guarda **o que a Maria digitou**; `participacoes` guarda **o que o site registrou**. A comparação entre as duas gera as `pendencias`.
 - **Uma tabela só para pendências** (antes eram `divergencias` e `pendencias` separadas): cada problema vira **um item**, com o lado a lado planilha × site (D17). A duplicata de Pantera_X é um item `duplicata`, e não também uma divergência de minutos.
 - **Sem tabela de unificação de nicks:** como o cálculo usa o nick do site (D7), não há o que unificar.
+- **Texto digitado à mão (nick, time, ID) com collation `utf8mb4_0900_as_cs`:** o banco diferencia acentos e maiúsculas e nunca junta "xxsniperxx" com "xXSniperXx" em silêncio.
+- **Criadas na etapa 3a:** `torneios`, `partidas` e `linhas_planilha`. As demais (`participacoes`, `pendencias`, prêmios e links) entram nas etapas que as usam.
 - Valores em dinheiro sempre em `int` de centavos.
 
 ---
@@ -265,9 +275,9 @@ premiacao-torneios   (um commit pequeno por passo de cada etapa)
 **Pronto quando:** testes cobrem todos os cenários de `testes/` e batem com `testes/esperado/`, incluindo o centavo de Escama no cenário 01 (R$ 880,96, contra R$ 1.029,76 para os outros Dragões), o de Sabiá em outubro (R$ 74,63), o empate do cenário 04 (R$ 2.500 para cada) e o resultado esperado de setembro, com Tuca em R$ 65,90 (`contexto.md`, seção 14).
 
 ### Etapa 2 — Site oficial simulado ⭐
-- `GET /partidas/:id` devolvendo os dados de `testes/site-oficial.json` e de setembro (D15: Falcões venceu a `#40923` com 62 kills; valores por jogador no `contexto.md`). Gerar também `testes/esperado/torneio-setembro-*.csv`.
-- Demora aleatória de 2 a 10 segundos; "não encontrada" para ID inexistente; falhas configuradas por partida (`falhas_antes_de_responder`).
-- **Modo demonstração:** botões para derrubar e religar o site, e demora curta opcional.
+- `GET /partidas/:id` (ID só com os números, `/partidas/40923`) devolvendo os dados de `testes/site-oficial.json` e de `api/test/fixtures/site-setembro.json` (D15: Falcões venceu a `#40923` com 62 kills). 404 `nao_encontrada` para ID inexistente; 400 para ID inválido. **(2a, feito)**
+- Demora aleatória de 2 a 10 segundos (`SITE_DEMORA_MIN_MS`, `SITE_DEMORA_MAX_MS`); falhas configuradas por partida (`falhas_antes_de_responder`), respondendo 503 `indisponivel` até esgotar. **(2b, feito)**
+- **Modo demonstração:** página `GET /demo` com botões para derrubar (com erro ou sem resposta) e religar; demora curta pelo `.env`. **(2c, feito)**
 
 **Pronto quando:** consigo consultar uma partida, ver a demora, derrubar o site e ver o erro.
 
@@ -276,20 +286,26 @@ premiacao-torneios   (um commit pequeno por passo de cada etapa)
 - Upload da planilha: salva as linhas e cria as partidas como **aguardando o site** (usando a leitura da etapa 1). Os itens de pendência só nascem na conferência, quando já há o lado a lado do site.
 - Tela: criar torneio e subir planilha; mostrar erros de arquivo (cenário 06a) com mensagem clara.
 - Na criação, validar os percentuais com `erroDosPercentuais` (D20: "Os percentuais precisam somar 100").
+- **Confirmação ao subir planilha num torneio que já tem planilha (3c):** avisar que a planilha anterior e a conferência já feita serão substituídas, e pedir confirmação (D22).
 - Ao escolher o modo **kills**, a tela avisa: *"Jogadores sem nenhuma kill não recebem prêmio. Se ninguém do time fizer kills, o prêmio do time é dividido pelos minutos."* (D21)
 
 **Pronto quando:** subo a planilha de setembro e vejo 15 partidas aguardando o site; o cenário 06a é recusado com a coluna que falta.
 
 ### Etapa 4 — Conferência em segundo plano ⭐
+Em três pedaços. **4a:** as peças da consulta, sem o job: cliente HTTP do site oficial atrás de uma interface (encontrada, não encontrada ou indisponível, com tempo limite configurável e maior que a demora máxima do site) e a função pura da próxima tentativa (D10). **4b:** o job, dentro do processo da API, com lote de 3 em paralelo, recuperação de partida presa (sem contar tentativa) e a tabela `participacoes`. **4c:** a tela de progresso (barra "X de N conferidas", aba "Aguardando o site" com o motivo e a próxima tentativa, atualização a cada 5 s que para sozinha) e o "tentar agora" por torneio (bloqueio de 30 s no banco, sem zerar a agenda). As abas "Conferidas" e "Pendências" ficam para a etapa 5.
+
 - Job que acorda periodicamente e reserva partidas com `SELECT ... FOR UPDATE SKIP LOCKED`, marcando `em_consulta`.
 - Consulta o site, salva as participações oficiais, compara com a planilha (função da etapa 1) e gera os **itens de pendência**. "Não encontrada" e "times diferentes" marcam a partida e não entram nas novas tentativas: só uma correção de ID consulta de novo (D5, D16).
-- Falha → nova tentativa com intervalo crescente: 1, 2, 5 e depois 10 minutos (D10). Intervalos configuráveis, curtos no modo demonstração.
+- Falha → nova tentativa com intervalo crescente: 1, 2, 5 e depois 10 minutos (D10). Intervalos configuráveis, curtos no modo demonstração. **Conta como falha, e é tentada de novo:** resposta **503**, **site sem resposta** (tempo esgotado, o cliente precisa de um limite de tempo por consulta) e erro de rede; também outro código de erro (400, 500, 502...) e resposta fora do formato, com o motivo guardado para a tela (4a). Só 404 (não encontrada) não é tentado de novo.
 - Botão **"tentar agora"** com espera entre cliques; não cria consulta paralela, só antecipa a próxima tentativa.
+- **Reenvio da planilha durante a conferência (D22):** a partida pode ser apagada enquanto o job espera o site. Ao gravar o resultado, o job confere se a partida ainda existe e descarta a resposta se não existir. Testar esse caso.
 - Tela de progresso: status por partida, "última tentativa às X, próxima às Y" (atualização por polling).
 
 **Pronto quando:** com o site derrubado no meio, nada se perde; ao religar, tudo é conferido; duas execuções do job nunca pegam a mesma partida.
 
 ### Etapa 5 — Revisão das pendências
+**5a (API):** listar pendências (bloqueantes e não bloqueantes) e Ciente, desfazer e "Ciente de todas". As pendências são calculadas na hora pela comparação; só os Cientes são gravados (tabela `cientes`, no lugar da tabela `pendencias` do rascunho do banco), pela chave de cada pendência. **5b (API):** correção do ID (`PUT /torneios/:id/partidas/:partidaId/id-partida`): a partida volta para a fila do zero; a duplicata mantém o Ciente pelo id interno da partida, e as pendências do site voltam sem Ciente. **5c (API):** o `GET /torneios/:id` diz se pode calcular (campo `calculo`, com as contagens de aguardando o site, bloqueios e sem Ciente), calculado na hora. **5d (web):** abas Conferidas, Pendências e Aguardando o site; cartões com planilha × site, Ciente/Desfazer, "Ciente de todas" com modal, recarga quando os dados mudaram, só leitura depois do cálculo. **5e (web):** "Corrigir ID" no cartão da pendência bloqueante (erros da API junto do campo, a sondagem volta a rodar, "#antigo → #novo (corrigido)" onde o ID aparece) e o aviso "pronto para calcular" no topo, com o que falta levando à aba certa. **5f (web, e `killsSite` na API):** aba Conferidas agrupada por rodada, com kills e vencedor do site, filtros e "Ver a diferença" com Desfazer; a pendência com Ciente sai de Pendências.
+
 - Tela com três abas (D17): **Conferidas**, **Pendências** e **Aguardando o site**.
 - Divergência de minutos, kills, vencedor ou jogadores, duplicata, nick com caixa diferente e jogador em dois times: lado a lado, planilha × site, destacado em cor, com **"Ciente"** e **"Ciente de todas"** (D4a, D6, D7, D13).
 - ID não encontrado ou de partida de outros times: campo para **corrigir o ID**, que consulta de novo só aquela partida (D4b, D5, D16). Nada mais é editável.
@@ -298,12 +314,19 @@ premiacao-torneios   (um commit pequeno por passo de cada etapa)
 **Pronto quando:** consigo resolver todas as pendências de setembro, de novembro e dos cenários 02 e 03 pela tela.
 
 ### Etapa 6 — Cálculo e resultado ⭐
+**6a (API, sem rota):** `montarResultado` (domínio) e `calcularEGravar` (serviço), com os dados oficiais da comparação atual; resultado congelado em `calculos`, `premios_time` e `premios_jogador` (migration 009). **6b (API):** `POST /torneios/:id/calculo`, numa transação que trava o torneio primeiro, confere de novo se pode calcular e marca o torneio como calculado; D24 (menos times do que posições premiadas); jogadores dos times sem prêmio gravados com R$ 0; gabaritos de 02, 03, 07 e novembro. **6c (API):** `GET /torneios/:id/resultado` (o que foi gravado, nada recalculado) e `GET /torneios/:id/resultado.csv` (UTF-8 com BOM, ";", para pagar no Excel). **6d (web):** botão "Calcular prêmios" no aviso do topo, com o modal de confirmação (resumo, foco no "Voltar"), sem clique duplo, 409 que recarrega e o link "Ver resultado". **6e (web):** a tela do resultado (protótipo 2-resultado): cabeçalho com o total e o CSV, classificação com a frase dos empates montada dos dados, prêmio por jogador com o filtro por nick. Sem a etiqueta "Reserva" (o cálculo não grava as partidas de cada jogador).
+
 - Calcular: aplica as regras da etapa 1 sobre os dados do site; **trava o modo de divisão** (D1).
+- **Confirmação ao calcular:** avisar que, depois do cálculo, o modo de divisão e a planilha ficam travados, e pedir confirmação (D1, D22).
 - Tela da Maria: classificação com a justificativa do desempate, prêmio por time e **prêmio por jogador com filtro por nick**.
 
 **Pronto quando:** setembro mostra o empate triplo com a justificativa e os valores batem com o resultado esperado (`contexto.md`, seção 14): Lobos 1º (R$ 5.000), Corvos 2º por kills (368, R$ 3.000), Tubarões e Falcões empatados em vitórias e kills (310) dividindo o 3º lugar (R$ 1.000 cada).
 
 ### Etapa 7 — Página pública e links por time premiado
+**7a (API):** códigos de acesso gerados no cálculo, na mesma transação (um público e um por time premiado, 32 caracteres aleatórios; migration 010, que também preenche os torneios já calculados) e `GET /publico/:codigo`, só do resultado congelado, sem dado de jogador, com 404 igual para qualquer erro e `X-Robots-Tag: noindex`. **(feito)**
+**7b (API):** `GET /time/:codigo` (extrato dos jogadores de um time premiado, sem nada de outros times, com o código público) e `GET /torneios/:id/links` (códigos para a Maria copiar; 409 antes do cálculo). Códigos guardados em texto, não em hash (DECISIONS.md). **(feito)**
+**7c (web):** tela da página pública em `/publico/:codigo`: nome, data, regras em texto simples e a classificação (componente compartilhado com o resultado) com a frase dos empates; sem menu, sem rodapé e sem links para as telas da Maria; `noindex` no `index.html`; "Página não encontrada" para código errado ou vazio. **(feito)**
+**7d (web):** tela do link do time em `/time/:codigo` (protótipo 3-link-do-time: resumo, "Como o valor foi calculado" em passos montados dos dados, um cartão por jogador com a conta e o centavo, "Procurar meu nick", total e o link para a página pública) e a seção "Links para os times premiados" na tela do resultado ("Copiar link", com o campo selecionado se a área de transferência falhar). **(feito)**
 - Página pública: classificação, regras, desempate e prêmio por time, sem valores individuais (D11).
 - Link com token para cada time premiado: extrato de cada jogador, a conta, o centavo de arredondamento e filtro por nick.
 
@@ -341,11 +364,20 @@ premiacao-torneios   (um commit pequeno por passo de cada etapa)
 
 - [x] Etapa 0 — Esqueleto
 - [x] Etapa 1 — Regras de negócio puras
-- [ ] Etapa 2 — Site oficial simulado
-- [ ] Etapa 3 — Torneio e importação
-- [ ] Etapa 4 — Conferência em segundo plano
-- [ ] Etapa 5 — Revisão das pendências
-- [ ] Etapa 6 — Cálculo e resultado
-- [ ] Etapa 7 — Página pública e links por time
-- [ ] Etapa 8 — Documentação
+- [x] Etapa 2 — Site oficial simulado
+- [x] Etapa 3 — Torneio e importação
+- [x] Etapa 4 — Conferência em segundo plano
+- [x] Etapa 5 — Revisão das pendências
+- [x] Etapa 6 — Cálculo e resultado
+- [x] Etapa 7 — Página pública e links por time
+- [x] Etapa 8 — Documentação
 - [ ] Etapa 9 — Revisão final
+
+---
+
+## 9. Melhorias pendentes
+
+Anotadas para depois, **sem implementar** por enquanto. Se não couberem no prazo, vão para o `DECISIONS.md` como "o que ficou de fora".
+
+- ~~**Nova lista de torneios**~~: feita no pedaço visual, só com o que já existe. Ficam para as etapas 5 a 7: "precisam da sua atenção", régua de etapas, linha de detalhe de cada torneio e as ações "Revisar" e "Ver resultado" (lista no `DECISIONS.md`).
+- ~~**Excluir torneio.**~~ Feito na M2: só antes do cálculo, com confirmação (DECISIONS.md). Torneio calculado: "Arquivar" em "Próximos passos".

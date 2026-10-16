@@ -1,6 +1,3 @@
-# Contexto de build: raiz do repositório (npm workspaces usam o package-lock.json da raiz)
-# Gera o build de produção e serve com o "vite preview", que também faz o proxy /api -> API.
-
 FROM node:22-alpine
 WORKDIR /app
 COPY package.json package-lock.json ./

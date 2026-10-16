@@ -1,24 +1,12 @@
-/**
- * Prêmio por time (etapa 1, parte 4b). A divisão entre jogadores é o 4c.
- *
- * Função pura: recebe a classificação, o prêmio em centavos e os percentuais por posição
- * (ex.: [50, 30, 20]) e devolve o prêmio de cada time.
- * - Cada posição recebe o seu percentual; posições além da lista recebem 0%. Os percentuais
- *   precisam somar 100, e o prêmio é dividido entre as posições pelo maior resto (D20).
- * - Times empatados na mesma posição somam os valores das posições que ocupam e dividem
- *   igual entre si, pelo maior resto com o nome do time (D2, D9).
- */
-
 import type { ClassificacaoTime, CriterioClassificacao } from './classificacao';
 import { dividirMaiorResto } from './divisao';
+import { ErroDeRegra } from './erro-de-regra';
 
 export type CriterioPremio = CriterioClassificacao | 'divisão igual (empate em vitórias e kills)';
 
 export interface PremioTime extends Omit<ClassificacaoTime, 'criterio'> {
-  /** Com prêmio dividido, "divisão igual (empate em vitórias e kills)". */
   criterio: CriterioPremio | null;
   premioCentavos: number;
-  /** Recebeu 1 centavo a mais na divisão igual entre times empatados. */
   recebeuCentavo: boolean;
 }
 
@@ -29,7 +17,6 @@ export function premiarTimes(
 ): PremioTime[] {
   const valorDaPosicao = valoresPorPosicao(premio, percentuais, classificacao.length);
 
-  // times empatados têm a mesma posição; o grupo ocupa as posições seguintes (3º e 4º, por exemplo)
   const grupos = new Map<number, ClassificacaoTime[]>();
   for (const t of classificacao) grupos.set(t.posicao, [...(grupos.get(t.posicao) ?? []), t]);
 
@@ -54,10 +41,6 @@ export function premiarTimes(
   return classificacao.map((t) => premios.get(t.time)!);
 }
 
-/**
- * D20: os percentuais precisam ser inteiros e somar 100. Devolve a mensagem para a Maria, ou
- * null se estiver tudo certo. A criação do torneio (etapa 3) usa a mesma validação.
- */
 export function erroDosPercentuais(percentuais: number[]): string | null {
   if (percentuais.some((pct) => !Number.isSafeInteger(pct) || pct < 0)) {
     return 'Os percentuais precisam ser números inteiros, como 50, 30 e 20.';
@@ -66,25 +49,28 @@ export function erroDosPercentuais(percentuais: number[]): string | null {
   return soma === 100 ? null : `Os percentuais precisam somar 100. Hoje somam ${soma}.`;
 }
 
-/**
- * Valor em centavos de cada posição (1ª = percentuais[0]). D20: o prêmio é dividido entre as
- * posições pelo maior resto, com os percentuais como pesos, e a soma fecha no prêmio. Empate na
- * fração: o centavo vai para a melhor colocada.
- */
 function valoresPorPosicao(premio: number, percentuais: number[], quantidadeDeTimes: number): (posicao: number) => number {
   const erro = erroDosPercentuais(percentuais);
-  if (erro) throw new Error(erro);
-
-  // uma posição premiada sem time ficaria com dinheiro que ninguém recebe
-  const ultimaPremiada = percentuais.reduce((ultima, pct, i) => (pct > 0 ? i + 1 : ultima), 0);
-  if (ultimaPremiada > quantidadeDeTimes) {
-    throw new Error(`Há mais posições premiadas (${ultimaPremiada}) do que times (${quantidadeDeTimes}).`);
-  }
+  if (erro) throw new ErroDeRegra(erro);
+  if (quantidadeDeTimes === 0) throw new ErroDeRegra('Não há times para receber o prêmio.');
 
   const partes = dividirMaiorResto(
     premio,
     percentuais.map((pct, i) => ({ nome: `${i + 1}º lugar`, peso: pct })),
     { desempate: 'ordem_da_lista' },
-  );
-  return (posicao) => partes[posicao - 1]?.valor ?? 0;
+  ).map((p) => p.valor);
+
+  const semTime = partes.slice(quantidadeDeTimes).reduce((soma, v) => soma + v, 0);
+  const valores = partes.slice(0, quantidadeDeTimes);
+  if (semTime > 0) {
+    const divididos = dividirMaiorResto(
+      semTime,
+      valores.map((_, i) => ({ nome: `${i + 1}º lugar`, peso: 1 })),
+      { desempate: 'ordem_da_lista' },
+    );
+    divididos.forEach((parte, i) => {
+      valores[i] += parte.valor;
+    });
+  }
+  return (posicao) => valores[posicao - 1] ?? 0;
 }

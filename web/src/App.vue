@@ -1,15 +1,22 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
+import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router';
+import TelaDeSenha from './componentes/TelaDeSenha.vue';
 import { buscarSaude } from './servicos/api';
+import { pedeSenha, sair, temSenha } from './servicos/sessao';
+
+const rota = useRoute();
+const roteador = useRouter();
+const publica = computed(() => rota.meta.publica === true);
+const mostrarSenha = computed(() => !publica.value && pedeSenha.value);
 
 type Estado = 'verificando' | 'ok' | 'erro';
-
 const api = ref<Estado>('verificando');
 const banco = ref<Estado>('verificando');
 
-async function verificar() {
-  api.value = 'verificando';
-  banco.value = 'verificando';
+onMounted(async () => {
+  await roteador.isReady();
+  if (publica.value) return;
   try {
     const saude = await buscarSaude();
     api.value = 'ok';
@@ -18,55 +25,107 @@ async function verificar() {
     api.value = 'erro';
     banco.value = 'erro';
   }
-}
+});
 
-onMounted(verificar);
-
-const rotulo: Record<Estado, string> = { verificando: 'verificando…', ok: 'ok', erro: 'fora do ar' };
+const rotulo: Record<Estado, string> = { verificando: 'verificando…', ok: 'no ar', erro: 'fora do ar' };
 </script>
 
 <template>
-  <main>
-    <h1>Premiação de Torneios</h1>
-    <p>Conferência das partidas no site oficial e divisão do prêmio entre os jogadores.</p>
+  <header class="cabecalho">
+    <component :is="publica ? 'span' : RouterLink" v-bind="publica ? {} : { to: '/' }" class="marca">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z" />
+        <path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3" />
+      </svg>
+      <span>Premiação de torneios</span>
+    </component>
+    <nav v-if="!publica">
+      <RouterLink v-if="!mostrarSenha" to="/">Torneios</RouterLink>
+      <button v-if="temSenha" type="button" class="sair" @click="sair">Sair</button>
+    </nav>
+  </header>
 
-    <section class="saude">
-      <h2>Status do sistema</h2>
-      <ul>
-        <li :class="api">API: {{ rotulo[api] }}</li>
-        <li :class="banco">Banco de dados: {{ rotulo[banco] }}</li>
-      </ul>
-      <button type="button" @click="verificar">Verificar de novo</button>
-    </section>
-  </main>
+  <TelaDeSenha v-if="mostrarSenha" />
+  <RouterView v-else />
+
+  <footer v-if="!publica" class="rodape">
+    <span :class="api">API {{ rotulo[api] }}</span>
+    <span aria-hidden="true">·</span>
+    <span :class="banco">Banco de dados {{ rotulo[banco] }}</span>
+  </footer>
 </template>
 
-<style>
-body {
-  margin: 0;
-  font-family: system-ui, sans-serif;
-  color: #1f2933;
-  background: #f5f7fa;
+<style scoped>
+.cabecalho {
+  background: var(--cabecalho);
+  color: var(--cabecalho-texto);
+  padding: 14px var(--margem-lateral);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
 }
-main {
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 32px 16px;
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: var(--peso-forte);
+  font-size: var(--texto-marca);
+  min-height: var(--alvo-toque);
+  color: var(--cabecalho-texto);
+  text-decoration: none;
 }
-.saude ul {
-  list-style: none;
+.marca:hover {
+  color: var(--cabecalho-texto);
+}
+.marca svg {
+  color: var(--cabecalho-icone);
+}
+nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--alvo-toque);
+  color: var(--cabecalho-texto-suave);
+  font-size: var(--texto-md);
+  text-decoration: none;
+}
+nav {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-4);
+}
+nav a:hover,
+nav a.router-link-exact-active {
+  color: var(--cabecalho-texto);
+}
+.sair {
+  min-height: var(--alvo-toque);
   padding: 0;
+  background: none;
+  border: none;
+  color: var(--cabecalho-texto-suave);
+  font: inherit;
+  font-size: var(--texto-md);
+  cursor: pointer;
 }
-.saude li {
-  padding: 8px 12px;
-  margin-bottom: 8px;
-  border-radius: 6px;
-  background: #e4e7eb;
+.sair:hover {
+  color: var(--cabecalho-texto);
 }
-.saude li.ok {
-  background: #d1f2dc;
+.sair:focus-visible {
+  outline: 2px solid var(--cabecalho-texto);
+  outline-offset: 2px;
 }
-.saude li.erro {
-  background: #fbd5d5;
+.rodape {
+  max-width: var(--largura-pagina);
+  margin: 0 auto;
+  padding: 0 var(--margem-lateral) var(--espaco-7);
+  display: flex;
+  gap: var(--espaco-2);
+  font-size: var(--texto-sm);
+  color: var(--texto-suave);
+}
+.rodape .erro {
+  color: var(--erro);
 }
 </style>

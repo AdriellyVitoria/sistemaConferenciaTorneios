@@ -1,0 +1,176 @@
+<script setup lang="ts">
+import { computed, onMounted, ref, useId } from 'vue';
+import { RouterLink } from 'vue-router';
+import LinksDosTimes from '../componentes/LinksDosTimes.vue';
+import TabelaClassificacao from '../componentes/TabelaClassificacao.vue';
+import { formatarHora } from '../dominio/conferencia';
+import { formatarCentavos } from '../dominio/dinheiro';
+import { buscarNoResultado, observacaoDoJogador, percentualDoTime } from '../dominio/resultado';
+import { formatarDataDeCriacao, rotuloDoModo } from '../dominio/torneio';
+import { baixarCsvDoResultado, buscarResultado, type ResultadoDoTorneio } from '../servicos/api';
+import { salvarArquivo } from '../utilitarios/arquivo';
+
+const props = defineProps<{ id: number }>();
+
+const resultado = ref<ResultadoDoTorneio | null>(null);
+const erro = ref<string | null>(null);
+
+onMounted(async () => {
+  try {
+    const lido = await buscarResultado(props.id);
+    if (lido.tipo === 'ok') resultado.value = lido.resultado;
+    else erro.value = lido.mensagem;
+  } catch (e) {
+    erro.value = (e as Error).message;
+  }
+});
+
+const baixando = ref(false);
+const erroDoCsv = ref<string | null>(null);
+async function baixarCsv() {
+  if (baixando.value) return;
+  baixando.value = true;
+  erroDoCsv.value = null;
+  const baixado = await baixarCsvDoResultado(props.id);
+  baixando.value = false;
+  if (baixado.tipo === 'ok') salvarArquivo(baixado.arquivo, baixado.nome);
+  else erroDoCsv.value = `Não foi possível baixar o CSV: ${baixado.mensagem}`;
+}
+
+const busca = ref('');
+const idDoFiltro = `filtro-nick-${useId()}`;
+
+const totalDistribuido = computed(() => (resultado.value?.jogadores ?? []).reduce((soma, j) => soma + j.premioCentavos, 0));
+const premiados = computed(() => (resultado.value?.jogadores ?? []).filter((j) => j.premioCentavos > 0));
+const encontrados = computed(() => buscarNoResultado(resultado.value?.jogadores ?? [], busca.value));
+const quando = computed(() => {
+  const iso = resultado.value?.calculadoEm;
+  return iso ? `${formatarDataDeCriacao(iso)} às ${formatarHora(iso).slice(0, 5)}` : '';
+});
+const rotuloDaBase = computed(() => (resultado.value?.modoDivisao === 'kills' ? 'Kills' : 'Minutos'));
+
+const resumo = computed(() => {
+  const total = premiados.value.length;
+  const palavra = total === 1 ? 'jogador premiado' : 'jogadores premiados';
+  if (!busca.value.trim()) return `${total} ${palavra} · soma: ${formatarCentavos(totalDistribuido.value)}`;
+  return `${encontrados.value.premiados.length} de ${total} ${palavra}`;
+});
+</script>
+
+<template>
+  <main class="pagina">
+    <div class="trilha">
+      <RouterLink to="/">Torneios</RouterLink> /
+      <RouterLink :to="{ name: 'torneio', params: { id } }">{{ resultado?.torneio.nome ?? 'Torneio' }}</RouterLink> / Resultado
+    </div>
+
+    <template v-if="erro">
+      <section class="cartao">
+        <p class="aviso alerta" role="alert">{{ erro }}</p>
+        <div><RouterLink :to="{ name: 'torneio', params: { id } }" class="botao secundario">Voltar ao torneio</RouterLink></div>
+      </section>
+    </template>
+    <p v-else-if="!resultado" class="texto-suave">Carregando o resultado…</p>
+
+    <template v-else>
+      <div class="titulo-com-acao">
+        <div class="titulo-da-pagina">
+          <h1>Resultado: {{ resultado.torneio.nome }}</h1>
+          <p class="texto-suave">Calculado em {{ quando }} · {{ rotuloDoModo(resultado.modoDivisao) }} (travada)</p>        </div>
+        <div class="acoes-topo">
+          <span class="selo sucesso redondo total">Total distribuído: {{ formatarCentavos(totalDistribuido) }}</span>
+          <button type="button" class="botao secundario" :disabled="baixando" @click="baixarCsv">Baixar CSV</button>
+          <p v-if="erroDoCsv" class="aviso erro" role="alert">{{ erroDoCsv }}</p>
+        </div>
+      </div>
+
+      <section class="cartao" aria-labelledby="t-classificacao">
+        <TabelaClassificacao :times="resultado.times" :percentuais="resultado.percentuais" id-do-titulo="t-classificacao" />
+      </section>
+
+      <section class="cartao" aria-labelledby="t-jogadores">
+        <div class="titulo-com-acao">
+          <h2 id="t-jogadores">Prêmio por jogador</h2>
+          <div class="grupo filtro">
+            <label :for="idDoFiltro" class="ajuda">Filtrar por nick</label>
+            <input :id="idDoFiltro" v-model="busca" type="search" class="campo" placeholder="Ex.: Tuca" autocomplete="off" />
+          </div>
+        </div>
+
+        <div v-if="encontrados.premiados.length" class="caixa-tabela">
+          <table class="tabela-resultado">
+            <caption class="visualmente-oculto">Prêmio por jogador</caption>
+            <thead>
+              <tr>
+                <th scope="col">Time</th>
+                <th scope="col">Nick</th>
+                <th scope="col" class="numero">{{ rotuloDaBase }}</th>
+                <th scope="col" class="numero">% do time</th>
+                <th scope="col" class="numero">Valor</th>
+                <th scope="col">Observação</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="j in encontrados.premiados" :key="`${j.time}|${j.nick}`">
+                <td class="texto-medio">{{ j.time }}</td>
+                <td class="forte">{{ j.nick }}</td>
+                <td class="numero numeral">{{ j.base }} de {{ j.baseTime }}</td>
+                <td class="numero numeral">{{ percentualDoTime(j.base, j.baseTime) }}</td>
+                <td class="numero mono forte">{{ formatarCentavos(j.premioCentavos) }}</td>
+                <td class="observacao">{{ observacaoDoJogador(j) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <ul v-if="encontrados.semPremio.length" class="sem-premio">
+          <li v-for="frase in encontrados.semPremio" :key="frase" class="quadro-suave">{{ frase }}</li>
+        </ul>
+        <p v-if="encontrados.nenhum" class="texto-medio">Nenhum jogador com esse nick neste torneio.</p>
+
+        <p class="resumo-jogadores texto-suave" aria-live="polite">{{ resumo }}</p>
+      </section>
+
+      <LinksDosTimes :torneio-id="id" />
+    </template>
+  </main>
+</template>
+
+<style scoped>
+.acoes-topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-3);
+}
+.total {
+  font-size: var(--texto-sm);
+  padding: 6px 14px;
+}
+.observacao {
+  font-size: var(--texto-sm);
+  color: var(--alerta);
+  white-space: normal;
+  min-width: 180px;
+}
+.filtro {
+  flex: 0 1 260px;
+  gap: var(--espaco-1);
+}
+.sem-premio {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+@media (max-width: 640px) {
+  .filtro {
+    flex-basis: 100%;
+  }
+  .acoes-topo .botao {
+    width: 100%;
+  }
+}
+</style>

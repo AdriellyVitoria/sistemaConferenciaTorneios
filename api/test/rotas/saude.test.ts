@@ -1,12 +1,14 @@
 import type { AddressInfo } from 'node:net';
 import type { Server } from 'node:http';
+import type { Knex } from 'knex';
 import { afterEach, describe, expect, it } from 'vitest';
 import { criarApp } from '../../src/app';
+import { SENHA_DE_TESTE } from '../ajudantes/senha';
 
 let servidor: Server | undefined;
 
 async function getSaude(verificarBanco: () => Promise<void>) {
-  servidor = criarApp({ verificarBanco }).listen(0);
+  servidor = criarApp({ bd: {} as Knex, verificarBanco, senhaDaOrganizadora: SENHA_DE_TESTE }).listen(0);
   await new Promise((pronto) => servidor!.once('listening', pronto));
   const { port } = servidor.address() as AddressInfo;
   const resposta = await fetch(`http://127.0.0.1:${port}/saude`);

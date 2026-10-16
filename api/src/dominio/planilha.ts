@@ -1,37 +1,23 @@
-/**
- * Leitura da planilha da Maria Clara (etapa 1, parte 1).
- *
- * Função pura: recebe os bytes do arquivo e devolve as linhas lidas ou TODOS os erros encontrados.
- * Só valida o formato. Duplicatas, nicks parecidos e a comparação com o site são da parte 2.
- */
-
 import { normalizarNome } from './texto';
 
 export interface LinhaPlanilha {
-  /** Número da linha como a Maria vê no Excel (o cabeçalho é a linha 1). */
   numeroLinha: number;
-  /** Data no formato aaaa-mm-dd, sem fuso horário. */
   data: string;
   rodada: number;
-  /** Sempre com "#" na frente, como o jogo mostra: "#45659". */
   idPartida: string;
   partida: string;
   time: string;
   nick: string;
   minutos: number;
   kills: number;
-  /** true = venceu, false = perdeu, null = sem informação (célula vazia). */
   venceu: boolean | null;
 }
 
 export interface ErroLeitura {
-  /** Linha do Excel; ausente quando o problema é o arquivo todo. */
   linha?: number;
-  /** Nome da coluna como aparece na planilha da Maria. */
+  linhas?: number[];
   coluna?: string;
-  /** O valor que veio na célula, para a tela mostrar. */
   valor?: string;
-  /** Frase para a Maria, em português simples. */
   mensagem: string;
 }
 
@@ -53,9 +39,28 @@ const COLUNAS: { chave: Chave; nome: string }[] = [
   { chave: 'venceu', nome: 'Venceu?' },
 ];
 
+export const LIMITES = {
+  nick: 80,
+  time: 80,
+  partida: 200,
+  digitosIdPartida: 19,
+  minutosEKills: 100_000,
+  rodada: 4_294_967_295,
+  anoMinimo: 2000,
+  anoMaximo: 2100,
+} as const;
+
 const SEM_PARTIDAS = 'A planilha não tem nenhuma partida.';
 
+const ASSINATURA_ZIP = [0x50, 0x4b, 0x03, 0x04];
+const ARQUIVO_DO_EXCEL =
+  'Este arquivo é do Excel (.xlsx). No Excel, use Salvar como → CSV UTF-8 (separado por vírgulas).';
+
 export function lerPlanilha(conteudo: Uint8Array): ResultadoLeitura {
+  if (ASSINATURA_ZIP.every((byte, i) => conteudo[i] === byte)) {
+    return { ok: false, erros: [{ mensagem: ARQUIVO_DO_EXCEL }], convertidoDeWindows1252: false };
+  }
+
   const { texto, convertidoDeWindows1252 } = decodificar(conteudo);
   const recusar = (erros: ErroLeitura[]): ResultadoLeitura => ({ ok: false, erros, convertidoDeWindows1252 });
 
@@ -69,7 +74,7 @@ export function lerPlanilha(conteudo: Uint8Array): ResultadoLeitura {
   const linhas: LinhaPlanilha[] = [];
   const erros: ErroLeitura[] = [];
   registros.slice(1).forEach((campos, indice) => {
-    if (campos.every((c) => c.trim() === '')) return; // linha vazia ou só com separadores
+    if (campos.every((c) => c.trim() === '')) return;
     const numeroLinha = indice + 2;
     const celula = (chave: Chave) => (campos[cabecalho.posicao[chave]] ?? '').trim();
     const resultado = lerLinha(numeroLinha, celula);
@@ -82,12 +87,6 @@ export function lerPlanilha(conteudo: Uint8Array): ResultadoLeitura {
   return { ok: true, linhas, separador, convertidoDeWindows1252 };
 }
 
-// ------------------------------------------------------------------ arquivo
-
-/**
- * Tenta UTF-8 (com ou sem BOM). Se os bytes não forem UTF-8 válido, converte de Windows-1252,
- * que é o que o Excel brasileiro grava na opção "CSV (separado por vírgulas)".
- */
 function decodificar(bytes: Uint8Array): { texto: string; convertidoDeWindows1252: boolean } {
   let texto: string;
   let convertidoDeWindows1252 = false;
@@ -100,17 +99,11 @@ function decodificar(bytes: Uint8Array): { texto: string; convertidoDeWindows125
   return { texto: texto.replace(/^﻿/, ''), convertidoDeWindows1252 };
 }
 
-/** D14: o separador é o da linha de cabeçalho. */
 function detectarSeparador(texto: string): ';' | ',' {
   const primeiraLinha = texto.split(/\r?\n|\r/, 1)[0] ?? '';
   return primeiraLinha.includes(';') ? ';' : ',';
 }
 
-/**
- * Quebra o texto em registros e campos no padrão CSV: aceita CRLF e LF e respeita aspas
- * ("Lua, a Rainha" num arquivo com vírgula; "" dentro de aspas vira uma aspa).
- * Cada registro corresponde a uma linha do Excel.
- */
 function separarRegistros(texto: string, separador: string): string[][] {
   const registros: string[][] = [];
   let registro: string[] = [];
@@ -146,9 +139,6 @@ function separarRegistros(texto: string, separador: string): string[][] {
   return registros;
 }
 
-// ---------------------------------------------------------------- cabeçalho
-
-/** Compara nomes de coluna sem acento, sem maiúsculas, sem espaços extras e sem o "?" final. */
 function normalizarNomeColuna(nome: string): string {
   return normalizarNome(nome).replace(/\?$/, '').trimEnd();
 }
@@ -174,9 +164,6 @@ function lerCabecalho(
   return erros.length ? { ok: false, erros } : { ok: true, posicao };
 }
 
-// -------------------------------------------------------------------- linha
-
-/** Resultado da leitura de uma célula: o valor convertido ou a mensagem para a Maria. */
 type Lido<T> = { ok: true; valor: T } | { ok: false; mensagem: string };
 const valido = <T>(valor: T): Lido<T> => ({ ok: true, valor });
 const invalido = (mensagem: string): Lido<never> => ({ ok: false, mensagem });
@@ -187,7 +174,6 @@ function lerLinha(
 ): { ok: true; linha: LinhaPlanilha } | { ok: false; erros: ErroLeitura[] } {
   const erros: ErroLeitura[] = [];
 
-  // lê uma célula; se for inválida, guarda o erro e segue, para juntar todos os erros da linha
   function ler<T>(chave: Chave, leitor: (texto: string) => Lido<T>): T {
     const lido = leitor(celula(chave));
     if (lido.ok) return lido.valor;
@@ -201,9 +187,9 @@ function lerLinha(
     data: ler('data', lerData),
     rodada: ler('rodada', lerRodada),
     idPartida: ler('idPartida', lerIdPartida),
-    partida: celula('partida'),
-    time: ler('time', obrigatorio('O time está vazio.')),
-    nick: ler('nick', obrigatorio('O nick está vazio.')),
+    partida: ler('partida', textoAte(LIMITES.partida, 'A coluna Partida pode ter', 'Esta tem')),
+    time: ler('time', obrigatorio('O time está vazio.', textoAte(LIMITES.time, 'O nome do time pode ter', 'Este tem'))),
+    nick: ler('nick', obrigatorio('O nick está vazio.', textoAte(LIMITES.nick, 'O nick pode ter', 'Este tem'))),
     minutos: ler('minutos', lerMinutos),
     kills: ler('kills', lerKills),
     venceu: ler('venceu', lerVenceu),
@@ -211,24 +197,31 @@ function lerLinha(
   return erros.length ? { ok: false, erros } : { ok: true, linha };
 }
 
-const obrigatorio = (mensagemSeVazio: string) => (texto: string): Lido<string> =>
-  texto === '' ? invalido(mensagemSeVazio) : valido(texto);
+const obrigatorio = (mensagemSeVazio: string, depois: (texto: string) => Lido<string>) => (texto: string): Lido<string> =>
+  texto === '' ? invalido(mensagemSeVazio) : depois(texto);
 
-/** dd/mm/aaaa (aceita d/m/aaaa) -> aaaa-mm-dd. */
+const textoAte = (limite: number, comeco: string, este: string) => (texto: string): Lido<string> => {
+  const caracteres = [...texto].length;
+  return caracteres > limite ? invalido(`${comeco} até ${limite} caracteres. ${este} ${caracteres}.`) : valido(texto);
+};
+
+const comPontos = (numero: number) => String(numero).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
 function lerData(texto: string): Lido<string> {
   if (texto === '') return invalido('A data está vazia. Use o formato dd/mm/aaaa, como 05/09/2026.');
   const partes = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(texto);
   if (!partes) return invalido(`A data precisa estar no formato dd/mm/aaaa, como 05/09/2026. Veio "${texto}".`);
 
   const [dia, mes, ano] = [Number(partes[1]), Number(partes[2]), Number(partes[3])];
-  // dia 0 do mês seguinte = último dia deste mês (em UTC, para não depender do fuso)
+  if (ano < LIMITES.anoMinimo || ano > LIMITES.anoMaximo) {
+    return invalido(`O ano da data precisa estar entre ${LIMITES.anoMinimo} e ${LIMITES.anoMaximo}. Veio "${texto}".`);
+  }
   const diasNoMes = mes >= 1 && mes <= 12 ? new Date(Date.UTC(ano, mes, 0)).getUTCDate() : 0;
   if (dia < 1 || dia > diasNoMes) return invalido(`A data "${texto}" não existe no calendário.`);
 
   return valido(`${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`);
 }
 
-/** Inteiro não negativo escrito só com dígitos; qualquer outra coisa é null. */
 function inteiroNaoNegativo(texto: string): number | null {
   if (!/^\d+$/.test(texto)) return null;
   const numero = Number(texto);
@@ -237,6 +230,9 @@ function inteiroNaoNegativo(texto: string): number | null {
 
 function lerRodada(texto: string): Lido<number> {
   if (texto === '') return invalido('A rodada está vazia.');
+  if (/^\d+$/.test(texto) && (inteiroNaoNegativo(texto) ?? Infinity) > LIMITES.rodada) {
+    return invalido(`A rodada é grande demais. Veio "${texto}".`);
+  }
   const numero = inteiroNaoNegativo(texto);
   if (numero === null || numero === 0) {
     return invalido(`A rodada precisa ser um número inteiro maior que zero, como 1. Veio "${texto}".`);
@@ -244,33 +240,49 @@ function lerRodada(texto: string): Lido<number> {
   return valido(numero);
 }
 
-/** Aceita "#45659" ou "45659" e devolve sempre "#45659". */
+export function validarIdPartida(texto: string): { ok: true; idPartida: string } | { ok: false; mensagem: string } {
+  const lido = lerIdPartida(texto.trim());
+  return lido.ok ? { ok: true, idPartida: lido.valor } : { ok: false, mensagem: lido.mensagem };
+}
+
 function lerIdPartida(texto: string): Lido<string> {
   if (texto === '') return invalido('O ID da partida está vazio.');
   const digitos = texto.replace(/^#\s*/, '');
   if (!/^\d+$/.test(digitos)) {
     return invalido(`O ID da partida precisa ter só números, como #45659. Veio "${texto}".`);
   }
+  if (digitos.length > LIMITES.digitosIdPartida) {
+    return invalido(`O ID da partida pode ter até ${LIMITES.digitosIdPartida} números. Veio "${texto}", com ${digitos.length}.`);
+  }
   return valido(`#${digitos}`);
 }
 
-function lerMinutos(texto: string): Lido<number> {
-  if (texto === '') return invalido('Os minutos estão vazios. Preencha com os minutos jogados (pode ser 0).');
-  if (/^-\d+$/.test(texto)) return invalido(`Os minutos não podem ser negativos. Veio "${texto}".`);
+function lerQuantidade(
+  texto: string,
+  { vazio, negativo, comoNumero, faixa }: { vazio: string; negativo: string; comoNumero: string; faixa: string },
+): Lido<number> {
+  if (texto === '') return invalido(vazio);
+  if (/^-\d+$/.test(texto)) return invalido(`${negativo} Veio "${texto}".`);
+  if (!/^\d+$/.test(texto)) return invalido(`${comoNumero} Veio "${texto}".`);
   const numero = inteiroNaoNegativo(texto);
-  if (numero === null) return invalido(`Os minutos precisam ser um número inteiro, como 43. Veio "${texto}".`);
+  if (numero === null || numero > LIMITES.minutosEKills) return invalido(`${faixa} Veio "${texto}".`);
   return valido(numero);
 }
 
-function lerKills(texto: string): Lido<number> {
-  if (texto === '') return invalido('As kills estão vazias. Preencha com as kills do jogador (pode ser 0).');
-  if (/^-\d+$/.test(texto)) return invalido(`As kills não podem ser negativas. Veio "${texto}".`);
-  const numero = inteiroNaoNegativo(texto);
-  if (numero === null) return invalido(`As kills precisam ser um número inteiro, como 14. Veio "${texto}".`);
-  return valido(numero);
-}
+const lerMinutos = (texto: string) => lerQuantidade(texto, {
+  vazio: 'Os minutos estão vazios. Preencha com os minutos jogados (pode ser 0).',
+  negativo: 'Os minutos não podem ser negativos.',
+  comoNumero: 'Os minutos precisam ser um número inteiro, como 43.',
+  faixa: `Os minutos precisam estar entre 0 e ${comPontos(LIMITES.minutosEKills)}.`,
+});
 
-/** "sim" -> true; "não"/"nao" -> false; vazio -> null. Ignora maiúsculas (os espaços já saíram). */
+const lerKills = (texto: string) => lerQuantidade(texto, {
+  vazio: 'As kills estão vazias. Preencha com as kills do jogador (pode ser 0).',
+  negativo: 'As kills não podem ser negativas.',
+  comoNumero: 'As kills precisam ser um número inteiro, como 14.',
+  faixa: `As kills precisam estar entre 0 e ${comPontos(LIMITES.minutosEKills)}.`,
+});
+
 function lerVenceu(texto: string): Lido<boolean | null> {
   const normalizado = texto.normalize('NFC').toLowerCase();
   if (normalizado === '') return valido(null);

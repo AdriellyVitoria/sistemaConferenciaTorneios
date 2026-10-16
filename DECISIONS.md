@@ -1,1059 +1,131 @@
 # Decisões
 
-> Registro das decisões do projeto, com as alternativas descartadas. A tabela completa das regras de negócio (D1 a D24) está na seção 11 do `contexto.md`.
-> Esta primeira página é o resumo. Abaixo dela, o [registro detalhado](#registro-detalhado), escrito etapa por etapa, no momento de cada decisão.
+Versão curta. Cada linha diz **o que foi decidido** e **por quê**, em uma frase.
+O histórico completo (alternativas descartadas, testes, datas) está em `decisoes-detalhado.md`. As regras D1 a D24 estão na seção 11 do `contexto.md`.
 
-## Resumo
+---
 
-### As decisões que mais mudaram o produto
+## 1. Princípios
 
-| # | Decisão | Onde |
+Quase todas as decisões saem destes cinco:
+
+1. **O site oficial é a verdade.** Vencedor, jogadores, minutos e kills vêm do site. A planilha só diz quais partidas consultar.
+2. **Nada é pago sem a Maria ter visto.** Toda diferença pede "Ciente" ou correção antes do cálculo.
+3. **Dinheiro em centavos inteiros, sem float**, com uma única regra de arredondamento.
+4. **Depois do cálculo, nada muda.** O resultado é congelado e nunca recalculado.
+5. **A Maria não é técnica.** Toda mensagem diz o que fazer e onde (linha do Excel, campo, aba).
+
+---
+
+## 2. Regras de negócio
+
+| Tema | Decisão | Por quê |
 |---|---|---|
-| 1 | **O site oficial é a verdade** para vencedor, jogadores, minutos e kills. A Maria nunca digita resultado: ela dá "Ciente" na diferença e só pode corrigir o ID da partida (D3, D4, D5, D16) | [Revisão de 14/10](#revisão-de-14102026-o-site-oficial-é-a-verdade-de-ponta-a-ponta) |
-| 2 | **Nada é pago sem a Maria ter visto:** todo item da aba Pendências pede "Ciente" ou correção, e o cálculo só libera com Pendências e "Aguardando o site" vazias (D17) | [Regra única de pendências](#revisão-de-14102026-2-arredondamento-e-regra-única-de-pendências) |
-| 3 | **Uma regra só de arredondamento, o maior resto**, em centavos inteiros: entre posições, entre times empatados e dentro do time. O centavo vai para quem mais perdeu no corte (Tuca, e não Corvinho) (D9, D20, D24) | [Arredondamento](#revisão-de-14102026-2-arredondamento-e-regra-única-de-pendências) |
-| 4 | **Desempate por kills do time; empate também em kills divide igual**, com o critério visível na página pública (D2) | [Classificação](#classificação-d2-14102026) |
-| 5 | **Minutos ou kills, escolhido antes e travado no cálculo**, com o aviso das consequências do modo kills na criação (D1, D21, D22) | [Modo kills](#divisão-entre-jogadores-no-modo-kills-d21-14102026) |
-| 6 | **Conferência em segundo plano** por uma tabela de tarefas no MySQL com `SKIP LOCKED`, novas tentativas em 1, 2, 5 e 10 min e "tentar agora" sem consulta paralela (D10) | [Job da conferência](#job-da-conferência-etapa-4b-14102026) |
-| 7 | **Leitura da planilha tolerante na forma e rígida no conteúdo**, juntando todos os erros com a linha do Excel (D14, D18) | [Leitura da planilha](#leitura-da-planilha-d18-14102026) |
-| 8 | **Pendências calculadas na hora; só os Cientes são gravados.** O resultado, ao contrário, é **congelado** no cálculo e nunca recalculado | [Pendências e Ciente](#pendências-e-ciente-etapa-5a-15102026), [Rota de cálculo](#rota-de-cálculo-etapa-6b-15102026) |
-| 9 | **Transparência em duas camadas:** página pública sem valores individuais e um link por time premiado com o extrato de cada jogador (D11) | [Códigos de acesso](#códigos-de-acesso-e-página-pública-etapa-7a-15102026) |
-| 10 | **Senha única da organizadora**, em vez de login, para proteger as telas da Maria sem uma peça grande (R3) | [R3](#r3-senha-única-da-organizadora-item-1-crítico-15102026) |
+| Fonte dos dados (D3, D4) | Diferença de minutos, kills, vencedor ou jogador: usa o site e pede "Ciente". Planilha zerada ou vazia: vale o site | Se o site é a verdade, não há escolha a fazer; o Ciente garante que ela viu |
+| Partida não encontrada / times diferentes (D5) | Bloqueia. A única saída é **corrigir o ID** | Indica que a partida certa nem foi consultada |
+| O que a Maria edita (D16) | **Só o ID da partida.** Nunca minutos, kills ou resultado | Erro de digitação viraria Pix errado |
+| Duplicata, nick com caixa diferente (D6, D7) | Aviso com Ciente, não bloqueia | O cálculo usa o site, onde o jogador aparece uma vez |
+| Data e rodada diferentes (D19) | Não geram pendência | Não mudam o dinheiro |
+| Pendências (D17) | Três abas: Conferidas, Pendências, Aguardando o site. Cada problema aparece em um lugar só | Um problema em dois lugares seria resolvido duas vezes |
+| Liberar o cálculo (D17) | Só com: todas conferidas, nenhum bloqueio, todo aviso com Ciente | Princípio 2 |
+| "Ciente de todas" | Só libera quando nenhuma partida aguarda o site | Senão, uma pendência nova chegaria com Ciente sem ela ver |
+| Arredondamento (D9, D20, D24) | **Maior resto**: parte inteira em centavos, o que sobra vai para a maior fração. Empate: alfabética (jogadores, times) ou melhor colocada (posições) | O centavo vai para quem mais perdeu no corte (Tuca: R$ 65,90, não Corvinho: R$ 600,01) |
+| Ordem alfabética | De dicionário: ignora acentos e maiúsculas | "Águias" antes de "Ursos" |
+| Classificação (D2) | Vitórias → kills do time → empate total divide igual. Posição compartilhada (1, 2, 3, 3, 5) | Critério visível na página pública |
+| Percentuais (D20) | Precisam somar 100% | O anunciado é exatamente o pago |
+| Menos times que posições (D24) | O valor das posições vazias é dividido igualmente entre todos os times | Nenhum dinheiro fica sem dono |
+| Minutos ou kills (D1, D21) | Escolhido na criação, sem rota para mudar. No modo kills, 0 kills = R$ 0; time sem kills divide por minutos | Aviso das consequências aparece na criação |
+| Jogador em dois times (D13) | Uma linha de prêmio por time | Cada time paga a parte dele |
+| Planilha nova (D22) | Substitui a anterior inteira e apaga os Cientes. Depois do cálculo: 409 | Não misturar conferência antiga com planilha nova |
+| Remover torneio | Só antes do cálculo | O resultado é o registro do pagamento |
 
-### O que ficou de fora e por quê
+---
 
-| O quê | Por que ficou para depois |
+## 3. Leitura da planilha (D18)
+
+**Tolerante na forma, rígida no conteúdo.**
+
+- Aceita: Windows-1252 (converte e avisa), cabeçalho com outra caixa/acentos/ordem, data `d/m/aaaa`, ID sem `#`, `Venceu?` = sim/não/nao.
+- Recusa: minutos ou kills vazios, data impossível, ano fora de 2000–2100, ID com letras, partida com 1 ou 3+ times (D23), `.xlsx` (frase pedindo "CSV UTF-8").
+- Limites em `LIMITES` (`api/src/dominio/planilha.ts`): nick/time 80 caracteres (contados como o MySQL conta), ID 19 dígitos, minutos/kills até 100.000.
+- **Junta todos os erros** com a linha do Excel e recusa o arquivo inteiro. Nunca importa pela metade.
+
+---
+
+## 4. Conferência com o site
+
+| Decisão | Por quê |
 |---|---|
-| **Pix automático, comprovante e bot do Discord** | Dinheiro enviado errado não volta, e exigiria a chave Pix e o usuário do Discord de cada jogador (D12). A Maria paga pelo CSV, que já tem a coluna "Pago" |
-| **Login completo, limite de tentativas, HTTPS e deploy** (nginx expondo só `/publico` e `/time`) | Um projeto à parte para um sistema com uma organizadora só; a senha única fecha o furo principal (R3) |
-| **Ajuste manual auditado** para quando o site oficial estiver errado | Hoje não há saída se o site errar. Pede um registro de quem mudou, quando e por quê, separado do dado do site |
-| **Time ou nick escrito de dois jeitos pelo site, em partidas diferentes** | Viraria dois times (ou dois jogadores). Precisa de uma regra de negócio (bloquear ou unificar); com o simulador não acontece |
-| **Pool de consultas** no lugar do lote de 3 em `Promise.all` | É vazão, não defeito: hoje uma consulta lenta segura as outras duas do lote |
-| **Falha aleatória configurável no simulador** | O simulador só falha quando programado ou pelo botão da página `/demo` |
-| **A API mandar os dados da D24** em vez de o link do time deduzir | Com prêmios de poucos centavos, a frase pode sair errada; o valor pago está certo |
-| **Limites menores:** frase do 413 com o limite certo, nick repetido na resposta do site, tamanho máximo da resposta do site, agrupamento linear das linhas | Baixo risco, porque estão atrás da senha e não acontecem com os dados atuais |
-| **PDF, "jogou X de Y partidas", "Pago" por jogador, "Gerar novo link", "Arquivar", e-mail, aba "Aguardando o site" igual ao protótipo, limpar status sem uso** | Comodidades e polimento, sem regra nova. Detalhes em [Próximos passos](#próximos-passos) |
+| Tabela de tarefas no MySQL com `SELECT ... FOR UPDATE SKIP LOCKED`, sem Redis | Um serviço a menos para 15 a 28 partidas |
+| Job dentro do processo da API, isolado em `conferencia/` | Virar processo separado é só um arquivo de entrada novo |
+| Lote de 3 consultas em paralelo | Equilíbrio entre velocidade e um site instável |
+| Reserva numa transação curta; consulta fora dela | Não segurar conexão do banco por até 15 s |
+| `em_consulta_desde` (`DATETIME(3)`) funciona como **recibo**: só grava se a reserva ainda for a mesma | Descarta resultado velho (ID corrigido, planilha trocada, torneio removido) |
+| Só o 404 é definitivo. 503, timeout, erro de rede, outro código ou resposta fora do formato: tenta de novo em 1, 2, 5, 10 min, **sem limite** | Toda partida precisa ser conferida (D5) |
+| Resposta validada com Zod **e** coerência (vencedor é um dos times, todo jogador num dos times etc.) | Dado incoerente travaria o cálculo sem saída para a Maria |
+| Timeout de 15 s cobre a resposta inteira; a API não sobe se ele for menor que a demora máxima do site | Evita consulta pendurada e falsos timeouts |
+| Partida presa > 2 min volta para a fila sem contar tentativa | A falha foi nossa, não do site |
+| `origem_do_erro` (`site` / `interno`) em coluna própria | A tela mostra "Erro interno, não é o site" sem depender do texto |
+| "Tentar agora" só antecipa a fila; bloqueio de 30 s gravado no banco | Nada de consulta paralela à do job |
 
-### Limitações conhecidas
-
-- **Senha única:** quem sabe a senha faz tudo; não há usuários, registro de quem fez o quê nem limite de tentativas. A senha de demonstração está no README e no `docker-compose.yml`.
-- **Sem HTTPS e sem deploy:** a senha viaja aberta na rede, e a tela é servida pelo `vite preview`.
-- **"Ciente de todas" só libera depois que o site conferir todas as partidas.** Enquanto isso, o Ciente é um a um.
-- **Se o site oficial errar, não há como corrigir à mão** (é a consequência da decisão 1).
-- **O job roda no processo da API:** reiniciar a API pausa a conferência (partidas presas voltam para a fila sozinhas).
+**Ordem das travas, em toda gravação:** torneio → partidas → participações. Inverter causou deadlock nos testes.
 
 ---
 
-# Registro detalhado
+## 5. Banco e API
+
+- **Collation `utf8mb4_0900_as_cs`** em nick, time e ID: o padrão juntaria "Falcoes" e "Falcões" em silêncio. Códigos de acesso em `utf8mb4_bin`.
+- **Pendências não são gravadas**: saem na hora da comparação. **Só o Ciente é gravado**, por uma chave SHA-256 (tipo, partida, jogador, campo e os dois valores). Se um valor muda, o Ciente antigo não vale.
+- **"Pode calcular"** também é calculado na hora (`calculo` no `GET /torneios/:id`), e conferido de novo dentro da transação do cálculo.
+- **Resultado congelado** em `calculos`, `premios_time` e `premios_jogador`, com a configuração usada. Leituras nunca recalculam.
+- DATE volta como texto `aaaa-mm-dd`; sessão do MySQL fixada em UTC; um relógio só (o da API) para tentativas.
+- Migration aplicada nunca é editada; a API aplica as migrations ao subir.
+- Repositórios recebem o executor (conexão ou transação).
 
 ---
 
-## Revisão de 14/10/2026: o site oficial é a verdade, de ponta a ponta
+## 6. Acesso e transparência (D11, R3)
 
-Ao planejar a etapa 0, apareceram lacunas: o que fazer com a partida `#40923` zerada na planilha, o que a Maria faria com um ID não encontrado e como evitar que o mesmo problema aparecesse duas vezes (como pendência local e como divergência). A resposta veio de levar a D3 (o site é a fonte da verdade) até o fim.
+| Quem | Como entra | O que vê |
+|---|---|---|
+| Maria | Senha única `ADMIN_SENHA` em `Authorization: Bearer` | Tudo |
+| Qualquer pessoa | Link público `/publico/:codigo` | Classificação e regras, **sem valores individuais** |
+| Time premiado | Link `/time/:codigo` | Extrato dos jogadores daquele time, nada de outros times |
 
-| # | Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|---|
-| D3 | O site preenche o que falta: partida zerada ou vazia na planilha vale o site, sem bloquear | Tratar a `#40923` zerada como divergência que bloqueia | A planilha vazia não é uma informação conflitante, é falta de informação; bloquear só daria trabalho à Maria |
-| D4 | Minutos, kills ou vencedor diferentes: usa o site e pede só **"Ciente"**. Times diferentes: bloqueia até corrigir o ID | Bloquear qualquer divergência até a Maria escolher o valor | Não há escolha real a fazer se o site é a verdade; o "Ciente" garante que ela viu antes de pagar. Times diferentes indicam que a partida certa nem foi consultada |
-| D5 | Toda partida precisa existir no site. "Não encontrada" = ID errado, a Maria corrige o ID | A Maria informar o resultado à mão (vitória, W.O., partida não realizada) | Um erro de digitação dela viraria Pix errado e perda de confiança dos jogadores. Também elimina regras de W.O. que ninguém pediu |
-| D6 | Duplicata vira aviso com "Ciente", sem bloquear | Destacar em amarelo e bloquear até a Maria editar ou remover | O cálculo usa o site, onde o jogador aparece uma vez; a duplicata não muda o dinheiro |
-| D7 | Nick com caixa diferente vira aviso com "Ciente", sem bloquear | Perguntar se é a mesma pessoa e unificar os nicks | O cálculo usa o nick do site; não há o que unificar (isso também tirou a tabela `nicks` do banco) |
-| D15 | Na `#40923`, o site registra vitória de Falcões com 62 kills | 63 kills ou mais (Falcões passaria Tubarões) | Com 62, Tubarões e Falcões empatam também em kills (310) e dividem o 3º lugar: a demonstração exercita o último critério da D2 (divisão igual) com dados reais |
-| D16 | A Maria só edita o ID da partida, e isso dispara nova consulta só daquela partida | Editar minutos, kills e remover linhas | Editar valores reabriria a porta para erro de digitação virar dinheiro; o ID é a única coisa que só a planilha sabe |
-| D17 | Revisão em três abas (Conferidas, Pendências, Aguardando o site); cada problema aparece uma vez | Listas separadas de pendências locais e divergências | Um problema mostrado em dois lugares seria resolvido duas vezes; separar o que depende dela do que depende do site deixa claro o que falta |
-
-**Efeito no banco:** `divergencias` e `pendencias` viraram uma tabela só (`pendencias`), um item por problema.
+- Códigos: 32 caracteres (`crypto.randomBytes(24)`, base64url), gerados no cálculo, guardados em texto para a Maria copiar de novo.
+- Qualquer erro em `/publico` e `/time` dá o mesmo 404. Tudo com `noindex`.
+- Rotas abertas montadas antes do middleware; **todo o resto pede senha**, inclusive rota inexistente (401).
+- Senha comparada com `timingSafeEqual` sobre SHA-256; guardada no `sessionStorage`.
 
 ---
 
-## Revisão de 14/10/2026 (2): arredondamento e regra única de pendências
+## 7. CSV
 
-| # | Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|---|
-| D9 | **Maior resto:** cada um recebe a parte inteira em centavos; os centavos que sobram vão para quem tem a maior parte fracionária; empate na fração, ordem alfabética. **Uma regra só no sistema todo** | Centavo para quem tem mais minutos (ou kills), e no empate ordem alfabética do nick | Em Corvos, setembro: Corvinho, com conta exata de R$ 600,00, levaria o centavo e receberia R$ 600,01, enquanto Tuca, cuja conta exata é R$ 65,895, ficaria com R$ 65,89. O centavo ia para quem não perdeu nada no corte e saía de quem mais perdeu. Com o maior resto, Tuca recebe R$ 65,90, o valor mais próximo do exato |
-| D2 | Centavos entre times empatados (ex.: R$ 5.000 entre 3): mesma regra da D9, com a ordem alfabética do nome do time | Uma regra própria para times | Duas regras de arredondamento seriam duas coisas a explicar e a testar |
-| D4 | Jogador que está no site e não na planilha, ou o contrário: divergência com "Ciente". O cálculo usa os jogadores do site | Bloquear até a Maria decidir | Coerente com a D3: o site é a verdade, a Maria só precisa ver |
-| D13, D17 | **Todo item de Pendências precisa de "Ciente" ou de correção**, inclusive o jogador em dois times. Existe "Ciente de todas" | Avisos só informativos, que não exigem nada | Princípio: nada é pago sem a Maria ter visto. Uma regra única é mais simples de explicar do que "alguns avisos bloqueiam, outros não" |
-
-**"Ordem alfabética"** é a de dicionário: ignora acentos e maiúsculas ("Águias" antes de "Ursos"), para não depender da ordem dos códigos Unicode.
+UTF-8 com BOM, separador `;`, CRLF, valor `1000,00` (sem milhar), ordem por posição → valor → nick, coluna "Pago" vazia no fim, sem linha de total. Células que começam com `= + - @ \t \r` ganham apóstrofo (injeção de fórmula).
 
 ---
 
-## Leitura da planilha (D18), 14/10/2026
+## 8. Stack
 
-Princípio: **tolerante na forma, rígida no conteúdo.** O que não muda o sentido é aceito; o que pode virar dinheiro errado é recusado.
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| Arquivo que não é UTF-8 é **convertido de Windows-1252** automaticamente, e o resultado avisa que houve conversão, para a tela mostrar | Recusar e pedir para salvar como "CSV UTF-8" | O "CSV (separado por vírgulas)" do Excel brasileiro grava em Windows-1252, e a Maria não é técnica. Se a conversão errar um acento, o nick aparece como divergência na comparação com o site (parte 2) |
-| Cabeçalho tolerante: maiúsculas, acentos, espaços, `Venceu` sem `?`, outra ordem, colunas a mais | Exigir o cabeçalho exatamente igual | Reexportar por causa de uma maiúscula não protege ninguém; as colunas obrigatórias continuam exigidas, e a mensagem diz qual falta ou está repetida |
-| `Venceu?` aceita `sim`, `não` e `nao`, em qualquer caixa; outros valores são erro | Aceitar também `s`/`n` | `s` e `n` já são abreviação: começa a ser palpite. A lista curta é fácil de explicar na mensagem |
-| Minutos ou kills vazios são erro | Tratar vazio como 0 | Vazio pode ser esquecimento; a planilha usa `0` explícito quando é zero (`#40923`) |
-| Todos os erros são juntados e o arquivo inteiro é recusado | Parar no primeiro erro, ou importar só as linhas boas | Um erro por vez obriga a Maria a subir o arquivo várias vezes. Importar pela metade deixaria partidas de fora do torneio sem ela perceber |
-| Data `d/m/aaaa` aceita; data impossível (31/02) é erro | Aceitar só `dd/mm/aaaa` | O Excel às vezes exporta sem o zero à esquerda |
-| ID sem `#` ganha o `#`; ID com letras é erro | Exigir o `#` | O `#` é só formatação; com letras, o site nunca vai achar a partida |
-
-**Detalhes técnicos:** a função recebe os **bytes** do arquivo, porque só assim dá para saber se é UTF-8. Aspas no padrão CSV são respeitadas (um nick com vírgula num arquivo separado por vírgula). A data sai como texto `aaaa-mm-dd`, sem objeto `Date`, para não depender de fuso horário.
+Node + TypeScript, Express, Knex (sem ORM), Zod, Vitest, Vue 3 + vue-router 4, MySQL 8.4, npm workspaces. Front servido por `vite preview` com proxy `/api`. Fontes empacotadas (funciona sem internet).
 
 ---
 
-## Comparação planilha × site (D19), 14/10/2026
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| **Data e rodada diferentes não geram item** (decisão consciente) | Gerar um item de data para a Maria saber que digitou errado | Não mudam o dinheiro: a classificação vem do vencedor e a divisão, de minutos ou kills. Um item a mais na aba Pendências é um clique a mais sem efeito no pagamento |
-| Nome de time com acento ou maiúscula diferente ("Falcoes") é comparado sem acentos: gera **um aviso por time no torneio**, com "Ciente" | Tratar como "times diferentes" e pedir para corrigir o ID | O ID está certo; corrigir não resolveria nada e bloquearia o cálculo à toa |
-| Jogador no time errado na planilha (site diz outro time, mesma partida): **divergência do campo `time`**, com "Ciente" | Tratar como "jogador em dois times" | "Dois times" é calculado só com o site (D13). Se os dois acontecem, são dois itens, porque são problemas diferentes |
-| Duplicata com valores diferentes (20 e 22 min): **um único item**, com as duas linhas da planilha e o valor do site | Um item de duplicata e outro de valor | O cálculo usa o site de qualquer forma; dois itens para o mesmo problema contrariam a D17 |
-| Partida zerada na planilha (`#40923`): **um item da partida** | Um item por jogador | Dez itens de "0 × 38 minutos" escondem o que aconteceu: a planilha simplesmente não tinha os dados |
-| Vencedor da planilha calculado pelas linhas: o time com todas as linhas "sim". Tudo vazio ou combinação incoerente também vira divergência de vencedor | Um item de vencedor por jogador | O vencedor é da partida, não do jogador |
-
-**Detalhes técnicos:** a função recebe as linhas lidas e as respostas do site já obtidas (sem chamada HTTP). Partida sem resposta fica em "Aguardando o site", sem item. Partidas com item de corrigir ID ficam fora dos dados oficiais do cálculo.
-
----
-
-## Classificação (D2), 14/10/2026
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| A classificação diz só o fato: **"empate em vitórias e kills"** ou **"desempate por kills do time"**. O cálculo do prêmio (parte 4) acrescenta "divisão igual" quando houver prêmio dividido | Usar na classificação o texto "divisão igual (empate em vitórias e kills)" dos esperados | "Divisão igual" fala de dinheiro. Dois times empatados em 5º não dividem nada, e o texto ficaria errado. Os esperados não mudaram: o teste compara a parte entre parênteses |
-| Posição compartilhada no empate total, com o próximo pulando (1, 2, 3, 3, 5) | Numerar em sequência (1, 2, 3, 4, 5) | Quem empatou em tudo ficou na mesma colocação; a numeração sequencial sugeria uma diferença que não existe |
-| Entre times na mesma posição, ordem alfabética de dicionário (ignora acentos e maiúsculas) | Ordem dos códigos Unicode, que põe "Águias" depois de "Ursos" | É a ordem que uma pessoa espera ver numa tabela |
-
----
-
-## Prêmio por time: percentuais e centavos entre posições (D20), 14/10/2026
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| **Percentuais precisam somar 100%**, validado na criação do torneio: "Os percentuais precisam somar 100" | Aceitar menos de 100%, com o resto ficando com a organizadora | O que a Maria anuncia precisa ser exatamente o que é pago. Com menos de 100%, a página pública teria de explicar um valor que ninguém recebe |
-| Percentual que não dá centavo inteiro: **o prêmio é dividido entre as posições pelo maior resto**, com os percentuais como pesos; empate na fração vai para a melhor colocada. R$ 1.234,57 em 50/30/20 = R$ 617,29 + R$ 370,37 + R$ 246,91 | Exigir na criação que todas as contas deem centavos inteiros | A Maria não entenderia por que R$ 1.234,57 é recusado. Com o maior resto, a regra de arredondamento continua uma só (D9) |
-| No empate de fração entre posições, o centavo vai para a **melhor colocada** | Ordem alfabética, como entre jogadores e times | Uma posição não tem nome; quem ficou na frente é o critério natural. A função de maior resto ganhou a opção "ordem da lista", e o padrão continua alfabético |
-| Mais posições premiadas do que times (ex.: 50/30/20 com 2 times): **erro claro** | Distribuir o percentual que sobra | Não é um caso real com 6 times; distribuir seria inventar regra. Fica registrado para a criação do torneio tratar |
-
----
-
-## Divisão entre jogadores no modo kills (D21), 14/10/2026
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| **Jogador com 0 kills recebe R$ 0** no modo kills. A regra não muda; a tela de criação avisa ao escolher o modo: "Jogadores sem nenhuma kill não recebem prêmio. Se ninguém do time fizer kills, o prêmio do time é dividido pelos minutos." | Dar um mínimo a quem jogou sem fazer kills | Seria uma terceira regra de divisão, que ninguém pediu. É a consequência direta de dividir por kills (o caso do Dona.Tank, seção 8 do `contexto.md`): melhor deixar claro antes da escolha do que remendar depois |
-| Time premiado em que **ninguém fez kills: divide pelos minutos**, e o extrato explica | Dividir igual entre os jogadores do time | O reserva de 19 minutos receberia o mesmo que os titulares |
-| (mesma) | Bloquear o cálculo | Não haveria saída: o modo é escolhido antes da planilha e não muda depois (D1); o prêmio ficaria travado |
-
----
-
-## Site oficial simulado: consulta de partida (etapa 2a), 14/10/2026
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| ID na URL **só com os números**: `GET /partidas/40923`; o servidor acrescenta o `#`. `%2340923` (o `#` codificado) também é aceito | `GET /partidas/#40923` | O navegador trata tudo depois do `#` como fragmento e não envia ao servidor: a consulta chegaria como `/partidas/` |
-| (mesma) | Exigir `%2340923` | Funciona, mas é feio e fácil de errar à mão |
-| Três respostas distintas: **200** com a partida, **404 `{ status: "nao_encontrada" }`** para ID que não existe, **400** para ID que não é número | Responder 404 para tudo | "Não encontrada" é uma resposta válida do site e vira pendência de corrigir o ID (D5); um pedido mal feito é erro do cliente. Misturar os dois esconderia um bug |
-| A configuração do simulador (`falhas_antes_de_responder`) **não aparece na resposta** | Devolver o objeto do arquivo como está | O site real não teria esse campo; a API não deve depender dele |
-| Mesmo ID em dois arquivos de dados: **o simulador não sobe** | Ficar com o último arquivo lido | Escolher em silêncio esconderia um erro nos dados de teste |
-| Dados lidos ao subir, montados **somente leitura** no Docker | Copiar os arquivos para dentro da imagem | Com `:ro`, o simulador não consegue alterar os dados de teste, e mudar os dados não exige reconstruir a imagem |
-
-## Site oficial simulado: demora e falhas (etapa 2b), 14/10/2026
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| Falha por partida = **503 `{ status: "indisponivel" }`**, depois da demora normal | Deixar a conexão pendurada até o tempo esgotar | 503 é o que um site fora do ar costuma devolver e é distinto de 404 (não existe) e 400 (pedido mal feito). A conexão pendurada existe como um dos modos de derrubar o site (2c). Quem tenta consultar de novo é o job de conferência da **etapa 4**, em dois casos: **503** e **site sem resposta (tempo esgotado)**; 404 e 400 não são tentados de novo |
-| A demora vale também para "não encontrada" e para a falha; o 400 (ID inválido) responde na hora | Demorar só nas respostas com a partida | O site real demora para dizer que não achou ou para cair; o 400 é recusado antes de "consultar" |
-| Demora de **2 a 10 s por padrão**, configurável por `SITE_DEMORA_MIN_MS` e `SITE_DEMORA_MAX_MS` | Demora fixa | O padrão imita o site real; a demonstração encurta no `.env` sem mexer no código |
-| O contador de falhas fica **na memória** e zera quando o simulador reinicia | Guardar em arquivo | Reiniciar o simulador para repetir a demonstração é justamente o que se quer; e os arquivos de dados são somente leitura |
-| A espera e o sorteio **entram por parâmetro** no app | Testar com a demora de verdade, ou com relógio falso global | O teste controla quando a resposta sai, sem esperar nem mexer no relógio do processo |
-
-## Site oficial simulado: modo demonstração (etapa 2c), 14/10/2026
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| **Dois modos de queda:** com erro (503 na hora) e sem resposta (a conexão fica pendurada) | Só o modo com erro | Os dois são os casos em que a etapa 4 tenta de novo; sem o modo pendurado, o limite de tempo do cliente nunca seria testado |
-| **Só as consultas de partida caem;** `/saude` e `/demo` continuam de pé | Derrubar o serviço inteiro | Com tudo fora, não daria para religar pela página |
-| Ao religar, as conexões penduradas são **encerradas**, sem resposta tardia | Responder às penduradas quando o site voltar | No site real, uma consulta que ficou sem resposta está perdida; responder depois esconderia o problema que o limite de tempo do cliente precisa resolver |
-| Com o site fora, as partidas instáveis **não gastam** as falhas delas | Contar a queda como uma das falhas | Cair e falhar são coisas diferentes; misturar faria a demonstração das partidas instáveis depender de quantas vezes o site foi derrubado antes |
-| Estado da queda **na memória**; o modo demonstração está sempre disponível no simulador | Ligar o modo por variável de ambiente | O simulador só existe para testes e demonstração; reiniciar volta ao estado "no ar" |
-| Página em HTML simples, servida pelo próprio simulador, com um campo para consultar uma partida | Uma tela no front da Maria | O simulador representa um sistema de fora; os controles dele não pertencem ao sistema dela |
-
----
-
-## Banco de dados da importação (etapa 3a), 14/10/2026
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| Nick, time e ID da partida com collation **`utf8mb4_0900_as_cs`** (diferencia acentos e maiúsculas) | O padrão do MySQL 8, `utf8mb4_0900_ai_ci` | O padrão trata "xxsniperxx" e "xXSniperXx", ou "Falcoes" e "Falcões", como iguais. Num `GROUP BY` ou numa chave única, o banco juntaria em silêncio o que o domínio decide com aviso e "Ciente" (D7, D19) |
-| O torneio foi completado por uma **migration nova (002)** | Editar a 001 | A 001 já rodou nos bancos; uma migration aplicada não muda, senão os bancos ficam diferentes entre si |
-| Status **`criado`**, antes da planilha | Nascer como "importado" | O torneio é criado (nome, prêmio, percentuais, modo) antes de a planilha chegar |
-| `linhas_planilha` ligada a `partidas` por **chave estrangeira** | Ligar pelo texto do ID da partida | A Maria pode corrigir o ID (D16); pela chave, a ligação continua certa. O ID digitado fica guardado na linha |
-| Sem a coluna `situacao` (ok/duplicada) nas linhas | Marcar a duplicata na importação | Duplicata virou pendência da comparação com o site (D19); a linha é guardada exatamente como veio |
-| `partidas` já nasce com os campos da conferência, inclusive **`em_consulta_desde`** e **`ultimo_erro`** | Acrescentar na etapa 4 | Ela é a tabela de tarefas. `em_consulta_desde` permite recuperar uma partida presa se o job cair no meio; `ultimo_erro` é o que a tela mostra |
-| A fonte de migrations registra sempre o nome com **`.js`** | O padrão do Knex (nome com a extensão do arquivo) | No contêiner o arquivo é `.js`, fora dele `.ts`: o Knex acusaria a pasta como corrompida ao alternar entre `npm run dev` e o Docker |
-| DATE volta do banco como **texto `aaaa-mm-dd`** | Objeto `Date` | Uma data sem hora não tem fuso; como `Date`, o 19/09 poderia virar 18/09 na conversão |
-| Testes de integração num banco **`torneios_teste`, recriado do zero** a cada execução, com `npm run test:integracao` | Usar o banco de desenvolvimento, ou rodar junto com `npm test` | Os testes não apagam dados de quem está desenvolvendo, e as próprias migrations são testadas. O `npm test` continua sem precisar de banco |
-| Repositórios recebem o **executor** (conexão ou transação) | Cada repositório usar a conexão global | Quem orquestra (o serviço da importação, no 3b) abre uma transação e passa para todos: se algo falha, nada fica gravado pela metade |
-
----
-
-## API de torneio e importação (etapa 3b), 14/10/2026
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| **Enviar a planilha de novo substitui a anterior inteira**, enquanto o torneio não foi calculado; a tela confirma antes (D22) | Proibir o reenvio (criar outro torneio) | Deixaria torneios abandonados e obrigaria a digitar tudo de novo por um erro de digitação |
-| (mesma) | Substituir só as partidas que mudaram | Economizaria consultas ao site, mas misturar conferência antiga e planilha nova é fácil de errar |
-| Depois do cálculo, reenviar responde **409** | Permitir e recalcular | O resultado já foi visto e divulgado; mudar a base depois é o que a D1 quer evitar |
-| **Partida com um time só ou com mais de dois: o arquivo é recusado**, listando todas as linhas envolvidas (D23) | Aceitar e deixar a comparação com o site apontar | Viraria "times diferentes", e corrigir o ID da partida inteira não separa a linha errada |
-| A importação **trava a linha do torneio** (`SELECT ... FOR UPDATE`) durante a transação | Não travar | Dois envios ao mesmo tempo (dois cliques, duas abas) poderiam misturar as planilhas |
-| `PUT /torneios/:id/planilha`, com o arquivo **direto no corpo** e o nome no cabeçalho `X-Nome-Arquivo` | `POST` com multipart (formulário de upload) | "A" planilha do torneio é um recurso único: enviar de novo substitui. O corpo direto dispensa uma biblioteca de upload; o navegador envia o `File` do mesmo jeito |
-| Prêmio sempre em **centavos inteiros** na API; a tela converte "R$ 10.000,00" | Aceitar texto em reais na API | Um formato só, sem ambiguidade de vírgula e ponto, e sem float |
-
-### Acesso às telas da Maria: senha única da organizadora (desde o R3)
-
-**Até o R3, o sistema não tinha login**, e esta seção dizia que os links dos times premiados (D11) bastavam para proteger os valores. O code review (item 1) mostrou que não: sem login, qualquer um que chegasse à API lia `GET /torneios/:id/links` e tinha todos os códigos, ou lia o resultado inteiro direto. **Desde o R3, as telas e as rotas da Maria pedem uma senha única** (`ADMIN_SENHA`); a página pública e os links dos times continuam sem senha. Detalhes em "Correções do code review", R3.
-
-As confirmações na tela (substituir a planilha, calcular) continuam evitando um **clique por engano**. A senha resolve outra coisa: **outra pessoa** não cria, calcula nem lê nada sem ela. **Login completo continua como evolução** ("Próximos passos").
-
----
-
-## Telas de criar torneio e subir planilha (etapa 3c), 14/10/2026
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| **Prêmio digitado em reais, no formato brasileiro**, e convertido para centavos **só com texto e inteiros** (`lerReais`): aceita `R$ 10.000,00`, `10.000,00`, `10000` e `10000,5`; pontos só como milhar, em grupos de 3; vírgula com 1 ou 2 dígitos | `parseFloat` depois de trocar vírgula por ponto | `parseFloat` passa por float: o tipo de erro que a regra "dinheiro em centavos" existe para evitar |
-| (mesma) | Campo em centavos | A Maria não é técnica; ninguém pensa num prêmio como "1000000" |
-| **Formato americano (`10,000.00`) é recusado**, com a frase do formato certo | Tentar adivinhar | "10,000" no Brasil seria dez reais com três casas; adivinhar errado multiplica o prêmio por mil |
-| Prêmio com **limite de R$ 42.949.672,95** na tela, o mesmo da coluna do banco | Deixar só a API recusar | A Maria vê o motivo no campo, antes de enviar |
-| **Percentuais: começa em 50/30/20**, com adicionar e remover posição e **soma ao vivo**. A tela não envia o que já sabe que está errado, mas **a validação que vale é a da API** (mesmas frases da D20) | Validar só na API | O erro só apareceria depois de enviar; a soma ao vivo mostra na hora quanto falta |
-| Confirmação de substituir a planilha (D22) num **`<dialog>` do navegador**, com o nome do arquivo atual e do novo | `window.confirm` | O `confirm` não deixa mostrar os dois nomes de arquivo nem destacar o botão; o `<dialog>` já prende o foco e fecha com Esc |
-| Erros da planilha numa **tabela linha × coluna × problema**, com todas as linhas da partida quando o erro é de uma partida inteira (D23) | Uma lista de frases | A Maria procura no Excel pela linha; a tabela deixa a linha sempre no mesmo lugar |
-| **`GET /torneios`** para a página inicial, o mais novo primeiro, com a quantidade de partidas, **sem paginação** | Paginar | A Maria organiza poucos torneios por ano; paginar seria código sem uso |
-| **vue-router 4** | vue-router 5 | A versão 5 pede Vite 7 (por causa do roteamento por arquivos, que não usamos); trocar o Vite agora seria mexer no que funciona |
-| **Fontes dentro do projeto** (pacotes `@fontsource`, só os pesos usados e o alfabeto latino) | Google Fonts | A demonstração precisa funcionar sem internet |
-| `formatarCentavos` **repetido no web** | Pacote compartilhado entre API e web | Seria um quarto pacote no monorepo e no Docker por uma função de 10 linhas; as duas cópias têm testes |
-| A página inicial virou a **lista de torneios**; o status da API e do banco foi para o rodapé | Manter a página de status | Ela provava que as camadas conversavam (etapa 0); agora a lista prova o mesmo e é útil |
-
-**O que ficou de fora, por tempo:** testes de componente do Vue (`@vue/test-utils`). O Vitest do web testa as regras puras da tela (prêmio, percentuais, quando pedir confirmação, rótulos); as interações (confirmar e cancelar a substituição, planilha recusada, soma ao vivo, criar com erro e corrigir) foram conferidas num navegador de verdade, mas não ficaram automatizadas no repositório.
-
----
-
-## Consulta ao site oficial (etapa 4a), 14/10/2026
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| O job vai conhecer só a interface **`SiteOficial`** (`consultarPartida`), com três resultados: **encontrada**, **não encontrada** e **indisponível** | O job chamar o `fetch` direto | Trocar o simulado pelo site real, ou a consulta direta por uma fila, mexeria na regra da conferência |
-| **Só o 404 não é tentado de novo.** Tudo o que não é 200 válido nem 404 é **indisponível**, com o motivo guardado: 503, tempo esgotado, erro de rede, **outro código (400, 500, 502...) e resposta fora do formato** | Tratar o 400 como erro definitivo, como o plano dizia | O sistema só manda IDs válidos (D18), então um 400 só aparece se o site mudar ou tiver um defeito. A partida não tem um estado "erro definitivo"; tentar de novo com intervalo crescente não sobrecarrega o site, e o motivo aparece na tela em "Aguardando o site" |
-| Resposta 200 **validada com Zod** antes de usar; fora do formato vira indisponível | Usar o que vier | Uma partida com minutos em texto ou sem jogadores viraria dinheiro errado. O sistema prefere esperar a usar dado pela metade |
-| O **tempo limite cobre a consulta inteira**, até o fim do corpo | Só até chegar o cabeçalho (o padrão de muitos clientes) | O site pode responder o cabeçalho e travar no meio: a consulta ficaria pendurada para sempre |
-| **Tempo limite de 15 s**, e a **API não sobe** se ele não passar da demora máxima do site (`SITE_DEMORA_MAX_MS`) | Um valor fixo | Abaixo da demora normal, toda consulta lenta mas certa viraria falha. Na demonstração os dois podem ser encurtados juntos |
-| O tempo limite usa um **cronômetro injetado** (`Cronometro`); o teste decide quando ele esgota | Esperar de verdade no teste, ou falsificar os timers do Node | Esperar 15 s deixaria os testes lentos. Os timers falsos do Vitest também afetam os do `fetch` por dentro. É o mesmo padrão da demora do site simulado (`esperar`) |
-| **Próxima tentativa** numa **função pura** (`proximaTentativa`): 1, 2, 5 e depois 10 min, **sem limite de tentativas**, com os intervalos em `CONFERENCIA_INTERVALOS_MS` | Desistir depois de N tentativas | Toda partida precisa ser conferida no site (D5): desistir deixaria o torneio travado sem a Maria saber por quê |
-
-**Não testado automaticamente:** o cronômetro de verdade (`setTimeout`, três linhas). Os testes usam o cronômetro injetado para não esperar.
-
----
-
-## Job da conferência (etapa 4b), 14/10/2026
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| O job roda **dentro do processo da API**: o servidor liga ao subir e desliga ao encerrar, esperando a rodada em andamento | Processo separado (outro serviço no Docker) | Um serviço a mais para subir e explicar, sem ganho para 15 a 28 partidas. O código fica isolado em `conferencia/` (`iniciarJob`); virar processo separado é um arquivo de entrada novo. Com SKIP LOCKED, várias execuções ao mesmo tempo continuam seguras |
-| **Lote de 3 partidas consultadas em paralelo** (`CONFERENCIA_LOTE`) | Uma por vez | Setembro levaria até 2,5 min, e 8 times quase 5 min: a dor que a Maria já tem |
-| (mesma) | Todas de uma vez | Dezenas de pedidos ao mesmo tempo num site que já é instável |
-| **Reserva numa transação curta**; a consulta ao site (2 a 10 s) acontece **fora** dela | Manter a transação aberta durante a consulta | Travaria a partida, e uma conexão do banco, por até 15 s por consulta |
-| A reserva funciona como um **recibo** (`em_consulta_desde`): a gravação só acontece se a partida ainda existir e continuar reservada com o mesmo recibo | Gravar sempre | Uma partida apagada pela planilha nova (D22), ou recuperada e reservada por outra execução, receberia dados de uma consulta velha. O resultado é descartado sem erro |
-| O recibo (`em_consulta_desde`) é **`DATETIME(3)`, com milissegundos** (migration 006) | `DATETIME` em segundos | Em segundos, duas reservas da mesma partida no mesmo segundo tinham o mesmo recibo, e a consulta antiga gravava por cima da nova; um teste mostrou isso. O caso é raro (exige a partida voltar para a fila e ser reservada de novo no mesmo segundo, por exemplo depois de uma correção de ID na etapa 5), mas o custo de evitar é uma coluna. As outras colunas de horário continuam em segundos, cortados antes de gravar, porque o MySQL arredonda a fração |
-| **Erro do nosso lado numa partida** (defeito, deadlock, gravação recusada pelo MySQL): fica no log, a transação desfaz o que tinha feito e a partida **volta para a fila em 1 intervalo, sem contar tentativa**; as outras do lote seguem | Deixar a partida presa até a recuperação (2 min) | A partida ficaria parada à toa; esperar um intervalo evita que um defeito que se repete vire consulta a cada rodada |
-| **Erro na rodada inteira** (MySQL fora do ar): fica no log e o job tenta de novo na próxima rodada | Parar o job | O job não pode morrer por uma queda passageira; um teste derruba o banco e confere que o job continua acordando |
-| **Partida presa** (em consulta há mais de `CONFERENCIA_PRESA_APOS_MS`, padrão 2 min) volta para a fila **sem contar tentativa**, com o motivo "consulta interrompida" | Contar como falha | A falha foi do sistema, não do site; contar faria a espera crescer sem o site ter falhado |
-| (mesma) A API **não sobe** se esse tempo não passar do tempo limite da consulta | Valor livre | Abaixo do tempo limite, uma consulta lenta, mas viva, seria "tomada" e feita duas vezes |
-| A espera até a próxima tentativa conta **do início da tentativa** | Do fim | É o horário que a tela vai mostrar como "última tentativa às X, próxima às Y" |
-| A reserva atualiza **uma partida por vez, pela chave** | `UPDATE ... WHERE id IN (...)` | O teste do SKIP LOCKED mostrou: com quase a tabela toda na lista, o MySQL varre a tabela e **espera as linhas travadas por outra execução**, o que o SKIP LOCKED tinha acabado de evitar |
-| Ao gravar uma partida encontrada, o job trava **primeiro o torneio** (trava compartilhada), na mesma ordem da importação: torneio → partidas → participações | Travar só a partida | Na ordem inversa, uma planilha substituída no meio da gravação causava **deadlock** (visto nos testes, 1 em 3 execuções). A trava compartilhada não faz as gravações do job esperarem umas pelas outras |
-| **Sem apagar participações** antes de gravar | `DELETE` por segurança | O `DELETE` sem linhas trava o intervalo vazio do índice e causava deadlock entre gravações em paralelo. Não há o que apagar: uma partida conferida só volta para a fila pela correção do ID (etapa 5), que apaga as participações dela |
-| `participacoes` **sem coluna `venceu`** | Repetir o vencedor em cada jogador, como no rascunho do banco | O vencedor já está na partida; repetir permitiria os dois discordarem |
-| Os testes de integração usam o **site simulado de verdade**, sem demora, dentro do teste | Um site falso só para o teste | Testa o contrato real, inclusive as falhas programadas de novembro |
-| Partida encontrada vira **"conferida" mesmo com times diferentes** | Comparar já no 4b | A comparação com a planilha (e o status `times_diferentes`) é da etapa 5 |
-
----
-
-## Tela de progresso e "tentar agora" (etapa 4c), 14/10/2026
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| A tela **consulta a API a cada 5 s enquanto houver partida aguardando ou em consulta**, para sozinha quando não há mais, e para ao sair da página | Consultar sempre; ou atualização em tempo real (WebSocket, SSE) | Consultar sempre gastaria pedidos à toa depois do fim. O tempo real seria mais uma peça (conexão aberta, reconexão) para algo que muda a cada 2 a 10 s |
-| A sondagem usa **`setTimeout` encadeado**: a próxima consulta só é marcada quando a anterior volta. A API fora do ar não para a sondagem; a tela mantém os dados e avisa "sem conexão" | `setInterval` | Com a API lenta, o `setInterval` empilharia consultas uma em cima da outra |
-| Não encontrada e times diferentes **não mantêm a sondagem ligada** | Acompanhar enquanto houver qualquer partida não conferida | Elas dependem da Maria (correção do ID, etapa 5), não do site: esperar não muda nada |
-| **"Tentar agora" por torneio**: a próxima tentativa das partidas "aguardando" passa a ser agora; o job pega na próxima vez que acordar (até 5 s) | Consultar o site direto na requisição do botão | Seria uma consulta paralela à do job, com risco de a mesma partida ser consultada duas vezes (D10) |
-| (mesma) **Não zera as tentativas** | Recomeçar a agenda em 1 min | Se falhar de novo, segue de onde estava (um teste mostra a 3ª falha esperando 5 min). Zerar faria o botão desfazer o intervalo crescente |
-| (mesma) **As em consulta não são tocadas** | — | Nada em paralelo: elas já estão sendo consultadas |
-| **Bloqueio de 30 s guardado no banco** (`torneios.tentar_agora_em`, migration 007), com o torneio travado (`SELECT ... FOR UPDATE`) | Bloqueio na memória da API | Na memória, uma API reiniciada liberaria o botão, e duas APIs teriam dois bloqueios. A trava do torneio faz dois cliques ao mesmo tempo resultarem em um 200 e um 429 |
-| Durante o bloqueio, **429** com `Retry-After` e os segundos que faltam; a API manda os segundos também no `GET` do torneio, e a tela conta a partir daí | A tela calcular pelo horário do clique | O relógio do navegador pode estar diferente do servidor; segundos relativos não dependem disso |
-| Sem partida aguardando: **409, e o bloqueio não começa**. Depois do cálculo: 409 | Aceitar sem fazer nada | Um clique que não fez nada não deveria travar o próximo |
-| **De quem foi o erro** numa coluna própria (`partidas.origem_do_erro`: `site` ou `interno`, migration 007). Interno = defeito nosso ou consulta interrompida (partida presa) | Descobrir pelo texto da mensagem | Mudar o texto de uma mensagem quebraria o selo sem ninguém perceber |
-| Erro interno aparece na aba "Aguardando o site" com o selo **"Erro interno, não é o site"**; o "tentar agora" também vale para essas partidas | Esconder da Maria | Ela precisa saber que a demora não é do site, sem precisar entender o motivo técnico |
-| Abas desta etapa: **"Aguardando o site"** e **"Todas as partidas"**; a tela abre na primeira enquanto houver partida lá | As três abas da D17 já agora | "Conferidas" e "Pendências" dependem da comparação com a planilha (etapa 5); até lá, "Todas as partidas" mostra também as não encontradas, que não podem sumir da tela. Na etapa 5, ela vira "Conferidas" e "Pendências" |
-
-**Testado no navegador de verdade** (roteiro pelo protocolo de depuração do Edge, contra o Docker), mas **sem teste de componente no repositório**, pelo mesmo corte da etapa 3c. Os casos:
-- com o site derrubado, a aba mostra a falha, o motivo e "última às X, próxima às Y";
-- uma partida com erro interno aparece com o selo certo;
-- o "tentar agora" antecipa as 15 partidas e a contagem desce de 30 s;
-- ao religar o site, a tela chega a "15 de 15" sozinha e **para de consultar a API**;
-- ao sair da página, nenhuma consulta continua.
-
-As regras da tela (progresso, botão, textos da fila, sondagem) têm testes no Vitest do web.
-
----
-
-## Base visual e nova lista de torneios, 14/10/2026
-
-Só front, sem regra de negócio nova e sem mudar a API.
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| **Tokens visuais definidos uma vez** em `web/src/estilos.css` (cores, fontes, tamanhos de texto, espaçamentos de 4 em 4 px, raios, sombras, foco, alvo de toque de 44 px, larguras), tirados dos protótipos; as telas só usam as variáveis | Valores soltos em cada tela | A próxima tela (etapas 5 a 7) herda o visual sem copiar números, e trocar uma cor é mexer num lugar só |
-| **Mono só para IDs de partida, nomes de arquivo e dinheiro**; números em selos, contadores, percentuais e datas usam a Sans com algarismos de mesma largura (`tabular-nums`) | Mono para todo número, como no protótipo | O zero da IBM Plex Mono tem um ponto no meio; em 12 px, "100%" parecia riscado |
-| **No celular, as tabelas viram blocos** (cada célula com o nome da coluna ao lado); filtros, abas e botões ocupam a largura | Rolagem lateral dentro do cartão | A regra é não haver rolagem lateral. Conferido em 375 px nas três telas: a página não passa da largura da tela |
-| **Foco visível** com contorno de 3 px (`outline`) em tudo que recebe o teclado; no cartão do modo de divisão, o cartão inteiro mostra o foco do rádio | Só o padrão do navegador | O padrão some sobre alguns fundos; o `outline` acompanha o arredondamento de cada elemento |
-| O "Remover" posição **não aparece** com uma posição só | Botão desabilitado | Um botão que nunca pode ser usado é ruído |
-| **Testes de componente** (`@vue/test-utils` com `happy-dom`) para o comportamento das telas: o "Remover", a data, os filtros e a busca da lista | Só regras puras | Reduz o corte registrado na 3c: estes comportamentos estão na tela, não numa função. `happy-dom` 20.14.5, e não a 21, que tinha poucos dias de publicada |
-| A lista é de **cartões**, como no protótipo: a "coluna" de data de criação virou "Criado em dd/mm/aaaa" em cada cartão | Manter a tabela | O protótipo novo é de cartões; a data aparece no mesmo lugar em todos |
-| Resumo, filtros (todos, em andamento, calculados) e busca **calculados na tela**, com o que o `GET /torneios` já devolve; a busca ignora maiúsculas e acentos | Filtrar na API | Poucos torneios; filtrar na tela evita mudar a API agora |
-
-**Ficou de fora do protótipo da lista, por depender das etapas 5 a 7 ou de dados que a API ainda não devolve:**
-- o cartão **"Precisam da sua atenção"** (conta pendências: etapa 5);
-- a **régua de etapas** (Planilha, Conferência, Pendências, Cálculo): o status do torneio ainda não avança com a conferência, então a régua mostraria "Conferência" mesmo com tudo conferido (etapas 5 e 6);
-- a **linha de detalhe** de cada torneio ("9 de 15 conferidas · próxima consulta às…", "3 diferenças aguardam o seu Ciente", "Calculado em… · 21 jogadores premiados"): o `GET /torneios` não traz o progresso de cada um, e as pendências e o cálculo são das etapas 5 e 6;
-- as ações **"Revisar"** (etapa 5) e **"Ver resultado"** (etapa 6): hoje os cartões dizem "Subir planilha", "Acompanhar" ou "Abrir";
-- **excluir torneio**, o cadeado dos calculados e a nota de torneios travados: melhoria pendente no `plano.md` (seção 9).
-
-O cartão "Prêmios calculados" está na tela, com o que a API já tem (status e prêmio), e mostra R$ 0,00 até a etapa 6.
-
----
-
-## Pendências e Ciente (etapa 5a), 15/10/2026
-
-Só API, sem tela.
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| **As pendências não são gravadas:** saem sempre da comparação atual (`compararComSite`, D19) entre `linhas_planilha` e o que o job gravou do site (`partidas` + `participacoes`). **Só o Ciente é gravado** (tabela `cientes`, migration 008), pela chave da pendência | Tabela `pendencias` gerada na conferência, como no rascunho do banco | Uma cópia gravada fica desatualizada quando algo muda (correção de ID, nova consulta) e precisaria ser regenerada, levando os Cientes junto sem errar. Calcular na hora é sempre o estado atual; para 15 a 28 partidas, custa milissegundos |
-| **O Ciente vale para a pendência exata**, identificada por uma **chave**: tipo, partida, jogador, campo e os dois valores (planilha e site). Se algum valor muda, a chave muda e o Ciente antigo não se aplica | Ciente por partida, ou por tipo e jogador | Um Ciente dado a "18 × 8 kills" não pode valer para "18 × 9": a Maria não viu esse valor |
-| Itens do torneio todo (jogador em dois times, nome de time) usam a **lista de partidas**, ordenada, no lugar da partida | Deixar a partida vazia na chave | Se o jogador aparecer em mais uma partida, é outra situação: o Ciente precisa ser dado de novo |
-| **A mensagem fica fora da chave** | Usar a mensagem | Reescrever uma frase no código apagaria os Cientes já dados |
-| A chave é o **SHA-256** dos campos em JSON, com a **versão do formato** na frente | Os campos em texto, separados por um caractere | O JSON não confunde campos vizinhos ("a\|b" + "c" ≠ "a" + "b\|c"); o tamanho fixo (64) cabe num índice único; a versão permite mudar o formato sem confundir chaves antigas |
-| **Bloqueantes** (não encontrada, times diferentes) não aceitam Ciente: **409**; se resolvem corrigindo o ID (5b). As **não bloqueantes** aceitam Ciente, mas **também seguram o cálculo** enquanto não o recebem (D17) | — | "Não bloqueante" quer dizer "não precisa de correção", e não "não segura o cálculo" |
-| Marcar o Ciente de novo **não muda nada** (vale a hora do primeiro); desfazer o que não tem Ciente também não é erro | Responder erro | Dois cliques, ou duas abas, não podem dar erro na tela |
-| Ciente numa chave que **não é de nenhuma pendência atual**: **404** "os dados mudaram, atualize a lista" | Aceitar e gravar | Seria um Ciente dado a algo que a Maria não está vendo |
-| Ciente, desfazer e Ciente de todas **travam o torneio** (`SELECT ... FOR UPDATE`) | Sem trava | Um Ciente não pode correr junto com uma planilha nova (D22) nem com o cálculo |
-| **Planilha nova (D22) apaga os Cientes** do torneio | Manter os que coincidirem | A D22 diz que a conferência recomeça do zero; um Ciente da planilha antiga não é um Ciente da nova |
-| Os **dois times do site** são os times dos jogadores em `participacoes`, na ordem em que aparecem | Uma migration para guardar os times da resposta do site | No formato do site, todo jogador é de um dos dois times da partida; dá o mesmo resultado sem mais uma coluna |
-| As linhas são comparadas com o **ID atual** da partida (pela chave `partida_id`) | O ID digitado em cada linha | Quando a Maria corrigir o ID (5b), as linhas vão junto com a partida |
-
-**Comportamento esperado:** um Ciente cuja pendência mudou fica guardado, sem efeito. Se os valores voltarem exatamente aos de antes, ele volta a valer, porque é a mesma pendência que a Maria já viu.
-
----
-
-## Correção do ID da partida (etapa 5b), 15/10/2026
-
-Só API, sem tela. **Sem migration:** `partidas.id_partida_planilha` (gravado na importação e nunca alterado) guarda o ID da planilha, e `partidas.id_partida` guarda o atual.
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| `PUT /torneios/:id/partidas/:partidaId/id-partida`, pelo **id interno** da partida | Pelo ID do jogo ("#52214") na URL | O ID do jogo é o que muda; o id interno é estável. E o "#" na URL vira fragmento (o mesmo problema do site simulado) |
-| **Só o ID é editável** (D16). Validado com **as mesmas regras e frases da importação** (`validarIdPartida`, D18): aceita "52241" e espaços; recusa letras e vazio (400) | Regras próprias | A Maria vê a mesma explicação nos dois lugares |
-| Corrigir de novo: **o original continua sendo o da planilha** | Guardar o ID anterior a cada correção | O que importa para a história é o que a Maria digitou; as linhas da planilha não mudam |
-| A partida **volta para a fila do zero**: "aguardando", próxima tentativa agora, **tentativas zeradas**, sem vencedor, sem erro e **sem as participações do ID antigo** | Manter as tentativas | É um ID novo: outra história com o site |
-| **ID que já é de outra partida do torneio: 409** | Juntar as duas | Juntaria 4 times numa partida (D23) |
-| O mesmo ID que já está: **400** "Esse já é o ID da partida" | Aceitar e consultar de novo | Não é correção; para consultar de novo existe o "tentar agora" |
-| **Depois do cálculo: 409** | — | D1, D22: a base do resultado não muda |
-| Torneio e partida **travados**, na mesma ordem da importação e do job (torneio → partidas → participações) | Sem trava | Duas correções, ou uma correção e uma planilha nova, não podem se misturar; a mesma ordem evita deadlock |
-| **Partida em consulta pode ser corrigida:** o recibo do job (4b) deixa de valer e o resultado do ID antigo é descartado. Um teste prova isso: a consulta do ID antigo termina depois da correção e não grava nada | Esperar a consulta acabar | A Maria não precisa saber que havia uma consulta em andamento |
-
-**A chave do Ciente (5a) depois da correção.** O 5a usava o ID do jogo na chave de toda pendência. Com a correção, a duplicata perderia o Ciente. Agora:
-
-| Pendência | Identifica a partida por | Depois de corrigir o ID |
-|---|---|---|
-| **Linha duplicada** (vem da planilha) | **id interno** da partida, que não muda | O Ciente **continua**, se o site mostrar o mesmo valor para o jogador. Se mostrar outro, pede Ciente de novo: a duplicata é o único lugar onde a Maria vê esse valor (a D19 não gera divergência de valor para jogador duplicado). Decidido com a Adrielly |
-| **As que dependem do site** (valores, nick, vencedor, sem dados, jogador só de um lado, nome de time, dois times, não encontrada, times diferentes) | ID consultado no site | **Voltam sem Ciente**: é outra consulta ao site |
-
-A lista de partidas dos itens do torneio todo é ordenada pelo código de cada caractere, e não por `localeCompare`: a chave não pode mudar com a versão das regras de idioma do Node. Cientes de duplicata dados antes desta mudança ficam sem efeito (o formato da chave da duplicata mudou); só havia dados de desenvolvimento.
-
----
-
-## Pronto para calcular (etapa 5c), 15/10/2026
-
-Só API. O `GET /torneios/:id` ganhou o campo `calculo`:
-
-```json
-{ "podeCalcular": false, "calculado": false, "calculadoEm": null, "semPlanilha": false,
-  "aguardandoSite": 2, "bloqueios": 1, "semCiente": 3 }
-```
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| Só pode calcular com **todas as partidas conferidas** (aguardando e em consulta contam como "aguardando o site"), **nenhum bloqueio** (não encontrada, times diferentes) e **todas as não bloqueantes com Ciente** (D17) | — | "Nada é pago sem a Maria ter visto" |
-| Também não pode **sem planilha** (`semPlanilha`) | Deixar passar | Sem partidas, todas as contagens dão zero e pareceria pronto |
-| **Calculado na hora** (`situacaoDoCalculo`, função pura), com as mesmas pendências do 5a | Gravar no `status` do torneio ("pronto") | Ficaria desatualizado a cada Ciente desfeito, ID corrigido ou partida que cai de volta na fila. O valor `pronto` do status continua sem uso |
-| **Sempre os mesmos campos**, com todas as contagens, mesmo quando pode calcular ou já calculou | Só os motivos que impedem | A tela mostra "faltam 2 partidas, 1 ID e 3 Cientes" sem montar o objeto; um formato só é mais fácil de usar |
-| Depois do cálculo: `calculado: true`, `calculadoEm` e `podeCalcular: false` | — | Não se calcula de novo (D1, D22) |
-
-O cálculo em si (que trava o modo de divisão e a planilha) é da etapa 6. Ele vai conferir de novo esta mesma situação dentro da transação, sem confiar no que a tela viu.
-
----
-
-## Tela das pendências (etapa 5d), 15/10/2026
-
-Só web; a API é a do 5a a 5c.
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| Abas da D17: **Conferidas, Pendências e Aguardando o site**. A aba provisória "Todas as partidas" (4c) saiu. Cada partida está em uma só | Manter "Todas" | A D17 pede que cada problema apareça uma vez; uma lista com tudo misturaria o resolvido com o pendente |
-| **Conferidas** = conferidas no site **sem nada faltando**: bateram com o site ("Bateu com o site") ou tiveram pendência que já recebeu Ciente ("Conferida com Ciente") | Todas as partidas com status "conferida" | Uma partida com pendência sem Ciente estaria nas duas abas |
-| A aba Pendências conta **as que ainda faltam**: bloqueantes + não bloqueantes sem Ciente, com o contador em destaque quando há | Contar todas | O número diz o que falta fazer; o que já tem Ciente não é trabalho |
-| A tela **abre onde há o que fazer**: Pendências se falta alguma, senão Aguardando o site, senão Conferidas | Sempre a mesma aba | A Maria vê de cara o que precisa dela |
-| A página carrega **o torneio e as pendências juntos**, também na atualização a cada 5 s | Só ao abrir a aba | A conferência que avança faz pendências aparecerem, e a contagem da aba precisa estar certa sem clique |
-| **Bloqueantes primeiro**, com selo vermelho, o lado a lado e o aviso "Corrija o ID desta partida", **sem botão de Ciente**. O formulário de correção é do 5e | Esconder o lado a lado | Ver "Lobos x Serpentes" × "Corvos x Panteras" ajuda a achar o ID certo |
-| Não bloqueantes com **planilha e site lado a lado** (D4), o site destacado em azul ("usado no cálculo"); **"Ciente" vira "Desfazer"**, com "Ciente às HH:MM:SS" | Caixa de seleção | O protótipo usa botão; o selo com a hora mostra que foi visto, e quando |
-| Valor vazio vira **frase**: "Não encontrada", "Não registra o jogador", "Não está na planilha" | Traço | Um traço não explica nada para a Maria |
-| **404 "os dados mudaram"** (5a): a lista é **recarregada** e a tela explica que a pendência mudou e que é preciso conferir de novo antes do Ciente | Mostrar só o erro | A pendência nova (com o valor novo) aparece na hora, sem a Maria precisar recarregar |
-| **"Ciente de todas"** abre um modal "Marcar Ciente em N pendências?", com N = não bloqueantes sem Ciente, e avisa que **as bloqueantes não entram**; depois mostra "N pendências marcadas com Ciente." | Marcar direto | Marcar várias de uma vez sem perguntar é fácil de fazer por engano |
-| **Depois do cálculo**: sem Ciente, Desfazer, Ciente de todas nem o modal; um aviso diz que a lista é só para consulta | Botões desabilitados | Botões que nunca podem ser usados são ruído |
-| Cada botão tem um **rótulo para leitor de tela** com a pendência ("Ciente: Nick escrito diferente, partida #48087"), e cada cartão também | Só "Ciente" | Numa lista de vários "Ciente", o leitor de tela precisa dizer qual |
-| No lado a lado, o **rótulo não quebra no meio**; um valor longo desce para a linha de baixo | — | No celular, "Pantera_X" quebrava em "Pant / era_ / X" |
-
-**Testes de componente** montam a página inteira contra uma **API falsa em memória** (`web/test/componentes/api-falsa.ts`), que guarda o estado: um Ciente marcado aparece marcado na próxima leitura, e a falsa pode responder "os dados mudaram" na próxima marcação. Cobrem:
-- as abas e as contagens;
-- a ordem, com as bloqueantes primeiro e sem botão de Ciente;
-- o lado a lado;
-- "Ciente" e "Desfazer";
-- o rótulo acessível;
-- o 404 com recarga;
-- o modal com a contagem certa, ao confirmar e ao cancelar;
-- a leitura depois do cálculo.
-
----
-
-## Correção do ID e "pronto para calcular" na tela (etapa 5e), 15/10/2026
-
-Só web; a API é a do 5b e do 5c.
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| **"Corrigir ID" dentro do cartão da pendência bloqueante**, que abre um campo com o ID atual, com rótulo, texto de ajuda e o foco já no campo | Uma tela ou um modal à parte | A Maria corrige olhando o lado a lado (planilha × site) do mesmo cartão |
-| Os erros da API (formato, igual ao atual, ID de outra partida) aparecem **junto do campo, com a frase da API**, e o campo fica marcado como inválido (`aria-invalid` e `aria-describedby` apontando para o erro) | Mensagem genérica no topo | A frase da API já diz o que fazer; longe do campo, ela não é associada ao erro |
-| Depois de salvar, a tela **recarrega o torneio e as pendências**: a partida aparece em "Aguardando o site", e a **atualização a cada 5 s volta a rodar** | Religar a sondagem por fora | O `carregar` da página já liga a sondagem sempre que há partida aguardando; usar o mesmo caminho evita dois lugares para lembrar. Um teste com relógio falso prova: parada antes da correção, rodando depois |
-| Onde o ID aparece (título da pendência, Aguardando o site, Conferidas), uma partida corrigida mostra **"#52214 → #52241 (corrigido)"**, com o ID da planilha primeiro (`rotuloDoId`) | Só o ID novo | A Maria procura no Excel pelo ID que digitou |
-| **Aviso "pronto para calcular" no topo**, a partir do campo `calculo` (5c), com quatro estados: sem planilha ("Envie a planilha para começar."), faltando ("Falta para calcular:" e as contagens), pronto ("Tudo conferido. Pronto para calcular.") e calculado (a data e a hora) | Só um contador | Diz o que falta e onde resolver |
-| **Cada item que falta é um botão que leva à aba certa** (aguardando o site → "Aguardando o site"; bloqueio e sem Ciente → "Pendências"), com o foco indo para a aba; só aparecem os itens que existem | Texto corrido | Um clique leva ao trabalho; o foco junto ajuda quem usa teclado ou leitor de tela |
-| O botão **"Calcular" não existe ainda** | — | É da etapa 6 |
-
-**Teste do 5d ajustado:** "bloqueante sem botão de Ciente" verificava que o cartão não tinha nenhum botão. Agora ele tem o "Corrigir ID", então o teste confere que o único botão é esse (nada de Ciente nem Desfazer).
-
-**A API falsa dos testes** (`web/test/componentes/api-falsa.ts`) ganhou a rota de correção, com as mesmas regras e frases da API, e opções para montar os quatro estados do aviso (sem planilha, partidas aguardando, sem pendências, calculado).
-
----
-
-## Aba Conferidas (etapa 5f), 15/10/2026
-
-Web, com **uma mudança pequena na API, decidida com a Adrielly:** o `GET /torneios/:id` traz, em cada partida conferida, `killsSite: { timeA, timeB }`, a soma das kills de cada time segundo as participações do site (`null` enquanto o site não respondeu). O nome do time é comparado sem acentos e maiúsculas, como na D19.
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| **Kills por time na tabela**, com uma mudança pequena na API | Tirar a coluna para ficar só no web | As kills ajudam a Maria a reconhecer a partida e são os números que entram no desempate (D2) |
-| Conferidas como o protótipo 1b: **agrupadas por rodada** ("Rodada 1 · 05/09"), com **ID, times, kills e vencedor do site** e a situação. Tabela com legenda e cabeçalhos para leitor de tela (`caption`, `scope="col"`, `scope="rowgroup"`) | A tabela de antes, sem agrupar | São 15 a 28 partidas; por rodada é como a Maria pensa no torneio |
-| **Filtros "Todas", "Bateram com o site" e "Com Ciente"**, com contagem, como botões de alternância (`aria-pressed`); a rodada sem partida no filtro some | Abas dentro da aba | Abas aninhadas confundem; filtros deixam claro que é a mesma lista |
-| Nas com Ciente: **qual era a diferença** numa linha ("Nick escrito diferente: xxsniperxx → xXSniperXx"), a **hora do Ciente** e **"Ver a diferença"**, que abre o lado a lado (`aria-expanded`, `aria-controls`) com o **Desfazer** | Mostrar o lado a lado sempre | A lista ficaria longa; o detalhe é para quando a Maria quer rever |
-| **Depois do Ciente, a pendência sai de Pendências** e a partida vai para Conferidas. O aviso "Ciente registrado: a partida #46065 foi para Conferidas." tem um **Desfazer**, para o arrependimento imediato. Decidido com a Adrielly | Deixar o cartão nos dois lugares (como no 5d) | Contraria a D17: o mesmo problema aparecia duas vezes. Os protótipos mostram a pendência com Ciente só em Conferidas |
-| Se a partida ainda tem outra pendência, o aviso diz "A partida ainda tem pendência aqui" | Dizer sempre "foi para Conferidas" | Seria falso para uma partida com duas diferenças |
-| Pendências sem nada faltando, mas com Cientes: "Nada faltando: as N pendências com Ciente estão em Conferidas." | "Nenhuma pendência" | A Maria precisa saber onde foram parar |
-| **Depois do cálculo:** "Ver a diferença" continua; sem Desfazer; um aviso diz que é só consulta | Esconder as diferenças | O registro do que foi visto antes de pagar continua útil |
-| O lado a lado virou um **componente só** (`LadoALado.vue`), usado em Pendências e em Conferidas | Copiar o trecho | As duas abas mostram a mesma diferença do mesmo jeito |
-| **No celular, a tabela rola dentro da caixa**; a página não alarga. Dentro da tabela, as palavras não quebram no meio, e as colunas curtas ficam numa linha | Empilhar a tabela, como em Pendências | Com a rolagem na caixa, a tabela fica legível; o padrão da página (`overflow-wrap: anywhere`) quebrava "#46065" em "#460 / 65" |
-
-**Defeito confirmado (ponto 2 do pedido):** antes do 5f, o Desfazer não se perdia (ele continuava em Pendências), mas **não existia pela aba Conferidas**, onde a partida passava a aparecer. O teste "Ciente dado em Pendências: a partida vai para Conferidas e lá dá para ver a diferença e desfazer" falhou antes da correção e passa agora.
-
-**Teste do 5d ajustado:** "Ciente vira Desfazer" virou "Ciente tira o cartão de Pendências; o Desfazer do aviso traz de volta", por causa da decisão acima.
-
----
-
-## Calcular e gravar o resultado (etapa 6a), 15/10/2026
-
-Só API, sem rota. Migration **009**, com três tabelas: `calculos`, `premios_time` e `premios_jogador`.
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| O cálculo usa os **dados oficiais da comparação atual** (`compararAtual`), a mesma de onde saem as pendências: só partidas encontradas no site e com os times certos, com os nicks e os números do site (D3, D7). A duplicata da planilha não existe aqui (D6) | Ler as participações direto, sem passar pela comparação | Poderia entrar no prêmio uma partida que a Maria nem viu (times diferentes). Com uma fonte só, o que ela revisou é exatamente o que é pago |
-| Uma **função pura** (`montarResultado`) junta as peças da etapa 1: classificação (D2), prêmio por time (D20) e rateio (D1, D8, D9, D13, D21), e acrescenta os **minutos e as kills de cada jogador por time** | Repetir a conta no serviço | A regra que mexe com dinheiro continua no domínio, testável sem banco |
-| Tabela **`calculos`**, uma por torneio, com a **data do cálculo e a configuração usada** (prêmio, percentuais, modo) | Só `calculado_em` no torneio, como no rascunho do banco | É a foto do momento: o que foi pago se explica por ela, mesmo se alguém mudar o torneio no banco. O status e a trava do torneio ficam para o 6b, na mesma transação |
-| `premios_time`: **todos os times**, com posição, vitórias, kills, prêmio (0 para os sem prêmio), critério e centavo, e a **ordem** da classificação | Só os premiados | A página pública (D11) mostra a classificação inteira |
-| `premios_jogador`: **só os jogadores dos times premiados**, uma linha por time em que jogou (D13), com minutos, kills, a base usada (D1, D21), o valor, o centavo (D9) e a explicação | Todos os jogadores com R$ 0 | É o que o rateio do domínio devolve e o que os links por time mostram; os esperados de `testes/` também só listam os premiados |
-| Gravar de novo **substitui** o cálculo anterior do torneio | Recusar | Quem impede um segundo cálculo é a trava do 6b; aqui a função faz uma coisa só |
-| O serviço tem **duas peças**: montar o resultado e gravar, para o 6b chamar dentro da sua transação, com o torneio travado | Uma função que faz tudo | O 6b precisa conferir "pode calcular" e travar o torneio na mesma transação |
-
-**Testado no caminho de verdade:** importar a planilha → o job confere com o site simulado → calcular e gravar → ler do banco.
-- **Centavo por centavo**, contra `testes/esperado/` (classificação e jogadores): 01-limpa, 04-empate-em-kills, 05-oito-times, outubro e setembro, este com Tuca em R$ 65,90 e Falcões e Tubarões em 3º com R$ 1.000 cada.
-- **As somas fecham** (todos os jogadores = prêmio total; cada time = o valor do time) em todos os cenários que dá para calcular: 01, 02 (depois de corrigir o ID), 03, 04, 05, 07, outubro, novembro e setembro.
-- **Modo kills:** os valores dos Lobos da seção 8 do `contexto.md` batem.
-
-O que ficou de fora dos testes:
-- **06a** é recusada na importação.
-- **06b** só testa o separador: os IDs dela não existem no site simulado, então não há o que calcular.
-- **02, 03, 07 e novembro** não têm arquivo em `testes/esperado/`. Gerar esses arquivos (`gerar_cenarios.py --so-esperado`) é uma melhoria para depois.
-
-**Decidido no 6b (D24):** com menos times do que posições premiadas, o valor das posições sem time é dividido igualmente entre todos os times; antes, o domínio lançava "Há mais posições premiadas do que times".
-
----
-
-## Rota de cálculo (etapa 6b), 15/10/2026
-
-Só API. `POST /torneios/:id/calculo`. Sem migration nova: o resultado usa as tabelas do 6a.
-
-### D24 (regra de negócio nova, decidida pela Adrielly): menos times do que posições premiadas
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| O valor das **posições sem time é dividido igualmente entre todos os times**, pelo maior resto, com o **centavo primeiro ao mais bem colocado**. R$ 10.000 em 50/30/20 com 2 times: 1º R$ 6.000, 2º R$ 4.000 | Dar tudo ao 1º colocado; ou recusar o cálculo (o domínio lançava erro até o 6a) | **Nenhum dinheiro fica sem dono.** Dar tudo ao 1º premiaria demais uma posição; recusar travaria um torneio já pronto, sem como mudar os percentuais depois da criação |
-
-### A rota
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| **Uma transação**, que **trava o torneio primeiro** (`SELECT ... FOR UPDATE`), na mesma ordem das outras gravações (torneio → partidas → participações) | Travar só no fim | Lição do deadlock do 4b: a mesma ordem em todas as gravações. Dois cálculos ao mesmo tempo esperam um pelo outro, e o segundo encontra o torneio já calculado (teste: três ao mesmo tempo → um 200 e dois 409, gravado uma vez) |
-| **Confere de novo, dentro da transação**, se pode calcular (a mesma situação do 5c), **sem confiar na tela** | Confiar no `podeCalcular` que a tela recebeu | Entre a tela e o clique, um Ciente pode ter sido desfeito (teste) ou uma partida pode ter voltado para a fila |
-| Não pode: **409** com uma frase ("Ainda não dá para calcular: 2 aguardando o site, 1 bloqueio, 3 sem Ciente.") e as contagens | 400 | Não é um pedido mal feito: é o estado do torneio que ainda não permite |
-| Já calculado: **409** "O torneio já foi calculado.", sem mudar nada | Recalcular | D1, D22: depois do cálculo, nada muda |
-| Calculado: grava o resultado (6a) e **marca o torneio como calculado**, na mesma transação. Daí em diante, Ciente, desfazer, Ciente de todas, correção de ID, nova planilha e "tentar agora" respondem 409 (teste) | — | Já estavam prontas para isso desde as etapas 3 a 5; o teste confirma todas juntas |
-| O **modo de divisão** fica travado porque **não existe rota para mudá-lo**: ele é escolhido na criação e lido no cálculo, que é feito uma vez só | Uma rota de edição com 409 depois do cálculo | Uma rota a mais sem uso; a D1 diz que o modo é escolhido antes da planilha |
-| A hora do cálculo é gravada em **segundos inteiros**, igual em `calculos` e em `torneios` | Milissegundos em `calculos` | `torneios.calculado_em` guarda segundos, e o MySQL arredonda a fração: a mesma hora sairia diferente nos dois lugares |
-
-### Os jogadores dos times sem prêmio
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| **Gravados também**, com R$ 0, os minutos e as kills deles e a base do modo; a **posição do time** vem de `premios_time` (pela ligação), em cada jogador lido | Gravar só os premiados (como no 6a) | O filtro por nick (6e) precisa achar qualquer jogador, e "por que meu time não ganhou?" se responde com o que estava no cálculo |
-
-### Os gabaritos de 02, 03, 07 e novembro
-
-O `gerar_cenarios.py --so-esperado` **não gerava** esses quatro gabaritos: o script montava os cenários, mas só chamava `salvar_esperado` para 01, 04, 05, outubro e setembro. Foram acrescentadas quatro chamadas:
-- **02:** o resultado depois de corrigir o ID, porque o site tem a partida certa;
-- **03:** as divergências só existem na planilha, e o cálculo usa o site;
-- **07:** Garra em dois times, confirmado pelo site;
-- **novembro:** o nick e a duplicata só existem na planilha.
-
-O script rodou num contêiner `python:3.12-slim`, com `testes/planilhas` montado somente leitura. Os checksums dos 23 arquivos que já existiam (planilhas, gabaritos antigos, `site-oficial.json` e a planilha original de setembro) ficaram **idênticos**. Mudou só o `resumo-geracao.json`, que o script sempre regrava.
-
-Os quatro cenários passaram a ser testados **centavo por centavo**, e passaram de primeira: o domínio já calculava igual ao script de referência.
-
-**Cenários só de erro, sem cálculo:**
-- **06a:** coluna faltando, recusada na importação;
-- **06b:** só o separador; os IDs dela não existem no site simulado.
-
----
-
-## Ler o resultado e baixar o CSV (etapa 6c), 15/10/2026
-
-Só API: `GET /torneios/:id/resultado` e `GET /torneios/:id/resultado.csv`. Sem migration.
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| As duas rotas leem **só o que foi gravado no cálculo** (`buscarResultado`): configuração usada, data, classificação e jogadores. **Nada é recalculado** (teste: mudar o prêmio e o modo no banco depois não muda o resultado) | Recalcular a cada leitura | O que foi pago precisa ser sempre o mesmo, mesmo que o código ou o banco mudem depois |
-| O **critério** de cada time vem como foi gravado: "desempate por kills do time", "divisão igual (empate em vitórias e kills)" ou "empate em vitórias e kills" (fora do pódio) | Reescrever o texto na leitura | Seria um texto diferente do que estava no cálculo; a tela pode escolher como mostrar |
-| A resposta traz também o **nome do torneio** | Só o id | A tela e o arquivo precisam do nome |
-| Antes do cálculo: **409** "O torneio ainda não foi calculado."; torneio inexistente: 404 | 404 nos dois | O torneio existe; o que ainda não existe é o cálculo |
-| **Sem filtro por nick na API** | `?nick=` | São poucos jogadores (até ~40); o filtro fica na tela |
-| CSV em **UTF-8 com BOM**, separador **";"** e linhas **CRLF** | UTF-8 sem BOM | Sem o BOM, o Excel em português abre "Falcões" como "FalcÃµes" |
-| Colunas: **posição, time, nick, minutos, kills, valor e "Centavo de arredondamento" (sim/não)**; **ordem**: posição, depois o valor maior, depois o nick | Ordem alfabética | A Maria paga do 1º para baixo; dentro do time, quem recebe mais primeiro |
-| Valor em reais com vírgula e **sem ponto de milhar** ("1000,00", "65,90"), feito só com inteiros | "1.000,00" | O Excel em português lê "1000,00" como número em qualquer configuração; a Maria consegue somar a coluna |
-| **Sem linha de total** no CSV | Uma linha "Total" no fim | Somar a coluna no Excel contaria o total duas vezes |
-| Texto que começa com **=, +, - ou @** ganha um **apóstrofo** | Deixar como veio | Um nick como "=SOMA(...)" seria executado como fórmula pelo Excel (injeção de CSV) |
-| Nome do arquivo com o nome do torneio: `filename` só com letras sem acento e hífen ("resultado-torneio-de-setembro-2026.csv") e `filename*` com os acentos (RFC 6266) | Só o nome com acentos | Navegadores antigos não entendem o `filename*`; os novos usam o nome bonito |
-| A função que gera o CSV é **pura** (`csvDoResultado`), com testes próprios; a rota só acrescenta o BOM e os cabeçalhos | Montar o CSV na rota | Ordem, formato do valor, aspas e a proteção contra fórmula testados sem banco |
-
-**Testes:**
-- **Setembro pela rota:** Tuca R$ 65,90 com o centavo; Falcões e Tubarões em 3º, com o critério.
-- **O CSV:** começa com o BOM, tem "Falcões" e "Tubarões" com os acentos, traz as 31 linhas na ordem certa, e a soma da coluna de valor dá exatamente 10.000,00.
-- **Antes do cálculo:** 409 nas duas rotas.
-
----
-
-## Botão Calcular com confirmação (etapa 6d), 15/10/2026
-
-Só web; a API é a do 6b.
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| **"Calcular prêmios" no aviso do topo** (5e), sempre visível até o cálculo, **habilitado só quando `calculo.podeCalcular`**, e ligado ao texto do aviso por `aria-describedby` (o leitor de tela diz por que está desabilitado) | Esconder o botão enquanto não pode | Mostrar desabilitado, com o motivo ao lado, diz à Maria o que falta para chegar lá |
-| **Modal de confirmação (D22)** com o resumo do que vai ser calculado (prêmio total, percentuais por posição, forma de divisão, partidas e Cientes) e o aviso "O cálculo é definitivo. Depois dele não dá para dar Ciente, corrigir ID nem trocar a planilha." Botões **"Voltar"** e **"Calcular prêmios"** | Um "Tem certeza?" sem resumo | A Maria confere a regra (prêmio, percentuais, minutos ou kills) uma última vez antes de travar |
-| **O foco começa no "Voltar"**, a opção segura, posto explicitamente depois de abrir | Confiar no `autofocus` | Nem todo ambiente respeita o `autofocus` num `<dialog>`; um Enter por engano não pode calcular |
-| O `<dialog>` nativo (`showModal`) **prende o foco** e **fecha com Esc**; o **título tem um id só dele** (`useId`), usado no `aria-labelledby` | `id` fixo "titulo-dialogo" | A página do torneio tem três diálogos (substituir planilha, Ciente de todas, calcular); três `id` iguais quebravam o rótulo para o leitor de tela |
-| O componente do diálogo ganhou **`textoCancelar`** (padrão "Cancelar") | Um diálogo só para o cálculo | O mesmo diálogo, com o foco na opção segura, serve às três confirmações |
-| **Sem clique duplo:** a trava (`calculando`) é ligada **antes de qualquer espera**, e o botão fica desabilitado até a resposta. A API também trava (6b) | Só desabilitar o botão | Dois cliques no mesmo instante passariam antes de a tela redesenhar; o teste dispara os dois juntos e vê um pedido só |
-| **409** (algo mudou entre a tela e o clique): a tela **mostra a frase da API** e **recarrega** o torneio e as pendências, sem sair da página | Fechar a tela, ou só mostrar o erro | A Maria vê na hora o que mudou ("1 sem Ciente") e onde resolver |
-| **Depois do sucesso:** o aviso mostra "Calculado em dd/mm/aaaa às hh:mm." e o link **"Ver resultado"**, que leva à rota `/torneios/:id/resultado`, por enquanto "em construção", com o link do CSV (6c) | Ir direto para o resultado | A tela do resultado é a 6e; até lá, o CSV já permite pagar |
-
-**Testes de componente:**
-- o botão desabilitado quando não pode calcular, e habilitado quando pode;
-- o modal com o resumo certo e o rótulo único;
-- o foco no "Voltar";
-- "Voltar" e Esc fecham sem calcular;
-- o clique duplo gera um pedido só;
-- o botão desabilitado durante o pedido;
-- o 409 mostra a mensagem e recarrega;
-- o sucesso mostra a data e o link.
-
-**No navegador** (roteiro pelo protocolo de depuração do Edge, contra o Docker): o foco começa no "Voltar"; Tab e Shift+Tab não saem do modal; Esc fecha; o modal cabe em 375 px; o cálculo de verdade trava a tela.
-
-**Testes do 5d ajustados:** dois deles pegavam "o primeiro `<dialog>` da página", que agora é o do cálculo. Passaram a achar o do "Ciente de todas" pelo título.
-
----
-
-## Tela do resultado (etapa 6e), 15/10/2026
-
-Só web, seguindo o protótipo 2-resultado, no lugar da página "em construção" do 6d. A API é a do 6c.
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| **Tudo sai do que foi gravado no cálculo**: a tela só soma centavos (total distribuído, rodapé) e monta textos; nenhum valor é recalculado | Recalcular na tela | O que aparece é exatamente o que foi pago |
-| Cabeçalho: "Calculado em dd/mm/aaaa às hh:mm · Divisão por … (travada)", **"Total distribuído"** (a soma dos jogadores gravados) e **"Baixar CSV"** (a rota do 6c) | Mostrar o prêmio configurado | A soma dos valores gravados é o que de fato saiu; se um dia divergisse do prêmio, a tela mostraria |
-| Classificação com as **posições empatadas** (1, 2, 3, 3, 5) e o critério gravado como selo ("Desempate por kills", "Empate total · prêmio dividido", "Empate total") | Reescrever o critério | O texto gravado continua sendo a fonte; a tela só encurta |
-| **A frase dos empates é montada dos dados** (`explicarEmpates`): os grupos com as mesmas vitórias, quem desempatou por kills, e os empatados também em kills, com as posições que pagavam (pelos percentuais gravados), o valor somado e a fração de cada time ("metade", "um terço") | Uma frase escrita para setembro | Vale para qualquer torneio; testado com setembro, com o cenário 04 (dois empates, um sem prêmio) e com casos pequenos |
-| Prêmio por jogador: time, nick, **minutos ou kills conforme o modo** ("173 de 865"), **% do time** (arredondado só com inteiros), valor e observação | — | Como o protótipo |
-| **A observação mostra só o que está gravado:** "+R$ 0,01 de arredondamento" (D9) e a explicação do cálculo (D21). **Sem a etiqueta "Reserva"** do protótipo | Deduzir "reserva" pelos minutos | O resultado não guarda em quantas partidas cada jogador jogou. Pelos minutos, Bia.gg (154, saiu mais cedo numa partida) também seria marcada como reserva. Para mostrar "Reserva" com dado de verdade, o cálculo precisaria gravar as partidas jogadas: está em "Próximos passos" ("jogou X de Y partidas") |
-| Rodapé: "21 jogadores premiados · soma: R$ 10.000,00", com a soma calculada dos dados; com filtro, "1 de 21 jogadores premiados". **Anunciado ao leitor de tela** (`aria-live`) | Texto fixo | O número muda com o filtro |
-| **Filtro por nick** parcial, sem diferenciar maiúsculas e acentos ("sniper" acha xXSniperXx; "vibora" acha Víbora). Sem busca, a tabela mostra os premiados | Busca exata | A Maria lembra do nick pela metade, e os jogadores digitam sem acento |
-| Nick de time sem prêmio: **"Víbora jogou pelo time Serpentes, que ficou em 6º, sem prêmio."** | "jogou pelos Panteras, que ficaram…" | O artigo depende do nome do time ("pelas Águias", "pelos Lobos"), e o sistema não sabe o gênero de cada nome |
-| Nick inexistente: "Nenhum jogador com esse nick neste torneio." | — | — |
-| **Tabelas com legenda e cabeçalhos** (`caption`, `scope`); campo de filtro com rótulo; no celular, as tabelas **rolam dentro da caixa** e a página não alarga | Empilhar as tabelas | As colunas de número se leem melhor lado a lado |
-| Antes do cálculo (409): a frase da API e o botão "Voltar ao torneio" | Página em branco | — |
-| **Os links por time premiado ficam para a etapa 7** | — | Como pedido |
-
-**Testes de componente com o setembro**, montado dos gabaritos de `testes/esperado/`:
-- a classificação com o 3º empatado;
-- a frase do empate;
-- Tuca com R$ 65,90, o centavo e "19 de 865";
-- o filtro parcial e sem acento;
-- o jogador de time sem prêmio e o nick inexistente;
-- a soma de R$ 10.000,00;
-- a coluna de kills no modo kills;
-- o rótulo do filtro e o anúncio do resultado.
-
-**No navegador** (roteiro pelo protocolo de depuração do Edge, contra o Docker): um setembro calculado de verdade, do torneio até o resultado pelo link "Ver resultado", com o filtro, o CSV e o celular.
-
----
-
-## Códigos de acesso e página pública (etapa 7a), 15/10/2026
-
-Só API. Decisões da Adrielly (D11): os códigos nascem no cálculo, um público e um por time premiado, e a página pública mostra só o que é do torneio e dos times. Migration nova: `010_cria_codigos_de_acesso`.
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| **Os códigos são gerados no cálculo, na mesma transação do 6b** (dentro de `gravarResultado`): **um público do torneio** e **um para cada time premiado** (prêmio maior que zero). Times sem prêmio não recebem código: veem a página pública | Gerar ao abrir a tela de links | Nasce junto com o resultado: não existe cálculo sem link nem link sem cálculo. Dois cálculos ao mesmo tempo continuam esperando um pelo outro (6b), então sai um conjunto só (testado com três pedidos juntos) |
-| **24 bytes do gerador criptográfico do Node** (`crypto.randomBytes`, 192 bits) em **base64url**: exatamente **32 caracteres** de letras, números, "-" e "_", que vão na URL sem escape | id do torneio, número sequencial ou `Math.random` | As páginas por link não pedem senha: o código é a única proteção, e quem tem o link vê. Um número em sequência deixaria qualquer um tentar o próximo; `Math.random` não é feito para ser imprevisível |
-| **Código público na própria tabela `calculos`** (`codigo_publico`, obrigatório e único); os dos times numa tabela **`codigos_time`**, ligada à linha do time no cálculo (`premios_time`), também única | Uma tabela só, com o tipo "público" ou "time" | Na tabela única, a coluna do time ficaria vazia no público, e o MySQL não impede dois públicos para o mesmo cálculo com chave única sobre coluna vazia. Assim, o próprio banco garante um público por cálculo e um código por time |
-| Os códigos ficam com **collation binária** (`utf8mb4_bin`) | A collation padrão do banco | Em base64url, "a" e "A" são caracteres diferentes. A padrão ignora maiúsculas: "abc" acharia "ABC", e a chave única recusaria códigos que são diferentes |
-| **Torneios calculados antes desta mudança ganham os códigos na própria migration**: a coluna nasce aceitando vazio, a migration preenche cada cálculo e cada time premiado, e só depois a coluna vira obrigatória | Um script à parte, ou gerar na primeira leitura | Ninguém precisa lembrar de rodar nada, e nenhum cálculo fica sem link. Testado: a migration é desfeita, um cálculo "antigo" é gravado sem código, ela é refeita, e o público e os dois times premiados aparecem |
-| A migration **repete a geração do código** (3 linhas) em vez de importar do domínio | Importar `gerarCodigoDeAcesso` | Uma migration é uma foto: precisa fazer sempre a mesma coisa, mesmo que o domínio mude depois |
-| **`GET /publico/:codigo`**: nome do torneio, data do cálculo, **regras** (prêmio total, percentuais por posição, modo de divisão e o **critério de desempate em texto simples**) e a **classificação** (posição, time, vitórias, kills, prêmio do time e critério) | Devolver o resultado inteiro e a tela esconder os jogadores | A API não pode mandar o que a página não pode mostrar: qualquer um abriria a resposta no navegador e veria os valores (D11) |
-| A página é montada **campo a campo** (`montarPaginaPublica`, função pura), e não "o resultado sem a lista de jogadores" | Tirar `jogadores` do objeto | Se um dia o resultado ganhar um campo novo com dado de jogador, ele não vaza para a página pública sem alguém decidir |
-| **Sem o id interno do torneio** na resposta | Devolver o id | Com o id, dá para chegar às rotas da Maria, que na época não tinham login (limitação da etapa 3b; desde o R3, pedem a senha da organizadora). A página pública não precisa dele |
-| **Só o resultado congelado:** nada é recalculado (teste: mudar o prêmio, os percentuais e o modo no banco depois não muda a página) | — | Mesmo princípio do 6c |
-| **Qualquer erro dá o mesmo 404**, com a mesma frase "Página não encontrada.": código que não existe, fora do formato, com uma letra trocada de maiúscula, o código de um time e o id do torneio. Fora do formato, **nem consulta o banco** | 400 para formato inválido, 409 para "não calculado" | A resposta não pode ajudar quem tenta adivinhar: não diz se o torneio existe nem se o código "quase" acertou |
-| O **código de um time não abre a página pública** | Aceitar os dois | Cada código tem um papel; o link do time é da etapa 7b |
-| Toda resposta de `/publico` leva **`X-Robots-Tag: noindex`**, inclusive o 404 | Só a página de sucesso | Para buscadores não indexarem o link, se ele for colado num lugar público |
-| O **nome** vem do torneio, não do cálculo | Gravar o nome no cálculo | Não existe tela para mudar o nome do torneio; se um dia existir, a decisão volta |
-
-**Testes:**
-- **Domínio:** o código tem 32 caracteres seguros para URL, 10 mil códigos sem repetição, e o formato aceito pela rota; a página pública tem exatamente os campos combinados, sem nick nem valor de jogador.
-- **Integração:** setembro gera 1 código público e 4 de time (Corvos, Falcões, Lobos e Tubarões), todos diferentes; antes do cálculo não existe código; dois cálculos ao mesmo tempo geram um conjunto só; a página de setembro, campo a campo, com o cabeçalho `noindex`; nenhum dos 31 nicks nem valor de jogador na resposta; os 7 tipos de código errado dão o mesmo 404; a migration preenche os cálculos antigos.
-
-**Para a 7b:** a rota do link do time (`/time/:codigo`, com o extrato e o filtro por nick) e a tela da Maria com os links para copiar. Até lá, os códigos só existem no banco.
-
-**Confirmado pela Adrielly:** o código de um time não abre a página pública.
-
----
-
-## Link do time e lista de links (etapa 7b), 15/10/2026
-
-Só API, seguindo o protótipo `docs/prototipo/3-link-do-time.html`. Sem migration: os códigos são os do 7a.
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| **`GET /time/:codigo`**, sem login, só do resultado congelado: nome do torneio, data do cálculo, o time (colocação, prêmio, total de minutos ou kills), **"como foi calculado"** (prêmio total, percentual da posição, critério gravado e modo de divisão), **cada jogador deste time** (nick, minutos ou kills, percentual, valor, centavo de arredondamento e explicação), o **total do time** e o **código público** (para "Ver a classificação completa") | Devolver o resultado inteiro e a tela filtrar | A API não pode mandar o que o link não pode mostrar (D11) |
-| **Nada de outros times**, nem o id interno do torneio. Do empate, só **quantos times dividiram** e **quais posições foram somadas** (Falcões: 3º e 4º, 20% e 0%, 2 times) | A frase do protótipo, "Corvos empatou com Falcões e Tubarões…" | Os nomes dos outros times estão na página pública, a um clique, pelo código público. Assim o link do time não precisa de exceção à regra "nada de outros times" |
-| **Percentual de cada jogador em centésimos de ponto percentual, inteiro** (`centesimosDePercentual`: 220 = 2,20%), com o mesmo arredondamento da tela do resultado (6e) | Mandar o percentual com casas decimais (float) | Sem float de ponta a ponta; a tela só formata |
-| Jogadores **por valor, do maior para o menor, e por nick** no mesmo valor (ordem do protótipo) | A ordem em que o cálculo grava | Quem abre o link procura o próprio nome; a ordem do protótipo é a mais fácil de ler |
-| **Jogador em dois times (D13):** o link de cada time mostra só a linha daquele time, com os minutos e a parte daquele time | Somar as partes | É assim que o cálculo grava (uma linha por time); no 07, Garra aparece nos Leões com 178 minutos e R$ 400,00, e os Ursos, sem prêmio, não têm link |
-| **Mesmas regras do 7a:** qualquer erro dá o mesmo 404 "Página não encontrada.", código fora do formato não consulta o banco, `X-Robots-Tag: noindex`. **O código público não abre a página do time**, nem o de um time abre a pública | Um código que abre as duas | Cada código tem um papel |
-| **`GET /torneios/:id/links`** (tela da Maria): o código público e o de cada time premiado, com posição e prêmio, na ordem da classificação. Antes do cálculo: **409** "O torneio ainda não foi calculado."; torneio inexistente: 404 (as mesmas respostas do 6c) | Montar o endereço completo na API | A API não sabe em que endereço a tela está (localhost na demonstração, um domínio num deploy). A tela monta o link com o próprio endereço |
-| Os códigos são **sempre os mesmos** a cada leitura | Gerar a cada vez | A Maria pode copiar de novo a qualquer momento, e os links já enviados continuam valendo |
-
-### Guardar o código em texto, e não só o hash
-
-Senhas são guardadas só como **hash**, um resumo de mão única: quem lê o banco não descobre a senha, e o sistema confere comparando o resumo. Para os códigos dos links, **escolhi guardar o texto**, porque a Maria precisa **copiar o link de novo a qualquer momento** (perdeu a mensagem, um jogador novo pediu). Com só o hash, o sistema não conseguiria mostrar o link de novo; a única saída seria gerar outro e invalidar o que já foi enviado.
-
-**Por que é aceitável aqui:**
-- **O link é de consulta**: ele só mostra valores que já foram divulgados ao time. Não paga, não muda nada e não dá acesso a outra parte do sistema.
-- **Não é reaproveitado**: uma senha vazada costuma abrir outros sites onde a pessoa usa a mesma senha. O código foi gerado pelo sistema e só serve para este link.
-- **Quem lê o banco já vê tudo**: os valores de todos os jogadores estão nas tabelas do resultado. O código não protege nada que o banco não mostre de outro jeito.
-- **O risco que sobra é o link vazar** (colado no canal geral, por exemplo). Ele se resolve com o "gerar novo link", que está em "Próximos passos".
-
-**Testes:**
-- **Domínio:** a página dos Corvos campo a campo; nenhum nome nem nick de outro time; Falcões com o empate (3º e 4º, 2 times) sem citar Tubarões; time sem prêmio sem página; o percentual só com inteiros.
-- **Integração:**
-  - os Corvos com os 6 jogadores, Tuca com R$ 65,90 e o centavo, e o total de R$ 3.000,00;
-  - nenhum dos 20 nicks e 5 times de fora, nem o id;
-  - Falcões com o empate dividido e 5 × R$ 200,00;
-  - Garra nos Leões só com a parte dos Leões, no cenário 07;
-  - o código público e 6 tipos de código errado dão o mesmo 404;
-  - a lista de links na ordem, os mesmos códigos a cada leitura e o 409 antes do cálculo.
-
-**Para a 7c:** as telas (a página pública, a do link do time com o filtro por nick e os links para a Maria copiar).
-
----
-
-## Tela da página pública (etapa 7c), 15/10/2026
-
-Só web, com a API do 7a (`GET /publico/:codigo`). Rota `/publico/:codigo` na web.
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| A página mostra o **nome do torneio**, **"Calculado em DD/MM/AAAA"** (sem a hora), as **regras em texto simples** ("Como o prêmio foi dividido": prêmio total, percentual de cada posição, como o prêmio é dividido dentro do time e o desempate) e a **classificação** com a frase dos empates | Só a tabela | Sem as regras, o jogador ainda teria que perguntar à Maria por que o time ficou naquela posição |
-| As regras saem do que foi gravado no cálculo (`regrasEmTexto`, função pura com testes): "Os outros times não recebem prêmio." só aparece quando há mais times do que posições premiadas; com menos (D24), uma frase explica que o valor das posições sem time foi dividido igualmente; no modo kills, explica o caso de um time sem kills (D21) | Um texto fixo | Um texto fixo ficaria errado nesses casos, e a tabela pareceria não bater com as regras |
-| **A classificação virou um componente** (`TabelaClassificacao`), usado pela tela do resultado e pela página pública, e os estilos da tabela foram para o `estilos.css` | Copiar a tabela | As duas mostram a mesma classificação; copiada, uma mudança numa poderia não chegar à outra. Os testes do resultado continuam passando sem mudança |
-| **A frase dos empates cita os nomes dos times** (a mesma do 6e) | — | A classificação é pública; no link do time (7b), não |
-| **Página para jogadores:** a rota tem `meta: { publica: true }`, e o `App.vue` esconde o menu "Torneios" e o rodapé "API · Banco de dados", e mostra a marca como texto, não como link para a lista da Maria. A página pública **não consulta a saúde do sistema** | Uma página separada, fora do App | Uma marca na rota resolve com uma peça a menos, e o teste monta o app inteiro para verificar o cabeçalho e o rodapé |
-| **`/publico/` sem código** mostra "Página não encontrada" sem chamar a API: o código é opcional na rota | Deixar como estava | Antes, o endereço caía na regra "qualquer outra rota", que **leva à lista de torneios da Maria** (os testes que falharam antes da implementação mostraram isso) |
-| Código errado (404): **"Página não encontrada"** e "Confira se o link foi copiado inteiro.", sem a palavra "torneio" e sem links | "Torneio não encontrado" | A tela não pode dizer se existe um torneio por trás |
-| Servidor fora do ar ou outro erro: **"Não foi possível carregar"**, com "Tente de novo em alguns minutos." | Tratar como 404 | O jogador acharia que o link está errado e pediria outro à Maria |
-| **`<meta name="robots" content="noindex">` no `index.html`**, valendo para o app inteiro | Pôr o meta só nesta página, por JavaScript | No `index.html` vale também para buscadores que não executam JavaScript. Nenhuma tela do sistema deve aparecer em buscador: as da Maria não tinham login (desde o R3, pedem a senha) |
-| O título da aba é **"Nome do torneio · Classificação"** | O título genérico do app | É o que aparece na aba e no histórico do jogador |
-| No celular, a tabela **rola dentro da caixa**, como no resultado (6e) | Empilhar as linhas | Mantém um jeito só de ler a classificação nas duas telas |
-| **Prêmio logo depois do Time**, nas duas telas (pedido da Adrielly na revisão do 7c) | Prêmio depois das kills | No celular, a primeira tela mostra posição, time e prêmio sem arrastar a tabela: é o que o jogador procura |
-| **"Premia 3 posições: 1º 50% · 2º 30% · 3º 20%"** (`descreverPosicoesPremiadas`) **na linha do título "Classificação"**, à direita, em texto secundário (no celular, desce para baixo do título). O título e a frase ficam dentro do componente compartilhado, então valem nas duas telas, e a frase aparece uma vez só na tela do resultado. Na página pública, aparece também nas regras | Só os percentuais; a frase no cabeçalho da página do resultado | Deixa claro quantas posições pagam, e por que um time em 3º pode ficar sem prêmio (num torneio 50/50). Junto da tabela, fica onde o jogador olha para entender o prêmio |
-| **Posição com 0% não conta como premiada** (50/50/0 = "Premia 2 posições") | Contar todas as posições configuradas | Os percentuais aceitam 0 (a validação só recusa negativos). Uma posição que não paga não é premiada; a frase dos empates já usava essa conta para saber quais posições pagavam. Muda só o texto, não o pagamento. **Confirmado pela Adrielly** |
-| Empate fora das posições premiadas: **"Falcões e Tubarões empataram também em kills (310) e ficaram em 3º. Este torneio premia só 2 posições."** | "…ficaram em 3º, sem prêmio." | Sem dizer quantas posições pagam, o jogador acharia que o 3º lugar deveria receber |
-| O **"—"** do prêmio de um time sem prêmio fica escondido do leitor de tela (`aria-hidden`), que lê **"sem prêmio"** (texto `visualmente-oculto`) | `aria-label` no `<span>` | O leitor de tela diria "travessão". E um `aria-label` num `<span>` sem papel nem sempre é lido: o texto escondido funciona em todos |
-
-**Ajustes da revisão, testados** com setembro em 50/30/20 e em 50/50 (unidade e componente, nas duas telas), mostrando antes que falhavam (17 testes).
-
-**No Docker de verdade:** a API foi reconstruída, e a **migration 010 rodou no banco de desenvolvimento**, que tinha 5 torneios calculados antes dela. Os 5 ganharam o código público (32 caracteres) e um código por time premiado: 14 códigos, todos diferentes. A página pública abriu pelo link real de dois deles: o setembro (50/30/20) e um setembro calculado em 50/50, com "Premia 2 posições" e a frase nova do empate. Abriu também um código errado e a tela do resultado. Em 375 px e 1280 px, sem rolagem lateral, com `noindex` e sem links nas páginas públicas.
-
-**Testes:**
-- **Unidade das regras:** setembro, o modo kills, todos os times premiados e menos times do que posições.
-- **De componente, montando o app inteiro:**
-  - setembro com o 3º empatado, a frase do empate e o título da aba;
-  - a tabela com legenda e cabeçalhos;
-  - nenhum dos 31 nicks nem valor de jogador na tela;
-  - só o pedido da página pública à API;
-  - nenhum link, sem menu nem rodapé, e as telas da Maria continuam com os dois;
-  - o 404 sem a palavra "torneio", o endereço sem código e o servidor fora do ar;
-  - o `noindex` no `index.html`.
-
-**No navegador** (Edge sem janela, pelo protocolo de depuração, com o Vite local e uma API falsa que devolve o setembro, sem mexer no Docker): em 375 px e em 1280 px, sem rolagem lateral, com o `noindex`, nenhum link e o título da aba certo; o mesmo na página não encontrada.
-
----
-
-## Link do time e links na tela do resultado (etapa 7d), 15/10/2026
-
-Só web, com a API do 7b (`GET /time/:codigo` e `GET /torneios/:id/links`). Rota `/time/:codigo` na web, seguindo o protótipo `3-link-do-time`.
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| A página do time é **para jogadores, como a pública** (`meta: { publica: true }`): sem menu, sem rodapé, e o **único link é "Ver a classificação completa do torneio"**, para `/publico/:codigoPublico` | — | Mesma regra do 7c (D11) |
-| Topo: "Torneio · link do time" e o nome do time; **resumo** (o quadro escuro do protótipo, com as cores do cabeçalho) com colocação, prêmio do time e total de minutos (ou kills) do time | — | Como o protótipo |
-| **"Como o valor foi calculado" em passos montados dos dados** (`passosDoCalculo`, função pura): prêmio total e percentual da posição; o critério; a divisão dentro do time; o arredondamento | A frase do protótipo, "Corvos empatou com Falcões e Tubarões…" | A API não manda os outros times (7b). Os nomes estão na página pública, a um clique |
-| O **valor da posição** ("O 2º lugar leva 30%: R$ 3.000,00") só aparece quando é mesmo o prêmio do time: o percentual cortado no centavo, ou um centavo a mais (o maior resto entre as posições, D20). Se o time recebeu mais, o torneio teve menos times do que posições (D24), e o passo explica | Mostrar sempre o percentual vezes o prêmio | Com D24, "leva 50%: R$ 5.000,00" seria falso: o time recebeu R$ 6.000,00 |
-| No **empate dividido**: "Falcões empatou em vitórias e em kills com mais 1 time: os prêmios do 3º e do 4º lugar (20% e 0%) foram somados e divididos igualmente entre os 2 times. O prêmio do time ficou em R$ 1.000,00." | "R$ 1.000,00 para cada" | Um time empatado pode ter recebido um centavo a mais que o outro (D9); a frase fala só do prêmio deste time |
-| No **desempate por kills**: "Houve empate em vitórias; o desempate foi pelas kills do time, e Corvos ficou em 2º." | "Ficou em 2º por ter feito mais kills" | Todos os times do grupo recebem esse critério, quem ficou na frente e quem ficou atrás; a frase é verdadeira para os dois |
-| No **modo kills com um time sem kills** (D21), o passo diz que o prêmio foi dividido pelos minutos | — | O cartão de cada jogador também traz a explicação gravada |
-| **Um cartão por jogador**, do maior valor para o menor (a ordem da API), com a conta "173 de 865 minutos (20,00%) × R$ 3.000,00" (ou kills) e o valor; quem recebeu o centavo tem o cartão destacado e o texto "Recebeu R$ 0,01 de arredondamento: era o jogador do time mais perto de receber o centavo que sobrou." | O "= R$ 65,895 → R$ 65,90" do protótipo | O valor exato não vem da API; recalcular na tela seria fazer conta de dinheiro fora do cálculo |
-| **Sem a etiqueta "Reserva"** e sem "dividiu a partida da rodada 2 com Tuca" | Deduzir pelos minutos | O cálculo não grava as partidas de cada jogador (ver "Próximos passos": "jogou X de Y partidas") |
-| **"Procurar meu nick"** parcial, sem diferenciar maiúsculas e acentos, com o resultado anunciado ao leitor de tela ("1 de 6 jogadores"); "Total do time" continua sendo o do time inteiro | Somar só os filtrados | O total é o prêmio do time, não da busca |
-| Código errado ou vazio: **o mesmo "Página não encontrada" do 7c** (componente `AvisoDaPaginaPorLink`, usado pelas duas páginas) | Copiar o texto | As duas páginas falam do mesmo jeito |
-| **"Links para os times premiados"** no fim da tela do resultado: o link da página pública e um por time premiado (nome, posição e prêmio), com o endereço completo montado com `window.location.origin` | Montar o endereço na API | A API não sabe em que endereço a tela está (7b) |
-| **"Copiar link"** usa a área de transferência do navegador; cada botão tem um nome acessível próprio ("Copiar link do time Corvos"). Ao copiar, **"Link copiado"** aparece ao lado do botão, numa região que o leitor de tela anuncia, e some depois de alguns segundos | Um aviso só no topo da seção | Fica junto do que foi copiado |
-| **Se a área de transferência falhar** (o navegador nega, ou nem oferece, como num endereço sem https fora do localhost), o link aparece **num campo já selecionado e com o foco**, com "copie com Ctrl+C (no celular, toque e segure)" | Só mostrar um erro | A Maria consegue mandar o link mesmo assim. No Edge sem janela, o navegador negou a cópia (o clique veio de um script), e o campo apareceu como esperado |
-| O endereço também é **um link que abre em outra aba** | Só texto | A Maria confere a página antes de mandar |
-
-**Testes:**
-- **Unidade das regras:**
-  - os passos de Corvos, Falcões e Lobos;
-  - o valor da posição com o maior resto, o caso D24 e o modo kills (com e sem kills no time);
-  - a conta de cada cartão, o filtro e o endereço do link.
-- **Componente do link do time** (montando o app inteiro):
-  - os 6 jogadores dos Corvos na ordem, Tuca com R$ 65,90 e o texto do centavo, e o total de R$ 3.000,00;
-  - o filtro parcial com o anúncio, e o nick de fora do time;
-  - o único link, para a página pública, sem menu nem rodapé;
-  - o 404 e o endereço sem código.
-- **Componente da tela do resultado:**
-  - os 5 links com o endereço completo e um nome acessível para cada botão;
-  - "Copiar link" copia o endereço certo e mostra "Link copiado" só naquele item;
-  - a falha e a falta da área de transferência mostram o campo selecionado e com foco;
-  - a falha ao carregar os links não derruba a tela.
-
-**No navegador** (Edge sem janela, pelos links reais do Docker): o link dos Corvos e o dos Falcões, em 375 px e 1280 px, sem rolagem lateral, com `noindex` e um link só; o código público usado como código de time dá "Página não encontrada"; a seção dos links na tela do resultado, com o campo para copiar à mão. A primeira foto mostrou o botão "Copiar link" desalinhado no celular, com o espaço vazio do aviso empurrando o botão; agora o aviso só ocupa espaço quando tem texto, e no celular o botão fica sempre abaixo do nome.
-
----
-
-## Melhorias, parte 1 (M1): lista por mês, filtros e coluna Pago, 15/10/2026
-
-Decisões da Adrielly: a lista agrupada por mês, os filtros de mês e de divisão, o total do mês no cartão e a coluna "Pago" no CSV. A API da lista ganhou a data da primeira partida; sem migration.
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| **O mês do torneio é o da primeira partida da planilha** (a menor data das linhas, `primeiraPartidaEm` em `GET /torneios`); sem planilha, o da criação, no fuso da tela | O mês da criação ou do cálculo | É quando o torneio aconteceu. A planilha nova (D22) muda a data (testado) |
-| A data vem das **linhas da planilha**, não das partidas | `partidas.data` | É o que a Maria digitou. Hoje as duas são iguais (o job não muda a data), mas "da planilha" é a regra |
-| **"Em andamento" sempre no topo, de qualquer mês**; abaixo, um grupo por mês, do mais recente para o mais antigo, só com os calculados | Pôr o torneio em andamento no grupo do mês dele | Um torneio de um mês anterior que ainda não terminou não pode sumir num grupo recolhido. **Sem arquivamento automático na virada do mês** |
-| **O mês atual aberto, os anteriores recolhidos**, mostrando "N torneios · R$ total" (a soma dos prêmios do grupo) | Todos abertos | A lista cresce todo mês; o recolhido ainda diz quanto foi pago |
-| Os grupos são **`<details>`/`<summary>`** do navegador, com uma seta que gira (sem animação para quem pede menos movimento) | Botões e JavaScript próprios | Abrir e fechar pelo teclado e o anúncio "recolhido/expandido" já vêm prontos. O `display: flex` do título escondia o triângulo padrão: a primeira foto no navegador mostrou isso, e a seta entrou no lugar |
-| **Com busca ou um mês escolhido, todos os grupos abrem**, e os grupos sem resultado somem | Manter recolhidos | O torneio procurado não pode ficar escondido num mês fechado |
-| **Um conceito só de mês na tela toda: o mês do torneio** (primeira partida; sem planilha, a criação). O grupo, o seletor e o cartão usam o mesmo | Somar o cartão pela data do cálculo | **Corrigido pela Adrielly na aprovação da M1** (o pedido anterior dizia "pela data do cálculo"). Com dois conceitos, o cartão "Prêmios calculados em setembro" não batia com o "R$ total" do grupo de setembro: o setembro calculado em outubro contava em outubro no cartão e em setembro no grupo |
-| **Seletor de mês** com "Todos os meses" e **só os meses dos torneios** | Pôr também os meses dos cálculos | Com um conceito só de mês, um mês sem torneio não tem o que mostrar |
-| O **filtro de mês vale para os em andamento também** (pelo mês das partidas) | Mostrar sempre todos os em andamento | Escolher agosto mostra o torneio de agosto que ainda está em andamento, e nada mais |
-| **"Divisão: Todas, Minutos, Kills"**, botões com `aria-pressed` num grupo com nome | — | Os filtros se combinam: situação, divisão, mês e busca |
-| As **contagens das abas de situação** seguem os outros filtros | Contar sempre a lista inteira | O número bate com o que aparece. O cartão "Em andamento" continua com o total geral |
-| **Cartão "Prêmios calculados"**: com um mês escolhido, "Prêmios calculados em setembro", a soma dos torneios **calculados daquele mês do torneio**, igual ao "R$ total" do grupo do mês (testado: o setembro calculado em outubro conta em setembro); com "Todos os meses", o total geral. O ano aparece só quando não é o do mês atual ("em dezembro de 2025") | A data do cálculo | Ver a linha do conceito único de mês. O ano evita confundir dezembro de 2025 com o de 2026 |
-| **CSV: coluna "Pago" vazia no final**, para a Maria marcar no Excel | Controlar o pagamento no sistema | O sistema não controla pagamento (D12); o "Pago" no sistema está em "Próximos passos" |
-| O cartão de cada torneio virou um componente (`CartaoDoTorneio`) | Repetir o cartão | Aparece no grupo "Em andamento" e em cada mês |
-
-**Testes:**
-- **API (integração):** a primeira partida de setembro é 05/09, sem planilha vem `null`, e a planilha nova muda a data; o CSV com o cabeçalho e as linhas com a coluna "Pago" vazia.
-- **API (unidade):** a coluna "Pago" no CSV.
-- **Web (unidade):**
-  - o mês pela primeira partida, e sem planilha pela criação, no fuso;
-  - o agrupamento, com "Em andamento" no topo e o mês atual aberto;
-  - o resumo do grupo, "N torneios · R$";
-  - os filtros juntos, os meses do seletor (só os dos torneios), o total pelo mês do torneio, igual ao do grupo, e o rótulo do cartão.
-- **Web (componente, com o relógio fixo em 15/10/2026):**
-  - o torneio de agosto em andamento no topo, e os grupos de outubro (aberto) e setembro (recolhido, "2 torneios · R$ 15.000,00");
-  - o filtro de mês, que abre o grupo, e o de divisão;
-  - a busca, que abre o mês recolhido;
-  - o total do mês no cartão.
-
-**No navegador** (Docker, com os torneios reais do banco): a lista em 1280 px e em 375 px, sem rolagem lateral; outubro aberto, setembro recolhido com "3 torneios · R$ 30.000,00".
-
----
-
-## Melhorias, parte 2 (M2): remover torneio não calculado, 15/10/2026
-
-Decisões da Adrielly (plano, seção 9): remover só antes do cálculo, com confirmação, e voltar para a lista com o aviso. Sem migration: as tabelas do torneio já apagam em cascata.
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| **`DELETE /torneios/:id`, só antes do cálculo** (204). **Calculado: 409** "Torneio calculado não pode ser removido: o resultado é o registro do pagamento." Inexistente ou id inválido: 404 | Permitir sempre, ou "lixeira" | Depois do cálculo, o resultado prova o que foi pago e os links dos times podem ter sido enviados; o caminho para um torneio antigo é arquivar ("Próximos passos") |
-| **Numa transação, com o torneio travado primeiro** (`SELECT ... FOR UPDATE`), na mesma ordem das outras gravações: torneio, partidas (as linhas da planilha e as participações saem em cascata), Cientes, torneio | Só `DELETE FROM torneios` e deixar a cascata apagar tudo | O resultado seria o mesmo, mas apagar na ordem das travas é a lição do 4b, e é o mesmo caminho da troca de planilha (D22). **Testado:** remover e calcular ao mesmo tempo, um espera o outro (ou remove e o cálculo não acha o torneio, ou calcula e a remoção é recusada); dois pedidos de remoção, um 204 e um 404 |
-| **Consulta do job em andamento:** o resultado é **descartado pelo recibo** | Parar o job antes | O job grava travando o torneio e conferindo o recibo da partida, que não existe mais (o mesmo caso da planilha trocada, D22). **Testado:** o site responde depois da remoção, o job conta a partida como descartada, sem erro, e nenhuma participação é gravada |
-| **"Remover" no cartão da lista e "Remover torneio" no topo da página do torneio**, este discreto (em texto, ao lado do nome) | Só na página do torneio | Na lista, a Maria limpa os testes e os criados por engano sem abrir cada um. No topo da página, discreto, para não competir com as ações da conferência |
-| **Depois do cálculo, o botão não existe** (não fica só desabilitado) | Botão desabilitado com explicação | Não há o que a Maria possa fazer para habilitar. Mostrar um botão morto só confunde |
-| **Modal:** título "Remover o torneio “NOME”?", o texto "A planilha, a conferência e os Cientes serão apagados. Isso não pode ser desfeito.", e os botões "Cancelar" e "Remover torneio" (em vermelho). O mesmo `DialogoConfirmacao` das outras confirmações: **foco começa no "Cancelar"**, preso dentro do modal, e **Esc fecha** | Um "Tem certeza?" sem dizer o que se perde | O nome evita remover o torneio errado; dizer o que é apagado deixa claro que não volta |
-| **Sem clique duplo:** a trava é ligada antes de qualquer espera; a API também trava | Só desabilitar o botão | Mesmo cuidado do "Calcular" (6d); testado com dois cliques juntos |
-| **409 no modal** (o torneio foi calculado em outra aba): a frase da API aparece no modal, e o torneio continua na lista | Fechar o modal em silêncio | A Maria entende por que não removeu |
-| **404 conta como removido** na tela | Mostrar erro | Outra aba já removeu: é o que a Maria queria |
-| **Na lista:** o cartão some, e aparece **"Torneio removido."** (`role="status"`, anunciado), com o foco nele. **Na página do torneio:** a atualização automática para, e a tela volta para a lista, que mostra o mesmo aviso | Deixar o foco onde estava | O botão clicado sumiu junto com o cartão (ou com a página); sem levar o foco, o teclado e o leitor de tela ficariam perdidos |
-| O aviso da página do torneio para a lista vai por um **recado de uma vez só** (`aviso-da-lista.ts`: a página deixa, a lista pega e apaga) | Parâmetro na URL (`?removido=1`) | Na URL, o aviso voltaria ao recarregar a página ou ao usar o "voltar" do navegador |
-
-**Testes:**
-- **API (integração):**
-  - remove antes do cálculo e some tudo do banco (partidas, linhas, participações e Cientes), e os outros torneios ficam;
-  - remove também um torneio sem planilha;
-  - 409 depois do cálculo, sem apagar nada; 404 para inexistente e id inválido;
-  - dois pedidos ao mesmo tempo, e remover e calcular ao mesmo tempo;
-  - a remoção durante a consulta do job.
-- **Web (componente):**
-  - "Remover" só no torneio não calculado, e o botão ausente no calculado;
-  - o modal com o nome, o texto, o foco no "Cancelar" e um rótulo só dele;
-  - "Cancelar" e Esc fecham sem remover; o clique duplo gera um pedido só;
-  - o 409 mostra a frase no modal;
-  - na lista, o cartão some e o aviso aparece com o foco;
-  - na página do torneio, remover volta para a lista com o aviso, e o botão não existe no calculado.
-
-**No navegador** (Docker, com os torneios reais, abrindo o modal sem confirmar): o "Remover" nos cartões em andamento, em 1280 px e 375 px; o "Remover torneio" discreto no topo; o modal no celular com o foco no "Cancelar"; nenhum botão no torneio calculado; nenhuma rolagem lateral. Os 12 torneios continuaram no banco.
-
----
-
-## Testes de integração com um relógio só, 15/10/2026
-
-**O problema:** um teste de `repositorios.test.ts` falhava de vez em quando. A partida nasce com o `NOW()` do MySQL, e o teste comparava esse horário com o `Date.now()` do Node. Os testes rodam no Windows e o MySQL no Docker, e os dois relógios chegam a ficar mais de 1 s diferentes. O mesmo padrão estava escondido em 8 arquivos: o "agora" do job era `Date.now() + 2 s`, e o job só pega a partida cuja próxima tentativa (gravada com o relógio do MySQL) já chegou. Com o MySQL mais de 2 s à frente, a partida não seria pega.
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| **Nos testes, tudo que conversa com horários do banco usa o relógio do MySQL:** `horaDoBanco` (`SELECT NOW(3)`) para comparar, e `relogioDoBanco`, que mede uma vez quanto o MySQL está à frente ou atrás do Node e anda junto com ele, para o "agora" do job, da API e da correção de ID | Aumentar a folga | A folga só adia o problema: o desvio do relógio do Docker no Windows não tem limite |
-| O teste original passou a ter **limites exatos, sem folga**: o horário gravado fica entre o segundo cheio de antes da inserção e a hora de depois | Uma margem de meio segundo para cada lado | O `NOW()` sem casas decimais **corta** a fração do segundo, em vez de arredondar (a primeira versão da correção supôs o arredondamento e falhou em 3 de 5 rodadas) |
-| O teste do "tentar agora" continua com o relógio do Node | Trocar também | Ali o teste regrava o horário de todas as partidas com o mesmo "agora" da API: um relógio só |
-
-**A prova:**
-- **Sem desvio:** a integração rodou 5 vezes seguidas, todas com 152 de 152.
-- **Com desvio simulado:** rodou de novo com o relógio do Node deslocado 5 s para frente e 5 s para trás, bem acima da folga antiga, e passou nas duas. Um teste temporário confirmou que o desvio valia dentro dos testes.
-
-**Observação sobre o código da API (resolvida no R2a, em "Correções do code review"):** a importação grava a próxima tentativa com o relógio do MySQL, e o job e a correção de ID usam o do Node. No Docker, a API e o MySQL rodam na mesma máquina virtual e têm o mesmo relógio, então não há problema em produção. Ainda assim, um relógio só também no código seria mais simples de explicar: a importação passaria a gravar o "agora" da API.
-
----
-
-## Correções do code review
-
-O code review de 15/10/2026 está em `code-review.md`. As correções entram em pedaços pequenos, cada um com testes vistos falhando antes.
-
-### R1a: limites na entrada da planilha (itens 2, 12 e 13), 15/10/2026
-
-**O problema:** a leitura aceitava texto de qualquer tamanho e números até 9×10¹⁵. O MySQL, em modo estrito, recusava o INSERT, e a Maria via "Erro inesperado no servidor. Tente de novo." (500), sem a linha do Excel. Tentar de novo não resolvia. O mesmo valia para a correção do ID. Os testes pela rota reproduziram o 500 antes da correção.
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| **Limites num lugar só** (`LIMITES`, em `api/src/dominio/planilha.ts`), usados pela leitura e pela correção do ID: nick e time até 80 caracteres, coluna Partida até 200, ID até 19 dígitos, minutos e kills de 0 a 100.000 | Validar só no banco e traduzir o erro do MySQL | O erro do banco chega depois da leitura: perderia a linha do Excel e a regra de juntar todos os erros (D18) |
-| A mesma frase das outras validações, com a linha e a coluna: "O nick pode ter até 80 caracteres. Este tem 81." | Uma frase genérica ("valor grande demais") | A Maria precisa saber o que mudar e onde |
-| Caracteres **contados como o MySQL conta** (por caractere, não pelo `.length` do JavaScript) | `texto.length` | Um emoji no nick conta 2 no JavaScript e 1 no MySQL: o limite não bateria com a coluna |
-| Número só com dígitos, mas acima do limite ou longo demais até para o JavaScript: **a frase do limite** | "Precisa ser um número inteiro" | "99999999999999999999" é um número inteiro; a frase confundiria |
-| **Rodada limitada à capacidade da coluna** (`INT UNSIGNED`, 4.294.967.295), com "A rodada é grande demais" | Um limite realista (ex.: 100 rodadas) | Não estava na lista de limites; um limite realista seria regra de negócio a decidir. O técnico só garante que nada vira 500 |
-| **Ano da data de 2000 a 2100**: "O ano da data precisa estar entre 2000 e 2100" | Aceitar qualquer ano de 4 dígitos | `01/01/0001` entrava no banco, e `01/09/0226` (um "2" no lugar errado) também passaria |
-| **Arquivo do Excel (.xlsx)**, reconhecido pelos 4 primeiros bytes (`PK`, 3, 4: todo .xlsx é um ZIP), recebe **uma frase só**: "Este arquivo é do Excel (.xlsx). No Excel, use Salvar como → CSV UTF-8 (separado por vírgulas)." | Deixar a leitura seguir | O .xlsx era lido como texto em Windows-1252 e dava nove "Falta a coluna", sem dizer o que fazer. É o erro mais provável de uma usuária não técnica |
-
-**Os testes:** um por limite e por caso, com os números escritos por extenso (mudar a constante sem querer faz o teste falhar), mais as bordas que precisam continuar passando (80 caracteres, 19 dígitos, 100.000, anos 2000 e 2100, um CSV que começa com as letras "PK"). Pela rota, cada caso responde 400 com a linha e nada é gravado, e a correção do ID com 30 dígitos responde 400 e mantém o ID antigo.
-
-### R1b: coerência da resposta do site e erro de regra no cálculo (itens 3 e 4), 15/10/2026
-
-**O problema:** o site respondia no formato certo, mas com dados que não fechavam, e o sistema aceitava. Com o vencedor `"lobos"` e os times `"Lobos"` e `"Corvos"`, a classificação criava um time fantasma com 1 vitória e sem jogadores, e o cálculo parava com "Erro inesperado no servidor". Pelo desenho (D3, D16), a Maria **não tem como corrigir**: o site é a verdade e ela só edita o ID. O torneio ficaria travado para sempre.
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| **A resposta precisa fechar** (`superRefine` no esquema do cliente): o vencedor é um dos dois times; o time de todo jogador é um dos dois; cada time tem ao menos um jogador; o ID respondido é o consultado; os dois times não têm o mesmo nome | Validar só o formato | Dado incoerente do "site instável" chegava ao cálculo e travava o torneio sem saída |
-| Fora disso: **`resposta_invalida`**, que já é tentada de novo, com a frase na aba "Aguardando o site": "O site oficial respondeu dados que não fecham: o vencedor "lobos" não é nenhum dos dois times (Lobos x Corvos)." | Gravar a partida como conferida e avisar nas pendências | Não há o que a Maria possa fazer com um dado incoerente; esperar o site responder certo é o mesmo caminho de quando ele está fora do ar (D10) |
-| Nomes comparados **exatamente como o site escreveu** | Sem acentos e maiúsculas, como entre planilha e site (D19) | A D19 tolera a digitação da Maria. Dentro da própria resposta do site, "lobos" e "Lobos" no mesmo JSON é o site se contradizendo |
-| O esquema do site ganhou **os limites da planilha** (R1a): nick e time até 80 caracteres, minutos e kills até 100.000 | Deixar como estava | Um nick do site com 81 caracteres daria 500 ao gravar as participações: é o mesmo problema do R1a, pelo outro lado |
-| Primeiro o formato, depois a coerência: com um campo errado, a frase diz só "fora do formato (campos: ...)" | As duas listas juntas | Com um campo errado, a coerência não diz nada útil |
-| **`ErroDeRegra`** no domínio, só para as frases escritas para a Maria (time premiado sem minutos nem kills; percentuais que não somam 100; nenhum time). O cálculo captura e a rota responde **409 com a frase** | Responder todo erro do cálculo com 409 | Proteções de programação (valor que não é inteiro, nome repetido) são bug: o 500 é a resposta certa para elas, e o teste confere que continuam assim |
-| O cálculo monta o resultado **antes** de gravar qualquer coisa: com um `ErroDeRegra`, nada fica pela metade | Desfazer o que foi gravado | Não há o que desfazer; a ordem já garante |
-
-**A tela não muda (R1b):** no 409 do cálculo, ela já recarrega e mostra a frase da API num aviso âmbar (6d).
-
-**Os testes:** cada regra de coerência com o seu caso, incluindo o vencedor `"lobos"`; os limites; as 148 partidas dos dados do simulador, que continuam todas válidas; de ponta a ponta, o job deixa a `#48450` incoerente "aguardando o site", com o motivo e a próxima tentativa, e confere as outras 14; e o cálculo de setembro com os Lobos sem minutos nem kills responde 409 com a frase, sem gravar nada (antes, 500).
-
-### R1c: ajustes pequenos (itens 10, 15 e 18), 15/10/2026
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| **CSV:** célula que começa com tab (`\t`) ou `\r` também ganha o apóstrofo, como `=`, `+`, `-` e `@` (lista da OWASP) | Só os quatro sinais | O Excel também interpreta como fórmula o que vem depois de um tab ou `\r` no início da célula |
-| **`calcularEGravar` saiu do serviço** e virou um auxiliar de teste (`api/test/integracao/calcular-sem-trava.ts`) | Fazê-la chamar `calcularTorneio` | Os testes do 6a usam a função para conferir a montagem e a gravação em torneios que nem sempre estão prontos; passar pela trava mudaria o que eles provam. No serviço, exportada, ela calculava sem trava e sem conferir pendências: alguém poderia chamá-la de uma rota |
-| **`app.disable('x-powered-by')`** | `helmet` | Uma linha resolve o que o review apontou; `helmet` traria uma lista de cabeçalhos para uma API que não serve páginas |
-
-**Status que vieram do rascunho do banco e nunca são gravados** (ficam no `enum`, sem uso):
-- **Torneio:** `conferindo` e `pronto`. O torneio passa de `criado` a `importado` e depois a `calculado`. Se ele "pode calcular" é calculado na hora (5c), e não gravado.
-- **Partida (`status_conferencia`):** `times_diferentes`. "Times diferentes" é um **tipo de pendência**, que sai da comparação na hora (D19); a partida fica `conferida`. O serviço de pendências só lê esse valor, por segurança.
-- **Por que não foram removidos:** tirar um valor de um `enum` exige uma migration que altera a coluna, e o ganho é só de limpeza. Fica em "Próximos passos".
-
-### R4: "Limpar filtros" na lista de torneios, 15/10/2026
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| O botão **aparece só com algum filtro fora do padrão** (situação, divisão, mês ou busca) e some quando tudo volta ao padrão | Sempre visível | Um botão que não faz nada no estado padrão confunde; aparecer é o sinal de que há filtro ligado |
-| O padrão fica **numa constante só** (`PADRAO`), usada para começar a página e para limpar | Os valores iniciais repetidos no botão | Se o padrão de um filtro mudar, o botão continua voltando ao lugar certo |
-| Ao limpar, **o foco vai para o primeiro filtro** ("Todos", da situação) | Deixar o foco onde estava | O botão some ao ser clicado: o foco cairia no começo da página e quem navega pelo teclado perderia o lugar |
-| **Anúncio ao leitor de tela** num `role="status"` próprio, fora do botão: "Filtros limpos: 3 torneios." | Contar com o `aria-live` da lista | A lista inteira seria lida de novo; a frase curta diz o que aconteceu e quanto apareceu |
-| Fica **junto dos filtros**, e no celular ocupa a largura toda, como eles | Num lugar à parte | É uma ação sobre os filtros |
-
-### R2a: fuso e relógio (seção "Os dois itens que você já conhecia"), 15/10/2026
-
-**O risco era o fuso, não só o desvio.** A seção "Testes de integração com um relógio só" falava do desvio entre os relógios do Node e do MySQL e concluía que "no Docker não há problema". O review mostrou um risco maior: o `timezone: 'Z'` do mysql2 só diz como converter as datas do JavaScript; o `NOW()` e o `CURRENT_TIMESTAMP` usam o **fuso da sessão do MySQL**. No contêiner, a sessão é UTC por acaso; num MySQL configurado em `-03:00`, os horários gravados por ele saem **3 horas errados**. O teste reproduziu isso: com o servidor em `-03:00`, o horário de criação do torneio ficou exatamente 10.800.000 ms (3 h) atrás da hora real, e a próxima tentativa das partidas saiu com o relógio do MySQL, e não com o da API.
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| **Sessão do MySQL fixada em UTC** em toda conexão nova do pool (`SET time_zone = '+00:00'`, no `afterCreate`) | Confiar na configuração do servidor | Um MySQL gerenciado, ou instalado no computador da Maria, pode vir em `-03:00`. O horário de criação define o "mês do torneio" sem planilha (M1) e erraria perto da virada do mês |
-| **Um relógio só no código:** a importação recebe `agora`, o mesmo relógio do job e da correção de ID, e grava com ele a primeira tentativa das partidas e o horário da importação, em segundos inteiros | A primeira tentativa vir do padrão `NOW()` da coluna | Com dois relógios, o job (relógio da API) e a importação (relógio do MySQL) podiam discordar sobre se a partida "já está pronta". Um relógio só é mais simples de explicar e de testar |
-| O `created_at` continua com o `CURRENT_TIMESTAMP` do banco | Gravá-lo também com o relógio da API | Com a sessão em UTC ele sai certo, e mudar todas as tabelas seria uma mudança grande para o mesmo resultado |
-
-**Os testes:** um teste de integração põe o servidor em `-03:00` (fuso global, com o root), abre uma conexão nova e confere: a sessão é UTC; a importação grava a primeira tentativa e o horário da importação com o `agora` recebido; o `created_at` bate com a hora real (segundos desde 1970, que não dependem de fuso). O fuso global original volta no fim, mesmo se o teste falhar, porque vale para o servidor todo. Os testes que importam direto passaram a dar à importação o mesmo relógio do job, e o teste "nasce agora" do repositório compara o valor exato, sem precisar da hora do MySQL.
-
-### R2b: "R$" com espaço que não quebra, 15/10/2026
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| Entre "R$" e o número, um **espaço que não quebra** (U+00A0), no formatador da web | `white-space: nowrap` nas células de valor | Resolve a tabela, mas não as frases do link do time, que também têm valores |
-| No código, o caractere vai como `String.fromCharCode(0x00a0)`, com nome | Escrever o caractere | Ele é invisível e igual ao espaço comum: ninguém saberia qual dos dois está ali (o mesmo problema que já apareceu num regex) |
-| Os testes comparam o texto **como se lê**, com espaço comum: os de componente leem a tela sempre por `textoDe(…)`, e os de domínio passam o valor por `comEspacosComuns(…)` (`web/test/ajudantes/espacos.ts`) | Escrever o espaço que não quebra nos textos esperados | Espalharia o caractere invisível por dezenas de testes. Um teste próprio confere que o formatador usa mesmo o U+00A0 |
-| O **CSV não muda** | Usar o mesmo formatador | O CSV tem o seu formato (sem "R$" e sem ponto de milhar, para o Excel somar) |
-
-Colar o valor formatado de volta no campo do prêmio continua funcionando: a leitura já aceitava qualquer espaço depois do "R$".
-
-### R3: senha única da organizadora (item 1, crítico), 15/10/2026
-
-**O furo:** sem login, a garantia da D11 ("só quem recebeu o link vê os valores do time") não valia. Qualquer pessoa que chegasse à API podia ler `GET /torneios/:id/links` e ter os códigos de todos os times, ou ler `GET /torneios/:id/resultado` com o valor de cada jogador. Também podia criar, remover e calcular torneios. Os testes reproduziram isso antes da correção: sem senha, as rotas respondiam 200, e criar torneio respondia 201.
-
-**Decidido pela Adrielly:** uma senha única no `.env` (`ADMIN_SENHA`), exigida em tudo, menos `/saude`, `/publico/*` e `/time/*`. **Não é login:** não há usuário, cadastro nem recuperação. Para trocar a senha, edita-se o `.env` e reinicia-se a API.
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| **A API não sobe sem `ADMIN_SENHA`**, com a frase do que fazer. Mínimo de 8 caracteres, sem acento e sem espaço nas pontas | Um padrão no código | Uma senha padrão no código vale para todo mundo que baixar o repositório. **Sem acento:** o navegador não manda acento num cabeçalho HTTP, e a senha nunca bateria. **Sem espaço nas pontas:** o espaço se perde no caminho, pelo mesmo motivo |
-| No `docker-compose.yml`, o padrão é **a senha de demonstração** do README (`organizadora-demo`), como os outros valores | Exigir o `.env` (`${ADMIN_SENHA:?}`) | Quebraria o "um comando para subir" do desafio. A senha de demonstração é pública: **fora da demonstração, troca-se no `.env`**, e o README e o `.env.example` dizem isso |
-| Cabeçalho **`Authorization: Bearer <senha>`**, e não cookie | Cookie de sessão | O cookie exigiria uma rota de entrada, uma sessão guardada e proteção contra CSRF (outro site mandando pedidos com o cookie da Maria). O cabeçalho só vai quando o código da tela o põe |
-| Comparação com **`crypto.timingSafeEqual` sobre o resumo SHA-256** das duas senhas | `===` | O `===` para no primeiro caractere diferente: medindo o tempo, dá para descobrir a senha aos poucos. O resumo tem sempre 32 bytes, então a comparação também não conta o tamanho da senha |
-| As rotas abertas são montadas **antes** do middleware; depois dele, **tudo** pede senha, inclusive uma rota que não existe (401, e não 404) | Uma lista de rotas protegidas | Uma rota nova da Maria já nasce protegida; esquecer de pôr na lista abriria o furo de novo. O 401 para rota desconhecida também não conta quais rotas existem |
-| **Tudo em `/publico` e `/time` termina no mesmo 404**, inclusive sem código ou com outro método | Deixar cair no middleware | `/publico/` sem código respondia "Acesso só da organizadora." numa área que nunca pede senha. Achado testando pelo proxy |
-| A senha é conferida **antes de ler o corpo** (JSON ou planilha) | Ler o corpo antes | Sem a senha, ninguém faz a API ler 5 MB |
-| Resposta: **401 `{ erro: "Acesso só da organizadora." }`**, com `WWW-Authenticate: Bearer` | Só o 401 | A frase segue o padrão das outras respostas de erro; o `WWW-Authenticate` é o que a norma do HTTP pede num 401 |
-| **`GET /acesso`** (204) para a tela conferir a senha digitada | Conferir chamando `GET /torneios` | Conferir a senha não deveria buscar dados |
-| Na tela, **qualquer 401** troca a página pela tela "Senha da organizadora" (campo com rótulo, "Entrar", "Senha incorreta. Confira e tente de novo."). Com a senha certa, a página volta a ser montada e carrega de novo | Uma página de login com rota própria | A Maria volta para onde estava, sem redirecionamento. Uma senha guardada que deixou de valer (trocaram o `.env`) cai no mesmo caminho e é esquecida |
-| Senha no **`sessionStorage`** (vale para a aba e some ao fechá-la), e também na memória; **"Sair"** no cabeçalho esquece | `localStorage` | O `localStorage` guardaria a senha no computador para sempre. Na memória, a tela funciona mesmo com o armazenamento bloqueado (janela anônima) |
-| Páginas por link **nunca** mandam a senha nem mostram a tela de senha: usam `lerPorLink`, separado do `chamar` das telas da Maria | Um `fetch` só para tudo | O jogador que abre o link do time no computador da Maria não leva a senha junto, e um 401 ali nunca mostraria a tela da Maria a um jogador |
-| **"Baixar CSV" virou botão:** baixa com `fetch` e o cabeçalho, e entrega o arquivo ao navegador por um endereço temporário (`blob:`), com o nome do `Content-Disposition` | Senha na URL (`?senha=`) | Um link comum não manda o cabeçalho. Senha na URL fica no histórico do navegador e nos logs. Nome com barra ou ".." vira `resultado.csv` |
-
-**O que a senha resolve:** o furo do item 1. Sem a senha, ninguém lê os códigos dos links nem o resultado com os valores de cada jogador, e ninguém cria, calcula ou remove torneio. A D11 volta a valer: só quem recebeu o link de um time vê os valores daquele time.
-
-**O que a senha não resolve:**
-- **Não há usuários:** quem sabe a senha faz tudo, e o sistema não registra quem fez o quê.
-- **Não há recuperação:** esqueceu, olha no `.env`. Vazou, troca no `.env` e reinicia, e todos precisam da nova.
-- **Não há limite de tentativas:** dá para tentar senhas sem parar. O mínimo de 8 caracteres atrasa, mas não impede; um limite por endereço de IP seria o próximo passo.
-- **Sem HTTPS, a senha viaja aberta na rede**, como tudo o mais. Num deploy real, o HTTPS é obrigatório.
-- **Um script malicioso na página (XSS) leria a senha** do `sessionStorage`. O risco é baixo: o Vue escapa todo texto que mostra (nicks e nomes de time vêm da planilha e do site), e a tela não usa `v-html` nem `innerHTML`.
-
-O login completo fica em "Próximos passos".
-
-**Os testes:** sem banco, a frase e o `WWW-Authenticate`; senha errada, só o começo da senha, em maiúsculas, outro esquema (`Basic`) e sem "Bearer" dão 401; `bearer` em minúsculas vale; rota desconhecida dá 401; a planilha de 6 MB sem senha dá 401, e não 413; tudo em `/publico` e `/time` dá 404 sem senha. Na configuração: sem `ADMIN_SENHA`, curta, com acento ou com espaço nas pontas, a API não sobe. Na integração, com setembro calculado de verdade: sem senha ou com a senha errada, 401 em `/torneios`, no torneio, nos links, no resultado, no CSV e nas pendências, sem nada do torneio na resposta; criar, remover e calcular sem senha dão 401 e nada muda; com a senha, 200; `/publico` e `/time` abrem sem senha, e até com uma senha errada no cabeçalho. Na tela: o 401 mostra a tela de senha, com o campo em foco; senha errada, vazia ou com acento; a certa carrega a página e vai em todo pedido seguinte; "Sair" esquece; a senha antiga é esquecida; as páginas por link não pedem nem mandam a senha; o CSV é baixado com o cabeçalho, com o nome e o BOM, uma vez só no clique duplo, e a falha aparece junto do botão. Os testes que já existiam passaram a mandar a senha, e a API falsa da tela agora responde 401 sem ela, como a de verdade.
-
-### Item 1 do segundo review: "Ciente de todas" só depois que o site conferir todas as partidas, 15/10/2026
-
-**O problema:** o modal perguntava "Marcar Ciente em N pendências?" com o N da tela, mas a API marcava **todas as que existissem no momento do clique**. Enquanto a Maria lia o modal, o job podia conferir outra partida e trazer uma divergência de kills, que recebia o Ciente sem ela ter visto. Era o único caminho que furava a D17 ("nada é pago sem a Maria ter visto").
-
-| Decisão | Alternativa descartada | Por que descartada |
-|---|---|---|
-| **O "Ciente de todas" só libera com nenhuma partida aguardando o site ou em consulta.** Sem partida a conferir, nenhuma pendência nova pode aparecer entre olhar e clicar (a correção de ID e a planilha nova também travam o torneio) | **A tela mandar as chaves das pendências que mostrou**, e a API marcar só essas | Resolveria também com o site conferindo, mas exige o aviso de "pendências novas" e uma regra a mais para explicar. Com 15 a 28 partidas, esperar o site terminar custa pouco, e a Maria pode dar Ciente um a um enquanto isso |
-| A API confere **dentro da transação, com o torneio travado**, e responde **409** sem marcar nada: "2 partidas ainda aguardam o site: o "Ciente de todas" só libera depois que o site conferir todas. Enquanto isso, dê Ciente uma a uma." | Conferir só na tela | Uma partida pode voltar para a fila entre a tela e o clique; só a verificação dentro da transação garante |
-| O Ciente de **uma** pendência continua liberado | Travar todos os Cientes até o site terminar | A pendência individual é a que a Maria está vendo; travar só atrasaria a revisão (D10) |
-| Na tela, o botão fica **desabilitado com o motivo e o progresso visíveis** ("5 de 8 até agora"), ligados por `aria-describedby`; a regra pura é `motivoDoCienteDeTodasTravado` | Esconder o botão | Um botão que some não diz por que nem quando volta |
-
-**Os testes:** na integração, 409 com partida aguardando e em consulta, 409 antes de o site responder, Ciente individual liberado e um teste de concorrência que trava o torneio, põe uma partida de volta na fila e só passa se a verificação estiver dentro da transação. Na tela, o botão desabilitado com o motivo, liberado sem motivo e o 409 com a frase da API.
-
----
-
-## Stack e ferramentas
-
-| Decisão | Alternativa descartada | Por quê |
-|---|---|---|
-| Node.js + TypeScript, Vue, MySQL | — | Stack da PowerRev; detalhes na seção 16 do `contexto.md` |
-| Conferência por tabela de tarefas no MySQL (`SELECT ... FOR UPDATE SKIP LOCKED`) | Fila no Redis (BullMQ) | Mais um serviço e um processo sem ganho real para 15 a 28 partidas; o worker fica atrás de uma interface, trocável depois |
-| Express, Knex, Zod, Vitest | ORM completo (Prisma, TypeORM) | Knex deixa o SQL visível e permite SQL puro quando preciso |
-| Monorepo com npm workspaces | Turborepo, pnpm, Nx | Três pacotes pequenos não justificam uma ferramenta a mais |
-| MySQL 8.4 (versão LTS) | MySQL 8.0 | Ambas têm `SKIP LOCKED`; a 8.4 é a linha com suporte longo |
-| Vitest 5 | Vitest 3 | O Vitest 3 vinha com 3 vulnerabilidades no `npm audit` (2 críticas, no `tinypool`). Em projeto novo, melhor começar na versão sem alertas |
-| A API aplica as migrations ao subir | Passo manual de migração antes de subir | `docker compose up` deixa tudo pronto num comando só. Se a migration falhar, a API não sobe e o erro aparece no log |
-| A rota `/saude` recebe a verificação do banco por parâmetro | Importar a conexão direto na rota | Permite testar a rota sem MySQL, inclusive o caso de banco fora do ar (503) |
-| Front servido por `vite preview` com proxy `/api` | nginx | Serve o build de produção e repassa `/api` para a API sem CORS, com uma peça a menos. nginx fica como evolução se houver deploy real |
-
----
-
-## Próximos passos
-
-Decididos com a Adrielly em 15/10/2026 (no fim da etapa 6, nas etapas 7a e 7d e no pacote de melhorias). Ficam para depois, **sem implementar** por enquanto.
-
-**Já feitos, saíram desta lista:** o total de prêmios por mês na lista de torneios (M1, pelo mês do torneio, e não pela data do cálculo, como estava anotado aqui) e a remoção de torneio não calculado (M2).
-
-| Próximo passo | O que é | Por que ficou para depois |
-|---|---|---|
-| **Aba "Aguardando o site" igual ao protótipo 1c** | O quadro "O site oficial está instável agora" com o "Tentar agora" dentro da aba; um estado por partida ("Consultando o site", "Na fila", "O site falhou · 3 tentativas", "Erro interno, não é o site") e a espera ao lado da próxima tentativa ("(espera de 5 min)") | A aba do 4c já mostra o motivo, as tentativas e "última às X, próxima às Y" (D10), que é o que a Maria precisa para não vigiar o site. O que falta é polimento visual, sem regra nova |
-| **Limpar os status sem uso** | Tirar `conferindo` e `pronto` do status do torneio e `times_diferentes` do `status_conferencia` da partida (R1c) | Vieram do rascunho do banco e nunca são gravados; removê-los do `enum` exige uma migration que altera as colunas, e o ganho é só de limpeza |
-| **PDF do resultado** | Pela impressão do navegador ("Salvar como PDF"), com um CSS de impressão na tela do resultado: sem cabeçalho do sistema, sem filtro e sem botões, com as tabelas inteiras | O CSV já permite pagar (6c); o PDF é para guardar ou enviar. Pela impressão do navegador, não precisa de biblioteca nova nem de rota na API |
-| **"Jogou X de Y partidas" no resultado** | O cálculo passa a gravar, para cada jogador, em quantas partidas jogou por aquele time e quantas o time jogou; a tela mostra isso no lugar de deduzir "Reserva" pelos minutos (6e) | Exige uma coluna nova em `premios_jogador` e uma mudança no cálculo. Deduzir pelos minutos marcaria errado quem só saiu mais cedo numa partida (Bia.gg) |
-| **Controle de "Pago" por jogador** | Marcar, na tela do resultado, quem já recebeu, com a data; o resultado continua congelado, só o pagamento muda | O sistema não controla pagamento (D12). Hoje a Maria paga com o CSV no Excel, que já tem a coluna "Pago" vazia para ela marcar (M1); o controle dentro do sistema é uma comodidade, não uma regra do desafio |
-| **Integração com Pix**, depois do "Pago" | Enviar o Pix pelo sistema | Continua fora do escopo pela D12: dinheiro enviado errado não volta, e exigiria a chave Pix de cada jogador |
-| **"Gerar novo link"** (decidido com a Adrielly na etapa 7a) | Trocar o código público ou o de um time, e o antigo para de funcionar | Serve para quando um link vaza (por exemplo, o de um time colado no canal geral do Discord). Hoje o código nasce no cálculo e não muda. Precisa decidir antes se a troca pede confirmação e como a Maria avisa o time do link novo |
-| **"Arquivar" torneio calculado, à mão** | A Maria escolhe arquivar: o torneio sai da lista principal e tudo continua no banco (planilha, conferência, Cientes, resultado e links) | Para **responder contestações depois**: o CSV do resultado é gerado do banco a cada download, então apagar perderia também o relatório. **À mão, e não na virada do mês**: um torneio antigo pode ainda estar sendo contestado (M1). Com a lista por mês (M1), os meses anteriores já ficam recolhidos, então a lista não incomoda tanto |
-| **Login completo da organizadora** (do R3) | Usuário e senha por pessoa, com a senha guardada só como hash, sessão que expira, recuperação de acesso por e-mail, limite de tentativas e registro de quem fez o quê | A senha única do R3 fecha o furo do item 1 do code review com uma peça pequena. O login completo é um projeto à parte (cadastro, e-mail, sessões) para um sistema com uma organizadora só |
-| **Envio de cópia por e-mail** | Mandar para a Maria, por e-mail, o CSV e os links de cada torneio calculado | Depende de **login e cadastro da organizadora** (o sistema só tem a senha única do R3, sem usuário nem e-mail): sem saber quem é a Maria e qual o e-mail dela, não há para quem mandar. Também exigiria um serviço de envio de e-mail |
+## 9. Fora do escopo
+
+| O quê | Por quê |
+|---|---|
+| Pix automático, bot do Discord | Pix errado não volta (D12). A Maria paga pelo CSV |
+| Login completo, limite de tentativas, HTTPS, deploy | Projeto à parte; a senha única fecha o furo principal |
+| Ajuste manual quando o site errar | Pede auditoria separada do dado do site |
+| Time/nick escrito de dois jeitos pelo site | Precisa de regra de negócio (bloquear ou unificar) |
+| Pool de consultas no lugar do lote de 3 | Vazão, não defeito |
+| PDF, "jogou X de Y", "Pago" por jogador, "Gerar novo link", "Arquivar", e-mail | Comodidades, sem regra nova |
+| Limpar status sem uso (`conferindo`, `pronto`, `times_diferentes`) | Só limpeza; exige migration |
+
+## 10. Limitações conhecidas
+
+- Senha única: sem usuários, sem registro de quem fez o quê, sem limite de tentativas.
+- Sem HTTPS: a senha viaja aberta.
+- Se o site oficial errar, não há como corrigir à mão.
+- Reiniciar a API pausa a conferência (partidas presas voltam sozinhas).

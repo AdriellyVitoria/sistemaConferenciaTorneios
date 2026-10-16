@@ -370,7 +370,7 @@ Em três pedaços. **4a:** as peças da consulta, sem o job: cliente HTTP do sit
 - [x] Etapa 5 — Revisão das pendências
 - [x] Etapa 6 — Cálculo e resultado
 - [x] Etapa 7 — Página pública e links por time
-- [ ] Etapa 8 — Documentação
+- [x] Etapa 8 — Documentação
 - [ ] Etapa 9 — Revisão final
 
 ---

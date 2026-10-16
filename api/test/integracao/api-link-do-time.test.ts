@@ -18,7 +18,6 @@ const DADOS_DO_SITE = [arquivo('testes/site-oficial.json'), arquivo('api/test/fi
 const MINUTO = 60_000;
 
 let bd: Knex;
-/** O relógio do MySQL: a API e o job usam o mesmo relógio que grava a próxima tentativa na importação. */
 let relogio: () => Date;
 let api: Server;
 let site: Server;
@@ -56,7 +55,6 @@ async function pedir(metodo: string, caminho: string, corpo?: unknown) {
   return { status: resposta.status, cabecalhos: resposta.headers, corpo: await resposta.json() };
 }
 
-/** Roda o job até o site responder tudo (o relógio avança até cada nova tentativa). */
 async function conferirTudo(torneioId: number) {
   const cliente = criarClienteSiteOficial({ urlBase: urlDoSite, tempoLimiteMs: 5_000 });
   let agora = new Date(relogio().getTime() + 2_000);
@@ -69,7 +67,6 @@ async function conferirTudo(torneioId: number) {
   throw new Error('o site não respondeu todas as partidas');
 }
 
-/** Importa, confere e dá Ciente em tudo; com `calcular`, também calcula. */
 async function torneio(planilha: string, { calcular = true } = {}): Promise<number> {
   const { corpo } = await pedir('POST', '/torneios', { nome: 'Torneio de Setembro/2026', premioCentavos: 1_000_000, percentuais: [50, 30, 20], modoDivisao: 'minutos' });
   expect((await pedir('PUT', `/torneios/${corpo.id}/planilha`, readFileSync(arquivo(planilha)))).status).toBe(200);
@@ -148,12 +145,10 @@ describe('GET /time/:codigo', () => {
     expect(garra).toMatchObject({ base: 178, premioCentavos: 40_000 });
     expect(corpo.time.baseTime).toBe(890);
 
-    // pelos Ursos, Garra também jogou, mas esses minutos ficam fora do extrato dos Leões
     const [calculo] = await bd('calculos').where({ torneio_id: id });
     const pelosUrsos = await bd('premios_jogador').where({ calculo_id: calculo.id, time: 'Ursos', nick: 'Garra' }).first();
     expect(pelosUrsos.minutos).toBeGreaterThan(0);
     expect(JSON.stringify(corpo)).not.toContain('Ursos');
-    // Ursos ficou sem prêmio: não tem link
     expect((await links(id)).times.map((t) => t.time)).not.toContain('Ursos');
   });
 

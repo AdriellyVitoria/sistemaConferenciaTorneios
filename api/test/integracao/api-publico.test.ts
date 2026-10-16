@@ -20,7 +20,6 @@ const DADOS_DO_SITE = [arquivo('testes/site-oficial.json'), arquivo('api/test/fi
 const FORMATO = /^[A-Za-z0-9_-]{32}$/;
 
 let bd: Knex;
-/** O relógio do MySQL: a API e o job usam o mesmo relógio que grava a próxima tentativa na importação. */
 let relogio: () => Date;
 let api: Server;
 let site: Server;
@@ -58,7 +57,6 @@ async function pedir(metodo: string, caminho: string, corpo?: unknown) {
   return { status: resposta.status, cabecalhos: resposta.headers, corpo: await resposta.json() };
 }
 
-/** Setembro importado, conferido e com os 3 Cientes: pronto para calcular. */
 async function setembroPronto(): Promise<number> {
   const { corpo } = await pedir('POST', '/torneios', { nome: 'Torneio de Setembro/2026', premioCentavos: 1_000_000, percentuais: [50, 30, 20], modoDivisao: 'minutos' });
   await pedir('PUT', `/torneios/${corpo.id}/planilha`, readFileSync(arquivo('torneio-setembro.csv')));
@@ -75,7 +73,6 @@ async function setembroCalculado(): Promise<number> {
   return id;
 }
 
-/** Os códigos gravados do torneio: o público e o de cada time, por nome do time. */
 async function codigosDo(torneioId: number) {
   const calculos = await bd('calculos').where({ torneio_id: torneioId });
   const times = await bd('codigos_time as c')
@@ -147,7 +144,6 @@ describe('GET /publico/:codigo', () => {
         { posicao: 6, time: 'Serpentes', vitorias: 0, killsTime: 249, premioCentavos: 0, criterio: null },
       ],
     });
-    // a data é a do cálculo
     expect(corpo.calculadoEm).toBe((await pedir('GET', `/torneios/${id}/resultado`)).corpo.calculadoEm);
   });
 
@@ -159,9 +155,8 @@ describe('GET /publico/:codigo', () => {
     const nicks: string[] = (await bd('premios_jogador')).map((j) => j.nick);
     expect(nicks).toHaveLength(31);
     for (const nick of nicks) expect(texto).not.toContain(nick);
-    expect(texto).not.toContain('6590'); // Tuca
-    expect(texto).not.toContain('53410'); // Bia.gg
-    // nenhum campo de jogador ("minutos" aparece só como valor, o modo de divisão)
+    expect(texto).not.toContain('6590');
+    expect(texto).not.toContain('53410');
     expect(texto).not.toMatch(/"(jogadores|nick|minutos|kills|base|baseTime|explicacao)":/);
   });
 
@@ -180,11 +175,11 @@ describe('GET /publico/:codigo', () => {
     const trocado = codigo.replace(/[a-z]/, (l) => l.toUpperCase());
 
     const errados = [
-      'A'.repeat(32), // no formato, mas não existe
-      trocado, // o certo com uma letra em maiúscula
-      codigoDeTime.codigo, // o código de um time não abre a página pública
+      'A'.repeat(32),
+      trocado,
+      codigoDeTime.codigo,
       'curto',
-      String(id), // o id interno do torneio
+      String(id),
       `${codigo}x`,
       encodeURIComponent("' OR 1=1 --"),
     ];
@@ -203,7 +198,6 @@ describe('migration 010: torneios calculados antes dela ganham os códigos', () 
 
     await migracaoDosCodigos.down(bd);
     try {
-      // como ficava um cálculo antes desta mudança: sem código nenhum
       const [calculoId] = await bd('calculos').insert({
         torneio_id: torneio.id, calculado_em: new Date('2026-10-15T13:00:00.000Z'), premio_centavos: 1_000_000, percentuais: JSON.stringify([60, 40]), modo_divisao: 'minutos',
       });

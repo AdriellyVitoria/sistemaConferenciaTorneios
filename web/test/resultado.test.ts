@@ -14,7 +14,6 @@ const time = (posicao: number, nome: string, vitorias: number, killsTime: number
   posicao, time: nome, vitorias, killsTime, premioCentavos, criterio, recebeuCentavo: false,
 });
 
-// a classificação de setembro, como a API devolve
 const SETEMBRO: TimeDoResultado[] = [
   time(1, 'Lobos', 5, 353, 500_000),
   time(2, 'Corvos', 3, 368, 300_000, 'desempate por kills do time'),

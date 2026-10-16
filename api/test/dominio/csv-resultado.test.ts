@@ -63,7 +63,6 @@ describe('csvDoResultado: a planilha para a Maria pagar no Excel', () => {
   it('nick que começa com tab ou \\r também ganha o apóstrofo (code review, item 10; lista da OWASP)', () => {
     const csv = csvDoResultado([j(1, 'Lobos', '\t=SOMA(A1)', 100), j(1, 'Lobos', '\r=SOMA(A1)', 100)]);
     expect(csv).toContain(";'\t=SOMA(A1);");
-    // com \r a célula também vai entre aspas, como qualquer quebra de linha
     expect(csv).toContain(`;"'\r=SOMA(A1)";`);
   });
 });

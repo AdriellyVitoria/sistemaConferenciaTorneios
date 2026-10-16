@@ -1,16 +1,3 @@
-/**
- * As páginas abertas por link (D11, etapas 7a e 7b). Sem senha (R3): quem tem o código vê.
- *
- *   GET /publico/:codigo   nome, data do cálculo, regras e classificação, sem dado de jogador.
- *   GET /time/:codigo      o extrato dos jogadores de UM time premiado, sem nada dos outros times.
- *
- * Só o resultado congelado (6a): nada é recalculado. Cada código abre só a sua página: o público
- * não abre a de um time, e o de um time não abre a pública. Qualquer erro dá o mesmo 404, com a
- * mesma frase: a resposta não conta se o código tem o formato certo, de que tipo ele é ou se o
- * torneio existe. Todas as respostas levam "X-Robots-Tag: noindex", para o link não aparecer em
- * buscador.
- */
-
 import { Router, type NextFunction, type Request, type Response } from 'express';
 import type { Knex } from 'knex';
 import { assincrono } from './assincrono';
@@ -32,7 +19,6 @@ export function rotasPublico(bd: Knex): Router {
 
   rota.get('/publico/:codigo', assincrono(async (req, res) => {
     const { codigo } = req.params;
-    // fora do formato, nem consulta o banco
     const torneio = FORMATO_DO_CODIGO.test(codigo) ? await buscarPorCodigoPublico(bd, codigo) : null;
     const resultado = torneio ? await buscarResultado(bd, torneio.torneioId) : null;
     if (!torneio || !resultado) {
@@ -54,9 +40,6 @@ export function rotasPublico(bd: Knex): Router {
     res.json(pagina);
   }));
 
-  // o resto de /publico e /time (sem código, outro método, caminho mais longo): o mesmo 404. Sem
-  // isto, a requisição seguiria para as rotas da Maria e receberia o 401 da senha (R3), numa área
-  // que nunca pede senha.
   rota.all(['/publico', '/publico/*', '/time', '/time/*'], (_req, res) => {
     res.status(404).json(NAO_ENCONTRADA);
   });

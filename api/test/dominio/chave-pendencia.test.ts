@@ -77,7 +77,6 @@ describe('a chave depois de corrigir o ID da partida (5b)', () => {
     acao: 'ciente',
     mensagem: 'Pantera_X aparece 2 vezes na partida #46065 (linhas 38 e 39).',
   };
-  // a mesma partida (id interno 17), antes e depois de a Maria corrigir o ID
   const antes = (item: ItemPendencia) => chaveDaPendencia(item, 17);
   const depois = (item: ItemPendencia) => chaveDaPendencia({ ...item, idPartida: '#46056' }, 17);
 

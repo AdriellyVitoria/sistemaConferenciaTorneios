@@ -1,5 +1,3 @@
-// @vitest-environment happy-dom
-// @vitest-environment-options { "url": "http://localhost:5173/torneios/1/resultado" }
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
@@ -10,7 +8,6 @@ import { rotas } from '../../src/roteador';
 import { guardarSenha } from '../../src/servicos/sessao';
 import { espacosComuns, textoDe } from '../ajudantes/espacos';
 
-// O resultado de setembro como a API devolve, montado dos gabaritos de testes/esperado/ (só lidos)
 const ESPERADO = path.resolve(__dirname, '../../../testes/esperado');
 const linhas = (arquivo: string) => readFileSync(path.join(ESPERADO, arquivo), 'utf8').split(/\r?\n/).filter(Boolean).slice(1).map((l) => l.split(';'));
 const centavos = (texto: string) => Number(texto.replace(',', ''));
@@ -47,7 +44,6 @@ afterEach(() => {
   document.body.innerHTML = '';
 });
 
-/** Os códigos dos links de setembro, como a API devolve em GET /torneios/:id/links. */
 const LINKS = {
   publico: { codigo: 'PublicoPublicoPublicoPublico1234' },
   times: [
@@ -58,12 +54,10 @@ const LINKS = {
   ],
 };
 
-/** O CSV como a API devolve (6c): UTF-8 com BOM, e o nome do arquivo no Content-Disposition. */
 const CSV_DE_SETEMBRO = '﻿Posição;Time;Nick;Minutos;Kills;Valor (R$);Centavo de arredondamento;Pago\r\n2;Corvos;Tuca;19;5;65,90;sim;\r\n';
 const DISPOSICAO = `attachment; filename="resultado-torneio-de-setembro.csv"; filename*=UTF-8''${encodeURIComponent('resultado-Torneio de setembro.csv')}`;
 const csvOk = () => new Response(CSV_DE_SETEMBRO, { status: 200, headers: { 'content-type': 'text/csv; charset=utf-8', 'content-disposition': DISPOSICAO } });
 
-/** Cada pedido à API, com o cabeçalho Authorization (R3). */
 let pedidos: { url: string; authorization: string | null }[] = [];
 
 async function montar(
@@ -90,7 +84,6 @@ async function montar(
 
 const botaoCsv = (pagina: VueWrapper) => pagina.findAll('button').find((b) => textoDe(b) === 'Baixar CSV')!;
 const tabela = (pagina: VueWrapper, legenda: string) => pagina.findAll('table').find((t) => textoDe(t.find('caption')) === legenda)!;
-/** O texto que aparece na tela: sem o que é só para o leitor de tela (.visualmente-oculto). */
 const visivel = (celula: Element) => {
   const copia = celula.cloneNode(true) as Element;
   copia.querySelectorAll('.visualmente-oculto').forEach((n) => n.remove());
@@ -98,7 +91,6 @@ const visivel = (celula: Element) => {
 };
 const linhasDa = (pagina: VueWrapper, legenda: string) => tabela(pagina, legenda).findAll('tbody tr').map((tr) => tr.findAll('td, th').map((c) => visivel(c.element)));
 
-/** O setembro calculado em 50/50: Corvos fica com o 2º lugar; o empate do 3º fica sem prêmio. */
 function setembroEm5050() {
   const resultado = resultadoDeSetembro();
   resultado.percentuais = [50, 50];
@@ -131,7 +123,6 @@ describe('tela do resultado: cabeçalho', () => {
 });
 
 describe('"Baixar CSV" com a senha (R3)', () => {
-  // um link comum não manda o cabeçalho Authorization: o CSV vem pelo fetch e a tela salva o arquivo
   let baixados: { nome: string; href: string; conteudo: Blob }[] = [];
   const originais = { criar: URL.createObjectURL, revogar: URL.revokeObjectURL };
   const revogados: string[] = [];
@@ -170,10 +161,8 @@ describe('"Baixar CSV" com a senha (R3)', () => {
     expect(pedido.authorization).toBe(`Bearer ${SENHA}`);
     expect(baixados).toHaveLength(1);
     expect(baixados[0].nome).toBe('resultado-Torneio de setembro.csv');
-    // o arquivo como veio, com o BOM, para o Excel abrir os acentos certos
     const bytes = new Uint8Array(await baixados[0].conteudo.arrayBuffer());
     expect([...bytes.slice(0, 3)]).toEqual([0xef, 0xbb, 0xbf]);
-    // o endereço temporário do arquivo é liberado depois
     await new Promise((pronto) => setTimeout(pronto, 10));
     expect(revogados).toEqual([baixados[0].href]);
   });
@@ -329,7 +318,6 @@ describe('Links para os times premiados (7d)', () => {
     await flushPromises();
     expect(writeText).toHaveBeenCalledWith(`${ORIGEM}/time/${LINKS.times[1].codigo}`);
     expect(textoDe(corvos.find('[aria-live="polite"]'))).toBe('Link copiado');
-    // só no item copiado
     expect(textoDe(item(pagina, 'Lobos · 1º · R$ 5.000,00').find('[aria-live="polite"]'))).toBe('');
   });
 

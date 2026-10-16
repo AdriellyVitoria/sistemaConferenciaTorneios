@@ -1,39 +1,20 @@
-/**
- * Cliente HTTP do site oficial do jogo (etapa 4a).
- *
- * O job da conferência só conhece a interface SiteOficial: trocar o site simulado pelo real,
- * ou a consulta direta por uma fila, não mexe na regra. Cada resposta vira um de três resultados:
- *
- *   encontrada     200 com a partida no formato esperado
- *   nao_encontrada 404: o ID foi digitado errado; só uma correção do ID consulta de novo (D5, D16)
- *   indisponivel   qualquer outra coisa: 503, outro erro do servidor, tempo esgotado, erro de
- *                  rede, resposta fora do formato ou que não fecha (vencedor ou jogador de um
- *                  time que não é da partida, time sem jogador, outra partida). A partida fica "aguardando o site" e é
- *                  tentada de novo (D10). O "detalhe" é a frase que a tela mostra.
- */
-
 import { z } from 'zod';
 import type { RespostaSite } from '../dominio/comparacao';
 import { LIMITES } from '../dominio/planilha';
 
 export type MotivoIndisponivel =
-  | 'site_fora_do_ar' // 503
-  | 'erro_do_site' // outro código de erro
-  | 'tempo_esgotado' // não respondeu dentro do tempo limite
-  | 'erro_de_rede' // nem chegou a conectar (endereço errado, site desligado, DNS)
-  | 'resposta_invalida'; // 200, mas fora do formato: não dá para usar dado pela metade
+  | 'site_fora_do_ar'
+  | 'erro_do_site'
+  | 'tempo_esgotado'
+  | 'erro_de_rede'
+  | 'resposta_invalida';
 
 export type ResultadoConsulta = RespostaSite | { status: 'indisponivel'; motivo: MotivoIndisponivel; detalhe: string };
 
 export interface SiteOficial {
-  /** idPartida como na planilha, "#40923". */
   consultarPartida(idPartida: string): Promise<ResultadoConsulta>;
 }
 
-/**
- * Liga um cronômetro de `ms` milissegundos que chama `aoEsgotar` no fim; devolve a função que
- * o desliga. O padrão usa setTimeout; os testes trocam por um que esgota quando o teste mandar.
- */
 export type Cronometro = (ms: number, aoEsgotar: () => void) => () => void;
 
 const cronometroDeVerdade: Cronometro = (ms, aoEsgotar) => {
@@ -42,15 +23,11 @@ const cronometroDeVerdade: Cronometro = (ms, aoEsgotar) => {
 };
 
 export interface OpcoesCliente {
-  /** Endereço do site, como "http://localhost:4000". */
   urlBase: string;
-  /** Precisa ser maior que a demora máxima do site (10 s): config.SITE_TEMPO_LIMITE_MS. */
   tempoLimiteMs: number;
   cronometro?: Cronometro;
 }
 
-// O formato que o site devolve (contexto.md, seção 9). Campos a mais são ignorados.
-// Os limites são os mesmos da planilha (R1a): o que passa daqui cabe nas colunas do banco.
 const textoAte = (limite: number) =>
   z.string().refine((texto) => [...texto].length <= limite, `passa de ${limite} caracteres`);
 const quantidade = z.number().int().nonnegative().max(LIMITES.minutosEKills);
@@ -63,14 +40,8 @@ const esquemaPartida = z.object({
   jogadores: z.array(z.object({ nick: textoAte(LIMITES.nick), time: textoAte(LIMITES.time), minutos: quantidade, kills: quantidade })),
 });
 
-/** Marca as falhas de coerência, para separá-las das de formato na frase da tela. */
 const COERENCIA = { coerencia: true };
 
-/**
- * Code review, item 3: além do formato, a resposta precisa fechar. Sem isso, um vencedor "lobos"
- * (com os times "Lobos" e "Corvos") criava um time fantasma na classificação, e a Maria não teria
- * como corrigir: o site é a verdade (D3). Os nomes são comparados exatamente como o site escreveu.
- */
 function esquemaCoerente(idConsultado: string) {
   return esquemaPartida.superRefine((partida, ctx) => {
     const problema = (mensagem: string) => ctx.addIssue({ code: z.ZodIssueCode.custom, message: mensagem, params: COERENCIA });
@@ -104,10 +75,8 @@ export function criarClienteSiteOficial({ urlBase, tempoLimiteMs, cronometro = c
 
   return {
     async consultarPartida(idPartida) {
-      // o "#" não vai na URL: o navegador e o fetch tratam tudo depois dele como fragmento
       const url = new URL(`/partidas/${encodeURIComponent(idPartida.replace(/^#/, ''))}`, urlBase);
       const controle = new AbortController();
-      // o tempo limite cobre a consulta inteira, até o fim do corpo: o site pode travar no meio
       const desligar = cronometro(tempoLimiteMs, () => controle.abort());
       try {
         const resposta = await fetch(url, { signal: controle.signal, headers: { accept: 'application/json' } });
@@ -135,7 +104,6 @@ export function criarClienteSiteOficial({ urlBase, tempoLimiteMs, cronometro = c
         const partida = esquemaCoerente(idPartida).safeParse(corpo);
         if (!partida.success) {
           const formato = partida.error.issues.filter((i) => !(i.code === 'custom' && i.params?.coerencia));
-          // primeiro o formato: com um campo errado, a coerência não diz nada
           if (formato.length > 0) {
             const campos = [...new Set(formato.map((i) => i.path.join('.') || '(resposta)'))].join(', ');
             return indisponivel('resposta_invalida', `O site oficial respondeu fora do formato esperado (campos: ${campos}).`);
@@ -161,7 +129,6 @@ function formatarSegundos(ms: number): string {
   return segundos === 1 ? '1 segundo' : `${String(segundos).replace('.', ',')} segundos`;
 }
 
-/** O fetch do Node põe o motivo de verdade (ECONNREFUSED, ENOTFOUND...) em erro.cause. */
 function descreverErroDeRede(erro: unknown): string {
   const causa = (erro as { cause?: { code?: string; message?: string } })?.cause;
   return causa?.code ?? causa?.message ?? (erro as Error)?.message ?? 'erro desconhecido';

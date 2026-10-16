@@ -5,21 +5,16 @@ import TelaDeSenha from './componentes/TelaDeSenha.vue';
 import { buscarSaude } from './servicos/api';
 import { pedeSenha, sair, temSenha } from './servicos/sessao';
 
-// Páginas para jogadores (D11): sem o menu, sem a marca como link e sem o rodapé, que são da Maria.
 const rota = useRoute();
 const roteador = useRouter();
 const publica = computed(() => rota.meta.publica === true);
-// R3: um 401 nas telas da Maria troca a página pela tela de senha; as páginas por link nunca
-// pedem. Quando a senha é aceita, a página volta a ser montada e carrega de novo.
 const mostrarSenha = computed(() => !publica.value && pedeSenha.value);
 
-// O rodapé mostra se a API e o banco estão no ar (o que a página inicial da etapa 0 fazia).
 type Estado = 'verificando' | 'ok' | 'erro';
 const api = ref<Estado>('verificando');
 const banco = ref<Estado>('verificando');
 
 onMounted(async () => {
-  // a primeira rota só é conhecida depois disso; numa página pública, o rodapé nem aparece
   await roteador.isReady();
   if (publica.value) return;
   try {

@@ -7,7 +7,6 @@ const jogador = (nick: string, base: number, centesimos: number, premioCentavos:
   nick, base, baseUsada: 'minutos', centesimosDePercentual: centesimos, premioCentavos, recebeuCentavo: false, explicacao: null, ...extra,
 });
 
-/** O link dos Corvos como a API devolve em GET /time/:codigo. */
 const CORVOS: PaginaDoTime = {
   torneio: { nome: 'Torneio de Setembro/2026' },
   calculadoEm: '2026-10-15T13:05:00.000Z',

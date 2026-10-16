@@ -12,7 +12,6 @@ import { gravarNaoEncontrada, recuperarPresas, reservarPartidas } from '../../sr
 import { criarTorneio, importarPlanilha, tentarAgora } from '../../src/servicos/torneios';
 import { conectarAoBancoDeTeste, esvaziarTabelas, horaDoBanco } from './banco-de-teste';
 
-// Arquivos só lidos: as planilhas e os dados do site simulado.
 const RAIZ = path.resolve(__dirname, '../../..');
 const arquivo = (relativo: string) => path.join(RAIZ, relativo);
 const DADOS_DO_SITE = [arquivo('testes/site-oficial.json'), arquivo('api/test/fixtures/site-setembro.json')];
@@ -23,7 +22,6 @@ const MINUTO = 60_000;
 let bd: Knex;
 let siteSimulado: Server;
 let site: SiteOficial;
-/** O relógio do job; cada teste avança quando quer, sem esperar de verdade. */
 let agora: Date;
 
 beforeAll(() => {
@@ -33,16 +31,12 @@ afterAll(() => bd.destroy());
 
 beforeEach(async () => {
   await esvaziarTabelas(bd);
-  // um site novo a cada teste: as falhas programadas (novembro) recomeçam do zero; sem demora
   siteSimulado = criarSiteSimulado(carregarPartidas(DADOS_DO_SITE)).listen(0, '127.0.0.1');
   await new Promise((pronto) => siteSimulado.once('listening', pronto));
   site = criarClienteSiteOficial({
     urlBase: `http://127.0.0.1:${(siteSimulado.address() as AddressInfo).port}`,
     tempoLimiteMs: 5_000,
   });
-  // 2 s à frente do relógio do MySQL, o mesmo que grava a próxima tentativa na importação: as
-  // partidas recém-importadas já estão prontas (a folga cobre o tempo entre esta linha e a
-  // importação de cada teste, não a diferença entre os relógios do Node e do MySQL)
   agora = new Date((await horaDoBanco(bd)).getTime() + 2_000);
 });
 afterEach(async () => {
@@ -51,7 +45,6 @@ afterEach(async () => {
   await new Promise<void>((fechado) => siteSimulado.close(() => fechado()));
 });
 
-/** Registra cada consulta feita ao site e permite fazer algo no meio dela. */
 function espiar(original: SiteOficial, duranteAConsulta?: (idPartida: string) => Promise<void>) {
   const consultas: string[] = [];
   const espiao: SiteOficial = {
@@ -111,7 +104,6 @@ describe('setembro: tudo conferido numa rodada', () => {
     expect(todas.every((p) => p.tentativas === 0 && p.em_consulta_desde === null && p.proxima_tentativa_em === null)).toBe(true);
     expect(todas.every((p) => p.ultima_tentativa_em !== null)).toBe(true);
 
-    // todas as participações do site, nem uma a mais
     const esperadas = todas.reduce((total, p) => total + SITE_SETEMBRO[p.id_partida].jogadores.length, 0);
     const [{ n }] = await bd('participacoes').count({ n: '*' });
     expect(Number(n)).toBe(esperadas);
@@ -152,7 +144,6 @@ describe('cenário 02: ID que não existe no site', () => {
     expect(p).toMatchObject({ status_conferencia: 'nao_encontrada', tentativas: 0, proxima_tentativa_em: null, em_consulta_desde: null });
     expect(await participacoes(p.id)).toEqual([]);
 
-    // só uma correção do ID consulta de novo (D5, D16): o job não volta a ela
     agora = new Date(agora.getTime() + 60 * MINUTO);
     const espiao = espiar(site);
     await executarRodada(opcoes({ site: espiao.site }));
@@ -177,13 +168,11 @@ describe('novembro: partidas instáveis no site', () => {
       });
     }
 
-    // antes da hora marcada, ninguém é consultado
     agora = new Date(inicio.getTime() + 30_000);
     const cedo = espiar(site);
     await executarRodada(opcoes({ site: cedo.site }));
     expect(cedo.consultas).toEqual([]);
 
-    // a cada rodada, o relógio pula para a próxima tentativa marcada
     const consultasDasInstaveis: string[] = [];
     for (let rodada = 0; rodada < 10; rodada++) {
       const aguardando = (await partidas(id)).filter((p) => p.status_conferencia === 'aguardando');
@@ -194,7 +183,6 @@ describe('novembro: partidas instáveis no site', () => {
       consultasDasInstaveis.push(...espiao.consultas);
     }
 
-    // #62142 falha 2 vezes; #62477, 5 vezes. Depois respondem.
     expect(await partida(id, '#62142')).toMatchObject({ status_conferencia: 'conferida', tentativas: 2, ultimo_erro: null });
     expect(await partida(id, '#62477')).toMatchObject({ status_conferencia: 'conferida', tentativas: 5, ultimo_erro: null });
     expect(consultasDasInstaveis.filter((c) => c === '#62142')).toHaveLength(2);
@@ -216,16 +204,15 @@ describe('novembro: partidas instáveis no site', () => {
   it('"tentar agora" antecipa, mas não zera a agenda: a falha seguinte espera o intervalo de onde parou', async () => {
     const id = await torneioCom('testes/planilhas/torneio-novembro.csv');
     const inicio = agora;
-    await executarRodada(opcoes()); // 1ª falha de #62477: próxima em 1 min
+    await executarRodada(opcoes());
     agora = new Date(inicio.getTime() + MINUTO);
-    await executarRodada(opcoes()); // 2ª falha: próxima em 2 min
+    await executarRodada(opcoes());
 
-    // 10 s depois, a Maria clica em "tentar agora"
     agora = new Date(agora.getTime() + 10_000);
     expect(await tentarAgora(bd, id, agora)).toMatchObject({ tipo: 'antecipadas' });
     expect((await partida(id, '#62477')).proxima_tentativa_em).toEqual(new Date(Math.floor(agora.getTime() / 1000) * 1000));
 
-    await executarRodada(opcoes()); // 3ª falha: o intervalo segue a agenda, 5 min, e não volta para 1 min
+    await executarRodada(opcoes());
     const p = await partida(id, '#62477');
     expect(p.tentativas).toBe(3);
     expect(p.proxima_tentativa_em!.getTime() - p.ultima_tentativa_em!.getTime()).toBe(5 * MINUTO);
@@ -247,7 +234,6 @@ describe('novembro: partidas instáveis no site', () => {
 describe('concorrência', () => {
   it('cinco execuções do job ao mesmo tempo nunca consultam a mesma partida', async () => {
     const id = await torneioCom('torneio-setembro.csv');
-    // cada consulta demora um pouco, para as execuções se sobreporem de verdade
     const espiao = espiar(site, () => new Promise((pronto) => setTimeout(pronto, 30)));
 
     const resumos = await Promise.all(Array.from({ length: 5 }, () => executarRodada(opcoes({ site: espiao.site }))));
@@ -262,13 +248,11 @@ describe('concorrência', () => {
     const id = await torneioCom('torneio-setembro.csv');
     const travadas = (await partidas(id)).slice(0, 3).map((p) => p.id);
 
-    // outra execução no meio da reserva: as 3 primeiras estão travadas numa transação aberta
     const outra = await bd.transaction();
     try {
       await outra('partidas').whereIn('id', travadas).forUpdate().select('id');
       const inicio = Date.now();
       const reservadas = await reservarPartidas(bd, { limite: agora, agora, quantidade: 50 });
-      // sem SKIP LOCKED, ficaria esperando a trava (50 s, o padrão do MySQL); a folga é para máquina lenta
       expect(Date.now() - inicio).toBeLessThan(10_000);
       expect(reservadas).toHaveLength(12);
       expect(reservadas.some((r) => travadas.includes(r.id))).toBe(false);
@@ -291,9 +275,8 @@ describe('recuperação de partida presa', () => {
 
     expect(resumo).toMatchObject({ recuperadas: 1, consultadas: 1, conferidas: 1 });
     expect(espiao.consultas).toEqual([presa.id_partida]);
-    expect((await partida(id, presa.id_partida)).origem_do_erro).toBeNull(); // conferida: o erro sumiu
+    expect((await partida(id, presa.id_partida)).origem_do_erro).toBeNull();
     expect(await partida(id, presa.id_partida)).toMatchObject({ status_conferencia: 'conferida', tentativas: 0, ultimo_erro: null });
-    // a que está em consulta há 30 s pode estar viva: não é tocada
     expect(await partida(id, emAndamento.id_partida)).toMatchObject({ status_conferencia: 'em_consulta' });
   });
 
@@ -314,8 +297,6 @@ describe('recuperação de partida presa', () => {
     const lenta = await partida(id, '#40923');
     await bd('partidas').where({ torneio_id: id }).whereNot({ id: lenta.id }).update({ status_conferencia: 'conferida', proxima_tentativa_em: null });
 
-    // a primeira execução reserva a #40923 e "trava" no meio da consulta; enquanto isso, o tempo
-    // passa, uma segunda execução recupera a partida e a confere
     let soltarLenta!: () => void;
     const lentaEsperando = new Promise<void>((pronto) => { soltarLenta = pronto; });
     let lentaComecou!: () => void;
@@ -330,7 +311,7 @@ describe('recuperação de partida presa', () => {
 
     soltarLenta();
     expect(await primeira).toMatchObject({ consultadas: 1, conferidas: 0, descartadas: 1 });
-    expect(await participacoes(lenta.id)).toHaveLength(10); // uma vez só, não duplicadas
+    expect(await participacoes(lenta.id)).toHaveLength(10);
   });
 });
 
@@ -355,7 +336,6 @@ describe('erro inesperado numa partida', () => {
     expect(p).toMatchObject({ status_conferencia: 'aguardando', tentativas: 0, em_consulta_desde: null, ultimo_erro: ESPERA_DEPOIS_DE_ERRO, origem_do_erro: 'interno' });
     expect(p.proxima_tentativa_em!.getTime() - p.ultima_tentativa_em!.getTime()).toBe(MINUTO);
 
-    // na próxima vez, com o cliente bom, é conferida
     agora = p.proxima_tentativa_em!;
     expect(await executarRodada(opcoes())).toMatchObject({ conferidas: 1 });
     expect(await partida(id, '#40923')).toMatchObject({ status_conferencia: 'conferida', ultimo_erro: null });
@@ -364,7 +344,6 @@ describe('erro inesperado numa partida', () => {
   it('o MySQL recusa a gravação no meio: nada fica pela metade, e a partida volta para a fila', async () => {
     const id = await torneioCom('torneio-setembro.csv');
     vi.spyOn(console, 'error').mockImplementation(() => {});
-    // um nick maior que a coluna (80): o INSERT das participações falha depois do UPDATE da partida
     const nickGrande: SiteOficial = {
       async consultarPartida(idPartida) {
         const resultado = await site.consultarPartida(idPartida);
@@ -378,7 +357,6 @@ describe('erro inesperado numa partida', () => {
 
     expect(resumo).toMatchObject({ conferidas: 14, erros: 1 });
     const p = await partida(id, '#40923');
-    // a transação desfez o UPDATE: sem vencedor, sem participações, de volta à fila
     expect(p).toMatchObject({ status_conferencia: 'aguardando', vencedor: null, tentativas: 0, ultimo_erro: ESPERA_DEPOIS_DE_ERRO });
     expect(await participacoes(p.id)).toEqual([]);
   });
@@ -397,7 +375,6 @@ describe('o recibo da reserva (em_consulta_desde)', () => {
     const id = await torneioCom('torneio-setembro.csv');
     const segundo = Math.floor(agora.getTime() / 1000) * 1000;
     const [antiga] = await reservarPartidas(bd, { limite: agora, agora: new Date(segundo + 100), quantidade: 1 });
-    // a partida voltou para a fila (por exemplo, o ID foi corrigido) e foi reservada de novo no mesmo segundo
     await bd('partidas').where({ id: antiga.id }).update({ status_conferencia: 'aguardando', em_consulta_desde: null });
     const [nova] = await reservarPartidas(bd, { limite: agora, agora: new Date(segundo + 900), quantidade: 1 });
     expect(nova.id).toBe(antiga.id);
@@ -426,8 +403,7 @@ describe('partida apagada no meio da consulta (planilha substituída, D22)', () 
     expect(resumo.erros).toBe(0);
     const ids = (await partidas(id)).map((p) => p.id_partida);
     expect(ids).not.toContain('#40923');
-    expect(ids).toHaveLength(15); // as partidas da planilha nova
-    // nenhuma participação de setembro sobrou (a da #40923 nunca foi gravada)
+    expect(ids).toHaveLength(15);
     const nicks = (await bd('participacoes').select('nick')).map((j: { nick: string }) => j.nick);
     expect(nicks).not.toContain('Dudu.pro');
   });

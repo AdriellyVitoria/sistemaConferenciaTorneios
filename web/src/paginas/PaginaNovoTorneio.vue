@@ -9,7 +9,6 @@ const roteador = useRouter();
 
 const nome = ref('');
 const premioTexto = ref('');
-// cada posição com uma chave própria, para o Vue não confundir os campos ao remover uma do meio
 let proximaChave = 0;
 const posicoes = ref(['50', '30', '20'].map((texto) => ({ chave: proximaChave++, texto })));
 const modo = ref<ModoDivisao>('minutos');
@@ -18,11 +17,9 @@ const premio = computed(() => lerReais(premioTexto.value));
 const percentuais = computed(() => lerPercentuais(posicoes.value.map((p) => p.texto)));
 const erroDoNome = computed(() => (nome.value.trim() === '' ? 'Informe o nome do torneio.' : null));
 
-// os erros do formulário aparecem depois que a Maria sai do campo ou tenta criar, não enquanto digita
 const premioTocado = ref(false);
 const tentouCriar = ref(false);
 const enviando = ref(false);
-/** Erros devolvidos pela API, por campo (a validação que vale é a dela). */
 const errosDaApi = ref<Record<string, string>>({});
 
 function adicionarPosicao() {
@@ -32,7 +29,6 @@ function removerPosicao(indice: number) {
   posicoes.value.splice(indice, 1);
 }
 
-/** Ao sair do campo, mostra o prêmio no formato completo: "10000" vira "10.000,00". */
 function arrumarPremio() {
   premioTocado.value = true;
   if (premio.value.ok) premioTexto.value = formatarReais(premio.value.centavos);
@@ -133,7 +129,6 @@ async function criar() {
               />
               <span aria-hidden="true">%</span>
             </div>
-            <!-- com uma posição só, não há o que remover: o botão nem aparece -->
             <button
               v-if="posicoes.length > 1"
               type="button"
@@ -268,7 +263,6 @@ legend {
   padding: 14px;
   cursor: pointer;
 }
-/* o rádio recebe o foco; o cartão inteiro mostra onde ele está */
 .modo:has(input:focus-visible) {
   outline: 3px solid var(--cor-foco);
   outline-offset: 2px;

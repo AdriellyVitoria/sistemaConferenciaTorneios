@@ -1,12 +1,4 @@
 <script setup lang="ts">
-/**
- * A página pública do torneio (7c, D11), aberta pelo link que a Maria divulga para os jogadores.
- * Mostra só o que a API manda em GET /publico/:codigo: nome, data do cálculo, as regras em texto
- * simples e a classificação com a frase dos empates. Nenhum dado de jogador, e nenhum link para as
- * telas da Maria (a rota é marcada como pública e o App esconde o menu e o rodapé).
- *
- * Código errado ou vazio: "Página não encontrada", sem dizer se o torneio existe.
- */
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import AvisoDaPaginaPorLink from '../componentes/AvisoDaPaginaPorLink.vue';
 import TabelaClassificacao from '../componentes/TabelaClassificacao.vue';
@@ -21,7 +13,6 @@ const estado = ref<Estado>({ tipo: 'carregando' });
 
 const tituloOriginal = document.title;
 onMounted(async () => {
-  // sem código, nem pergunta à API
   estado.value = props.codigo ? await buscarPaginaPublica(props.codigo) : { tipo: 'nao_encontrada' };
   if (estado.value.tipo === 'ok') document.title = `${estado.value.pagina.torneio.nome} · Classificação`;
 });

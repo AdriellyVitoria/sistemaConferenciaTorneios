@@ -12,7 +12,6 @@ const RAIZ = path.resolve(__dirname, '../../..');
 const MINUTO = 60_000;
 
 let bd: Knex;
-/** O relógio da API; o teste avança sem esperar. */
 let agora: Date;
 const servidores: Server[] = [];
 
@@ -28,7 +27,6 @@ afterEach(async () => {
   for (const s of servidores.splice(0)) await new Promise<void>((fechado) => s.close(() => fechado()));
 });
 
-/** Sobe uma API; duas APIs no mesmo banco simulam uma reiniciada ou duas instâncias. */
 async function subirApi(): Promise<string> {
   const servidor = criarApp({ bd, verificarBanco: async () => {}, agora: () => agora, senhaDaOrganizadora: SENHA_DE_TESTE }).listen(0);
   await new Promise((pronto) => servidor.once('listening', pronto));
@@ -45,21 +43,15 @@ async function pedir(base: string, metodo: string, caminho: string, corpo?: unkn
   return { status: resposta.status, cabecalhos: resposta.headers, corpo: await resposta.json() };
 }
 
-/** Setembro importado, com as partidas em situações diferentes, como no meio de uma conferência. */
 async function setembroNoMeioDaConferencia(base: string) {
   const { corpo } = await pedir(base, 'POST', '/torneios', { nome: 'Setembro', premioCentavos: 1_000_000, percentuais: [50, 30, 20], modoDivisao: 'minutos' });
   await pedir(base, 'PUT', `/torneios/${corpo.id}/planilha`, readFileSync(path.join(RAIZ, 'torneio-setembro.csv')));
   const [p1, p2, p3, p4, ...resto] = await bd('partidas').where({ torneio_id: corpo.id }).orderBy('id');
   const daqui = (ms: number) => new Date(agora.getTime() + ms);
-  // aguardando, depois de falhar 3 vezes no site: próxima daqui a 10 min
   await bd('partidas').where({ id: p1.id }).update({ tentativas: 3, proxima_tentativa_em: daqui(10 * MINUTO), ultimo_erro: 'O site oficial não respondeu em 15 segundos.', origem_do_erro: 'site' });
-  // aguardando depois de um erro interno
   await bd('partidas').where({ id: p2.id }).update({ proxima_tentativa_em: daqui(MINUTO), ultimo_erro: 'Erro inesperado ao conferir a partida; ela será consultada de novo.', origem_do_erro: 'interno' });
-  // em consulta agora (com a próxima tentativa no futuro: se fosse antecipada, o teste veria)
   await bd('partidas').where({ id: p3.id }).update({ status_conferencia: 'em_consulta', em_consulta_desde: agora, proxima_tentativa_em: daqui(10 * MINUTO) });
-  // não encontrada (etapa 5)
   await bd('partidas').where({ id: p4.id }).update({ status_conferencia: 'nao_encontrada', proxima_tentativa_em: null });
-  // as outras: conferidas
   await bd('partidas').whereIn('id', resto.map((p: { id: number }) => p.id)).update({ status_conferencia: 'conferida', proxima_tentativa_em: null });
   return { id: corpo.id as number, p1, p2, p3, p4 };
 }
@@ -78,7 +70,6 @@ describe('POST /torneios/:id/tentar-agora', () => {
     const agoraEmSegundos = new Date(Math.floor(agora.getTime() / 1000) * 1000);
     expect(await buscar(p1.id)).toMatchObject({ status_conferencia: 'aguardando', tentativas: 3, proxima_tentativa_em: agoraEmSegundos, ultimo_erro: 'O site oficial não respondeu em 15 segundos.' });
     expect(await buscar(p2.id)).toMatchObject({ status_conferencia: 'aguardando', proxima_tentativa_em: agoraEmSegundos, origem_do_erro: 'interno' });
-    // a que está em consulta continua como está: nada em paralelo
     const emConsulta = await buscar(p3.id);
     expect(emConsulta).toMatchObject({ status_conferencia: 'em_consulta', em_consulta_desde: agora });
     expect(emConsulta.proxima_tentativa_em.getTime()).toBeGreaterThan(agora.getTime() + 9 * MINUTO);
@@ -89,7 +80,6 @@ describe('POST /torneios/:id/tentar-agora', () => {
     const base = await subirApi();
     const { id, p1 } = await setembroNoMeioDaConferencia(base);
     await pedir(base, 'POST', `/torneios/${id}/tentar-agora`);
-    // a partida falhou de novo e foi reagendada; um segundo clique logo depois não pode antecipar
     await bd('partidas').where({ id: p1.id }).update({ proxima_tentativa_em: new Date(agora.getTime() + 5 * MINUTO) });
 
     agora = new Date(agora.getTime() + 12_500);
@@ -99,7 +89,7 @@ describe('POST /torneios/:id/tentar-agora', () => {
     expect(bloqueado.cabecalhos.get('retry-after')).toBe('18');
     expect((await buscar(p1.id)).proxima_tentativa_em.getTime()).toBeGreaterThan(agora.getTime());
 
-    agora = new Date(agora.getTime() + 17_500); // 30 s depois do primeiro clique
+    agora = new Date(agora.getTime() + 17_500);
     expect((await pedir(base, 'POST', `/torneios/${id}/tentar-agora`)).status).toBe(200);
   });
 

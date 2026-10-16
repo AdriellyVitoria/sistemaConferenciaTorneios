@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { lerPercentuais, resumoDosPercentuais } from '../src/dominio/percentuais';
 
-// A conta ao vivo é só uma ajuda na tela: a validação que vale é a da API (D20).
 describe('lerPercentuais: a soma ao vivo do formulário', () => {
   it('50/30/20 soma 100 e está pronto para enviar', () => {
     expect(lerPercentuais(['50', '30', '20'])).toEqual({ valores: [50, 30, 20], soma: 100, erro: null });

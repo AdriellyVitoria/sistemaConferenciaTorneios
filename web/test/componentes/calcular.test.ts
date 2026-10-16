@@ -1,4 +1,3 @@
-// @vitest-environment happy-dom
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createMemoryHistory, createRouter } from 'vue-router';
@@ -14,7 +13,6 @@ afterEach(() => {
   document.body.innerHTML = '';
 });
 
-/** `pronto`: sem bloqueio e com os 3 Cientes, como o setembro depois da revisão. */
 async function montar(opcoes: OpcoesApiFalsa & { pronto?: boolean } = {}) {
   const api = criarApiFalsa(opcoes);
   if (opcoes.pronto) {
@@ -89,7 +87,7 @@ describe('modal de confirmação (D22)', () => {
     expect(dialogo(pagina).attributes('open')).toBeUndefined();
 
     await abrirModal(pagina);
-    await dialogo(pagina).trigger('cancel'); // o Esc do navegador
+    await dialogo(pagina).trigger('cancel');
     expect(dialogo(pagina).attributes('open')).toBeUndefined();
     expect(pedidosDeCalculo(api)).toBe(0);
   });
@@ -109,7 +107,6 @@ describe('calcular', () => {
     const { pagina } = await montar({ pronto: true });
     await abrirModal(pagina);
     await botaoDoDialogo(pagina, 'Calcular prêmios').trigger('click');
-    // antes de a resposta chegar
     expect(botaoCalcular(pagina)!.attributes('disabled')).toBeDefined();
     expect(textoDe(botaoCalcular(pagina)!)).toBe('Calcular prêmios');
     await flushPromises();
@@ -125,7 +122,6 @@ describe('calcular', () => {
 
     expect(textoDe(pagina.find('[role="alert"]'))).toContain('Ainda não dá para calcular: 1 sem Ciente.');
     expect(leituras()).toBeGreaterThan(antes);
-    // a página continua lá, já com a situação nova
     expect(textoDe(pagina.find('h1'))).toBe('Torneio de setembro');
     expect(textoDe(aviso(pagina))).toContain('1 sem Ciente');
   });

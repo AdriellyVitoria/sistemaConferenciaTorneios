@@ -1,12 +1,4 @@
 <script setup lang="ts">
-/**
- * A aba "Pendências" (etapa 5d, D17, protótipo 1-revisao): só o que falta. Bloqueantes primeiro,
- * com o aviso de corrigir o ID; depois as não bloqueantes sem Ciente, com planilha e site lado a
- * lado (D4) e o "Ciente". Com o Ciente, a pendência sai daqui e a partida vai para Conferidas
- * (5f: cada problema num lugar só); o aviso tem um "Desfazer" para o arrependimento imediato.
- * Quem carrega a lista é a página (ela também conta as abas); aqui só se age sobre ela e se pede
- * para recarregar.
- */
 import { computed, nextTick, ref } from 'vue';
 import DialogoConfirmacao from './DialogoConfirmacao.vue';
 import LadoALado from './LadoALado.vue';
@@ -25,29 +17,22 @@ const props = defineProps<{
   torneioId: number;
   lista: ListaDePendencias;
   partidas: Partida[];
-  /** Depois do cálculo: a lista fica só para leitura. */
   somenteLeitura: boolean;
-  /** Recarrega o torneio e as pendências; a página passa a sua função de carregar. */
   recarregar: () => Promise<void>;
 }>();
 
-/** O aviso do topo do painel; depois de um Ciente, traz a pendência para o "Desfazer". */
 const aviso = ref<{ tom: 'sucesso' | 'alerta' | 'erro'; texto: string; desfazer?: Pendencia } | null>(null);
-/** Chave da pendência com pedido em andamento: o botão fica desabilitado até a resposta. */
 const enviando = ref<string | null>(null);
 const confirmandoTodas = ref(false);
 
 const semCiente = computed(() => props.lista.naoBloqueantes.filter((p) => !p.ciente));
 const comCiente = computed(() => props.lista.naoBloqueantes.length - semCiente.value.length);
 const textosDoModal = computed(() => textosDoCienteDeTodas(semCiente.value.length, props.lista.bloqueantes.length));
-/** Enquanto o site não respondeu todas as partidas, o "Ciente de todas" fica desabilitado. */
 const motivoTodasTravado = computed(() => motivoDoCienteDeTodasTravado(props.partidas));
-/** Nada a fazer aqui: nem bloqueante nem não bloqueante sem Ciente. */
 const nadaFaltando = computed(() => props.lista.bloqueantes.length === 0 && semCiente.value.length === 0);
 
 const MUDOU = 'Os dados desta pendência mudaram enquanto você olhava (o site pode ter respondido de novo). A lista foi atualizada: confira de novo antes de dar Ciente.';
 
-/** Depois do Ciente: a partida foi para Conferidas, ou ainda tem outra pendência aqui. */
 function textoDoCiente(p: Pendencia): string {
   if (!p.idPartida) return 'Ciente registrado: as partidas desta pendência foram para Conferidas, se não tinham outra pendência.';
   const aindaFalta = [...props.lista.bloqueantes, ...semCiente.value].some((x) => x.idPartida === p.idPartida);
@@ -74,7 +59,6 @@ async function marcarCiente(p: Pendencia) {
   }
 }
 
-/** O "Desfazer" do aviso: o arrependimento logo depois do Ciente. */
 async function desfazerCiente(p: Pendencia) {
   enviando.value = p.chave;
   try {
@@ -106,13 +90,11 @@ async function confirmarTodas() {
 
 const papelDoAviso = (tom: string) => (tom === 'sucesso' ? 'status' : 'alert');
 
-// --- correção do ID (5e, D5, D16): só nas bloqueantes; só o ID é editável
 const corrigindo = ref<string | null>(null);
 const idNovo = ref('');
 const erroDaCorrecao = ref<string | null>(null);
 const salvandoCorrecao = ref(false);
 
-/** A partida da pendência, pelo ID atual (o que a API usa na rota é o id interno). */
 const partidaDa = (p: Pendencia) => props.partidas.find((x) => x.idPartida === p.idPartida) ?? null;
 
 function abrirCorrecao(p: Pendencia) {
@@ -140,7 +122,6 @@ async function salvarCorrecao(p: Pendencia) {
       return;
     }
     corrigindo.value = null;
-    // recarregar religa a atualização a cada 5 s: a partida corrigida está aguardando o site
     await props.recarregar();
     aviso.value = {
       tom: 'sucesso',
@@ -299,7 +280,6 @@ async function salvarCorrecao(p: Pendencia) {
 .introducao p {
   flex: 1 1 320px;
 }
-/* o motivo do "Ciente de todas" desabilitado: numa linha só, embaixo do texto e do botão */
 .introducao .motivo {
   flex-basis: 100%;
   text-align: right;
@@ -313,7 +293,6 @@ async function salvarCorrecao(p: Pendencia) {
   align-items: center;
   gap: var(--espaco-2) 10px;
 }
-/* o aviso depois do Ciente: o texto e o Desfazer na mesma faixa */
 .aviso-com-acao {
   flex-direction: row;
   flex-wrap: wrap;

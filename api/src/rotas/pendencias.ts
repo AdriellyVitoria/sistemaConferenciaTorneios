@@ -1,16 +1,3 @@
-/**
- * Rotas das pendências (etapa 5a). Só recebem, validam e respondem; as regras ficam no serviço.
- *
- *   GET    /torneios/:id/pendencias                     bloqueantes e não bloqueantes, cada uma
- *                                                       com a chave e se já tem Ciente
- *   PUT    /torneios/:id/pendencias/:chave/ciente       marca o Ciente (marcar de novo não muda nada)
- *   DELETE /torneios/:id/pendencias/:chave/ciente       desfaz o Ciente
- *   POST   /torneios/:id/pendencias/ciente-de-todas     marca as não bloqueantes sem Ciente
- *
- * Bloqueantes não aceitam Ciente (409). "Ciente de todas" com partida aguardando o site: 409.
- * Depois do cálculo, nada muda (409).
- */
-
 import { Router, type Response } from 'express';
 import type { Knex } from 'knex';
 import { z } from 'zod';

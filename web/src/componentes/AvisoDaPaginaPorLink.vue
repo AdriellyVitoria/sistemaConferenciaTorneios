@@ -1,9 +1,4 @@
 <script setup lang="ts">
-/**
- * O que as páginas abertas por link (pública e do time) mostram quando não dá para abrir.
- * Código errado ou vazio: "Página não encontrada", sem dizer se existe um torneio por trás. Outro
- * erro: pede para tentar de novo, para o jogador não achar que o link está errado.
- */
 defineProps<{ tipo: 'nao_encontrada' | 'erro' }>();
 </script>
 

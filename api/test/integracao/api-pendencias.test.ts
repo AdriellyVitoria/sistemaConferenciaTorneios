@@ -17,7 +17,6 @@ const arquivo = (relativo: string) => path.join(RAIZ, relativo);
 const DADOS_DO_SITE = [arquivo('testes/site-oficial.json'), arquivo('api/test/fixtures/site-setembro.json')];
 
 let bd: Knex;
-/** O relógio do MySQL: a API e o job usam o mesmo relógio que grava a próxima tentativa na importação. */
 let relogio: () => Date;
 let api: Server;
 let site: Server;
@@ -55,7 +54,6 @@ async function pedir(metodo: string, caminho: string, corpo?: unknown) {
   return { status: resposta.status, corpo: await resposta.json() };
 }
 
-/** Cria o torneio e importa a planilha; com `conferir`, roda o job até o site responder tudo. */
 async function torneioCom(planilha: string, { conferir = true } = {}): Promise<number> {
   const { corpo } = await pedir('POST', '/torneios', { nome: planilha, premioCentavos: 1_000_000, percentuais: [50, 30, 20], modoDivisao: 'minutos' });
   expect((await pedir('PUT', `/torneios/${corpo.id}/planilha`, readFileSync(arquivo(planilha)))).status).toBe(200);
@@ -108,7 +106,6 @@ describe('GET /torneios/:id/pendencias', () => {
 
   it('times diferentes (os times vêm das participações do site) é bloqueante, e só ele aparece da partida', async () => {
     const id = await torneioCom('torneio-setembro.csv');
-    // como se o site tivesse registrado, para o #45659, uma partida entre outros times
     const partida = await bd('partidas').where({ torneio_id: id, id_partida: '#45659' }).first();
     await bd('participacoes').where({ partida_id: partida.id, time: 'Lobos' }).update({ time: 'Corvos' });
     await bd('participacoes').where({ partida_id: partida.id, time: 'Serpentes' }).update({ time: 'Panteras' });
@@ -162,7 +159,6 @@ describe('Ciente', () => {
     expect(status).toBe(200);
     expect(corpo).toEqual({ chave: duplicata.chave, ciente: false });
     expect((await pendencias(id)).corpo.naoBloqueantes[0]).toMatchObject({ ciente: false, cienteEm: null });
-    // desfazer o que já não tem Ciente não é erro
     expect((await desfazer(id, duplicata.chave)).status).toBe(200);
   });
 
@@ -191,7 +187,6 @@ describe('Ciente', () => {
     expect(juba).toMatchObject({ tipo: 'divergencia', campo: 'kills', valorPlanilha: '18', valorSite: '8' });
     await ciente(id, juba.chave);
 
-    // o site passa a registrar outro valor para Juba (por exemplo, depois de uma correção de ID)
     const partida = await bd('partidas').where({ torneio_id: id, id_partida: '#53132' }).first();
     await bd('participacoes').where({ partida_id: partida.id, nick: 'Juba' }).update({ kills: 9 });
 
@@ -231,7 +226,6 @@ describe('Ciente de todas', () => {
 
   const quantosCientes = async (id: number) => Number((await bd('cientes').where({ torneio_id: id }).count({ n: '*' }))[0].n);
 
-  // senão, uma pendência que chegou do site depois de a Maria abrir a tela levaria o Ciente sem ela ter visto
   it('com partida aguardando o site ou em consulta: 409, sem marcar nenhuma', async () => {
     const id = await torneioCom('torneio-setembro.csv');
     await bd('partidas').where({ torneio_id: id, id_partida: '#45659' }).update({ status_conferencia: 'aguardando' });
@@ -257,7 +251,6 @@ describe('Ciente de todas', () => {
 
   it('a verificação é feita dentro da transação, com o torneio travado', async () => {
     const id = await torneioCom('torneio-setembro.csv');
-    // outra gravação (como uma correção de ID) trava o torneio e põe uma partida de volta na fila
     const trx = await bd.transaction();
     await trx('torneios').where({ id }).forUpdate().first();
     const pedido = cienteDeTodas(id);
@@ -265,7 +258,6 @@ describe('Ciente de todas', () => {
     await trx('partidas').where({ torneio_id: id, id_partida: '#45659' }).update({ status_conferencia: 'aguardando' });
     await trx.commit();
 
-    // o "Ciente de todas" esperou a trava e viu a partida na fila
     expect((await pedido).status).toBe(409);
     expect(await quantosCientes(id)).toBe(0);
   });
@@ -332,7 +324,6 @@ describe('GET /torneios/:id: pronto para calcular (5c)', () => {
       podeCalcular: true, calculado: false, calculadoEm: null, semPlanilha: false, aguardandoSite: 0, bloqueios: 0, semCiente: 0,
     });
 
-    // desfazer um Ciente volta a impedir
     await desfazer(id, nick.chave);
     expect(await calculo(id)).toMatchObject({ podeCalcular: false, semCiente: 1 });
   });

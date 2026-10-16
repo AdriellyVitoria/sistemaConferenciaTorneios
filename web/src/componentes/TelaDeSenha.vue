@@ -1,9 +1,4 @@
 <script setup lang="ts">
-/**
- * "Senha da organizadora" (R3): aparece no lugar da página quando a API responde 401 ou depois do
- * "Sair". Não é login: uma senha só, a do ADMIN_SENHA da API. Certa, a senha fica guardada na aba
- * (sessao.ts) e a página que estava aberta carrega de novo.
- */
 import { onMounted, ref, useId } from 'vue';
 import { entrar } from '../servicos/api';
 
@@ -14,7 +9,6 @@ const campo = ref<HTMLInputElement | null>(null);
 const idDoCampo = `senha-${useId()}`;
 const idDoErro = `erro-senha-${useId()}`;
 
-// o campo já em foco: é a única coisa a fazer nesta tela
 onMounted(() => campo.value?.focus());
 
 async function enviar() {
@@ -28,7 +22,7 @@ async function enviar() {
   erro.value = null;
   const resultado = await entrar(senha.value);
   entrando.value = false;
-  if (resultado.tipo === 'ok') return; // guardarSenha tira esta tela
+  if (resultado.tipo === 'ok') return;
   erro.value = resultado.tipo === 'incorreta' ? 'Senha incorreta. Confira e tente de novo.' : resultado.mensagem;
   campo.value?.select();
 }

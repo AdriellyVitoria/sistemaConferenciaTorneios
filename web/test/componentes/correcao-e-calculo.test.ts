@@ -1,4 +1,3 @@
-// @vitest-environment happy-dom
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createMemoryHistory, createRouter } from 'vue-router';
@@ -8,7 +7,6 @@ import { criarApiFalsa, type OpcoesApiFalsa } from './api-falsa';
 
 const montadas: VueWrapper[] = [];
 afterEach(() => {
-  // desmontar desliga a sondagem: nenhum timer passa de um teste para o outro
   for (const p of montadas.splice(0)) p.unmount();
   vi.useRealTimers();
   vi.unstubAllGlobals();
@@ -61,7 +59,6 @@ describe('correção do ID no cartão da pendência bloqueante (D5, D16)', () =>
     const { pagina, api } = await montar();
     const leiturasDoTorneio = () => api.estado.pedidos.filter((p) => p === 'GET /api/torneios/1').length;
 
-    // sem nada aguardando, a sondagem está parada
     const antes = leiturasDoTorneio();
     await vi.advanceTimersByTimeAsync(10_000);
     expect(leiturasDoTorneio()).toBe(antes);
@@ -75,7 +72,6 @@ describe('correção do ID no cartão da pendência bloqueante (D5, D16)', () =>
     await aba(pagina, 'Aguardando o site').trigger('click');
     expect(pagina.find('#painel-aguardando').text()).toContain('#52214 → #52241 (corrigido)');
 
-    // a sondagem voltou: uma leitura nova a cada 5 s
     const depois = leiturasDoTorneio();
     await vi.advanceTimersByTimeAsync(5_000);
     expect(leiturasDoTorneio()).toBe(depois + 1);
@@ -106,9 +102,7 @@ describe('ID corrigido exibido', () => {
       api.partidas.find((p) => p.idPartida === '#40923')!.idPartidaPlanilha = '#40932';
       api.partidas.find((p) => p.idPartida === '#45659')!.idPartidaPlanilha = '#45695';
     });
-    // no título da pendência
     expect(pagina.text()).toContain('Partida #40932 → #40923 (corrigido) · Rodada 5 · Falcões x Panteras');
-    // na aba Conferidas
     await aba(pagina, 'Conferidas').trigger('click');
     expect(pagina.find('#painel-conferidas').text()).toContain('#45695 → #45659 (corrigido)');
   });

@@ -4,7 +4,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { iniciarJob, type Job } from '../../src/conferencia/job';
 import type { SiteOficial } from '../../src/conferencia/site-oficial';
 
-/** Uma porta onde ninguém escuta: o "MySQL fora do ar". */
 async function portaSemNinguem(): Promise<number> {
   const servidor = createServer().listen(0, '127.0.0.1');
   await new Promise((pronto) => servidor.once('listening', pronto));
@@ -39,11 +38,9 @@ describe('o job não para quando uma rodada falha', () => {
 
     job = iniciarJob({ bd, site: siteQueNuncaEChamado, intervalosMs: [60_000], lote: 3, presaAposMs: 120_000, acordarACadaMs: 10 });
 
-    // três rodadas falharam e o job seguiu acordando
     await vi.waitFor(() => expect(erros.mock.calls.length).toBeGreaterThanOrEqual(3), { timeout: 5_000 });
     expect(erros.mock.calls.every(([mensagem]) => mensagem === 'Conferência: a rodada falhou e será tentada de novo.')).toBe(true);
 
-    // e ainda para direito
     await job.parar();
     const depoisDeParar = erros.mock.calls.length;
     await new Promise((pronto) => setTimeout(pronto, 300));

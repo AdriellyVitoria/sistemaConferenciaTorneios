@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest';
 import { montarPartidas } from '../../src/dominio/importacao';
 import { lerPlanilha, type LinhaPlanilha } from '../../src/dominio/planilha';
 
-// A planilha original é só lida.
 const RAIZ = path.resolve(__dirname, '../../..');
 
 function linhasDe(arquivo: string): LinhaPlanilha[] {
@@ -39,7 +38,7 @@ describe('montarPartidas', () => {
       linha('#45659', 'Serpentes', 'Bote'),
       linha('#45659', 'Lobos', 'Pipoca'),
       linha('#45659', 'Serpentes', 'Víbora'),
-      linha('#45695', 'Lobos', 'R4mbo'), // ID digitado errado: linha 7
+      linha('#45695', 'Lobos', 'R4mbo'),
     ]);
     expect(resultado.ok).toBe(false);
     if (resultado.ok) return;
@@ -66,7 +65,7 @@ describe('montarPartidas', () => {
       linha('#45659', 'Lobos', 'Lua_'),
       linha('#45659', 'Lobos', 'Pipoca'),
       linha('#45659', 'Serpentes', 'Naja'),
-      linha('#45659', 'Corvos', 'Zeca'), // linha 5: esta linha é de outra partida
+      linha('#45659', 'Corvos', 'Zeca'),
       linha('#45659', 'Serpentes', 'Bote'),
     ]);
     expect(!resultado.ok && resultado.erros).toEqual([{

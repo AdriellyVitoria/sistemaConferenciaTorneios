@@ -1,8 +1,3 @@
-/**
- * Demora de cada consulta, lida das variáveis de ambiente.
- * Padrão: de 2 a 10 segundos, como o site real. A demonstração pode usar uma demora curta,
- * por exemplo SITE_DEMORA_MIN_MS=200 e SITE_DEMORA_MAX_MS=800.
- */
 export function lerDemora(ambiente: Record<string, string | undefined>): { minMs: number; maxMs: number } {
   const minMs = lerMs(ambiente, 'SITE_DEMORA_MIN_MS', 2_000);
   const maxMs = lerMs(ambiente, 'SITE_DEMORA_MAX_MS', 10_000);

@@ -1,4 +1,3 @@
-// @vitest-environment happy-dom
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
@@ -8,7 +7,6 @@ import App from '../../src/App.vue';
 import { rotas } from '../../src/roteador';
 import { espacosComuns, textoDe } from '../ajudantes/espacos';
 
-// A classificação de setembro como a API devolve em GET /publico/:codigo, montada do gabarito (só lido)
 const ESPERADO = path.resolve(__dirname, '../../../testes/esperado');
 const linhas = (arquivo: string) => readFileSync(path.join(ESPERADO, arquivo), 'utf8').split(/\r?\n/).filter(Boolean).slice(1).map((l) => l.split(';'));
 const centavos = (texto: string) => Number(texto.replace(',', ''));
@@ -27,7 +25,6 @@ const PAGINA_DE_SETEMBRO = {
   })),
 };
 
-// todos os nicks de setembro: os premiados do gabarito e os dos times sem prêmio
 const NICKS = [
   ...linhas('torneio-setembro-jogadores.csv').map(([, nick]) => nick),
   'Mel', 'Pantera_X', 'Rafa.K', 'Sombra', 'Tchê', 'Bote', 'Cobrinha', 'Kaio_BR', 'Naja', 'Víbora',
@@ -60,7 +57,6 @@ async function abrir(caminho: string, resposta: { status: number; corpo: unknown
 }
 
 const tabela = (app: VueWrapper) => app.findAll('table').find((t) => textoDe(t.find('caption')) === 'Classificação')!;
-/** O texto que aparece na tela: sem o que é só para o leitor de tela (.visualmente-oculto). */
 const visivel = (celula: Element) => {
   const copia = celula.cloneNode(true) as Element;
   copia.querySelectorAll('.visualmente-oculto').forEach((n) => n.remove());
@@ -68,7 +64,6 @@ const visivel = (celula: Element) => {
 };
 const linhasDaTabela = (app: VueWrapper) => tabela(app).findAll('tbody tr').map((tr) => tr.findAll('td, th').map((c) => visivel(c.element)));
 
-/** O setembro calculado em 50/50: Corvos fica com o 2º lugar; o empate do 3º fica sem prêmio. */
 const SETEMBRO_EM_50_50 = {
   ...PAGINA_DE_SETEMBRO,
   regras: { ...PAGINA_DE_SETEMBRO.regras, percentuais: [50, 50] },
@@ -147,10 +142,9 @@ describe('é uma página para jogadores (D11)', () => {
     const texto = document.body.textContent ?? '';
     await abrir(`/publico/${CODIGO}`);
     const tela = document.body.textContent ?? '';
-    expect(texto).toBe(''); // a tela começou vazia
+    expect(texto).toBe('');
     expect(NICKS).toHaveLength(31);
     for (const nick of NICKS) expect(tela).not.toContain(nick);
-    // valores de jogador de setembro que não são prêmio de nenhum time
     for (const valor of ['R$ 600,00', 'R$ 534,10', 'R$ 65,90', 'R$ 200,00']) expect(tela).not.toContain(valor);
   });
 
@@ -165,7 +159,6 @@ describe('é uma página para jogadores (D11)', () => {
     expect(app.find('nav').exists()).toBe(false);
     expect(textoDe(app)).not.toContain('Torneios');
     expect(textoDe(app)).not.toContain('Banco de dados');
-    // a marca continua, mas como texto
     expect(textoDe(app)).toContain('Premiação de torneios');
   });
 
@@ -181,7 +174,6 @@ describe('código inválido', () => {
     const app = await abrir('/publico/naoexiste', { status: 404, corpo: { erro: 'Página não encontrada.' } });
     expect(textoDe(app.find('h1'))).toBe('Página não encontrada');
     expect(textoDe(app)).toContain('Confira se o link foi copiado inteiro.');
-    // o conteúdo da página (a marca do cabeçalho, "Premiação de torneios", fica de fora)
     expect(textoDe(app.find('main'))).not.toMatch(/torneio/i);
     expect(app.findAll('a')).toEqual([]);
     expect(app.find('table').exists()).toBe(false);

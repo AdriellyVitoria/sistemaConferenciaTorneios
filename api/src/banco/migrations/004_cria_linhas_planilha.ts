@@ -1,28 +1,20 @@
 import type { Knex } from 'knex';
 import { TEXTO_EXATO as EXATO } from '../colunas';
 
-/**
- * O que a Maria digitou, linha por linha, como o domínio leu (D18). Nada é juntado nem
- * descartado aqui: duplicatas e nicks diferentes viram pendências na comparação com o site (D19).
- */
 export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('linhas_planilha', (t) => {
     t.increments('id');
     t.integer('torneio_id').unsigned().notNullable().references('id').inTable('torneios').onDelete('CASCADE');
-    // ligada à partida pela chave, e não pelo texto do ID: se a Maria corrigir o ID (D16), a ligação continua
     t.integer('partida_id').unsigned().notNullable().references('id').inTable('partidas').onDelete('CASCADE');
-    // número da linha como a Maria vê no Excel (o cabeçalho é a linha 1)
     t.integer('numero_linha').unsigned().notNullable();
     t.date('data').notNullable();
     t.integer('rodada').unsigned().notNullable();
-    // o ID como foi digitado nesta linha
     t.string('id_partida', 20).collate(EXATO).notNullable();
     t.string('partida', 200).collate(EXATO).notNullable();
     t.string('time', 80).collate(EXATO).notNullable();
     t.string('nick', 80).collate(EXATO).notNullable();
     t.integer('minutos').unsigned().notNullable();
     t.integer('kills').unsigned().notNullable();
-    // true = sim, false = não, null = célula vazia
     t.boolean('venceu').nullable();
 
     t.unique(['torneio_id', 'numero_linha']);

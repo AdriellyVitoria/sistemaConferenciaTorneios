@@ -1,11 +1,6 @@
 <script setup lang="ts">
 import { nextTick, ref, useId, watch } from 'vue';
 
-/**
- * Pergunta antes de uma ação que não se desfaz (substituir a planilha, calcular).
- * Usa o <dialog> do navegador: prende o foco dentro dele e fecha com Esc. O foco começa no
- * botão de cancelar, a opção segura.
- */
 const props = withDefaults(
   defineProps<{
     aberto: boolean;
@@ -20,7 +15,6 @@ const emit = defineEmits<{ confirmar: []; cancelar: [] }>();
 
 const dialogo = ref<HTMLDialogElement | null>(null);
 const cancelar = ref<HTMLButtonElement | null>(null);
-// um id só deste diálogo: a página do torneio tem vários, e o rótulo precisa apontar para o certo
 const idDoTitulo = `titulo-dialogo-${useId()}`;
 
 watch(
@@ -28,7 +22,6 @@ watch(
   async (aberto) => {
     if (aberto && !dialogo.value?.open) {
       dialogo.value?.showModal();
-      // o autofocus nem sempre é respeitado: o foco vai explicitamente para a opção segura
       await nextTick();
       cancelar.value?.focus();
     }

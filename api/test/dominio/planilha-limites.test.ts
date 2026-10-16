@@ -1,17 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { lerPlanilha, validarIdPartida, type ErroLeitura } from '../../src/dominio/planilha';
 
-/**
- * Code review, itens 2, 12 e 13: nenhum valor da planilha pode passar da coluna do banco (o MySQL,
- * em modo estrito, recusaria o INSERT e a Maria veria um erro 500 sem a linha do Excel). Os limites
- * estão escritos aqui por extenso, de propósito: mudar a constante do código sem querer faz o teste falhar.
- */
-
 const CABECALHO = 'Data;Rodada;ID Partida;Partida;Time;Nick;Minutos;Kills;Venceu?';
 const CAMPOS_OK = ['05/09/2026', '1', '#45659', 'Lobos x Serpentes', 'Lobos', 'Lua_', '43', '14', 'sim'];
 const DATA = 0, RODADA = 1, ID = 2, PARTIDA = 3, TIME = 4, NICK = 5, MINUTOS = 6, KILLS = 7;
 
-/** Uma planilha de uma linha (a linha 2 do Excel), com uma célula trocada. */
 function planilhaCom(coluna: number, valor: string): Uint8Array {
   const campos = [...CAMPOS_OK];
   campos[coluna] = valor;
@@ -37,7 +30,6 @@ describe('limites de texto (o tamanho das colunas do banco)', () => {
   });
 
   it('conta caracteres como o MySQL: um emoji é um caractere só', () => {
-    // 79 letras + 1 emoji = 80 caracteres (o .length do JavaScript diria 81)
     aceita(planilhaCom(NICK, `${'n'.repeat(79)}🎮`));
     expect(erroUnico(planilhaCom(NICK, `${'n'.repeat(80)}🎮`)).mensagem).toBe('O nick pode ter até 80 caracteres. Este tem 81.');
   });

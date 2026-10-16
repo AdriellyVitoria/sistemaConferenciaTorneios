@@ -7,7 +7,6 @@ import { lerPlanilha } from '../../src/dominio/planilha';
 import { premiarTimes, type PremioTime } from '../../src/dominio/premio';
 import { ratearEntreJogadores, type ModoDivisao } from '../../src/dominio/rateio';
 
-// Arquivos só lidos: nenhuma planilha, esperado ou site-oficial.json é alterado.
 const RAIZ = path.resolve(__dirname, '../../..');
 const SITE_OFICIAL: Record<string, PartidaSite> = JSON.parse(
   readFileSync(path.join(RAIZ, 'testes/site-oficial.json'), 'utf8'),
@@ -15,7 +14,7 @@ const SITE_OFICIAL: Record<string, PartidaSite> = JSON.parse(
 const SITE_SETEMBRO: Record<string, PartidaSite> = JSON.parse(
   readFileSync(path.join(__dirname, '../fixtures/site-setembro.json'), 'utf8'),
 );
-const PREMIO = 1_000_000; // R$ 10.000,00
+const PREMIO = 1_000_000;
 const PERCENTUAIS = [50, 30, 20];
 
 function partidasDoCenario(planilha: string, site: Record<string, PartidaSite>): PartidaSite[] {
@@ -30,7 +29,6 @@ function calcular(planilha: string, site: Record<string, PartidaSite>, modo: Mod
   return ratearEntreJogadores(premiosTimes, partidas, modo);
 }
 
-/** Lê um *-jogadores.csv: time, nick, minutos, minutos do time e prêmio em centavos. */
 function esperado(nome: string) {
   const texto = readFileSync(path.join(RAIZ, 'testes/esperado', `${nome}-jogadores.csv`), 'utf8');
   return texto.split(/\r?\n/).filter(Boolean).slice(1).map((linha) => {
@@ -118,7 +116,7 @@ describe('ratearEntreJogadores — jogador em dois times (D13)', () => {
       partidas.flatMap((p) => p.jogadores).filter((x) => x.nick === 'Garra' && x.time === time).reduce((s, x) => s + x.minutos, 0);
     const garra = calcular('testes/planilhas/07-jogador-em-dois-times.csv', SITE_OFICIAL, 'minutos').filter((x) => x.nick === 'Garra');
 
-    expect(minutosPor('Ursos')).toBeGreaterThan(0); // ele jogou mesmo pelos Ursos, que ficaram sem prêmio
+    expect(minutosPor('Ursos')).toBeGreaterThan(0);
     expect(garra.map((x) => [x.time, x.base])).toEqual([['Leões', minutosPor('Leões')]]);
   });
 
@@ -140,8 +138,6 @@ describe('ratearEntreJogadores — jogador em dois times (D13)', () => {
     ]);
   });
 });
-
-// ---------------------------------------------------------------- auxiliares
 
 function j(nick: string, time: string, minutos: number, kills: number): JogadorSite {
   return { nick, time, minutos, kills };

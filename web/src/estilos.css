@@ -1,27 +1,18 @@
-/*
- * Base visual de todas as telas, tirada dos protótipos (docs/prototipo). Os valores ficam
- * definidos UMA VEZ aqui, como variáveis; as telas e os componentes só usam as variáveis.
- * As fontes vêm dos pacotes @fontsource, dentro do projeto: a demonstração funciona sem internet.
- */
-
 :root {
-  /* ---- cores: superfícies e texto */
   --fundo: #f4f5f7;
   --superficie: #ffffff;
   --superficie-suave: #f7f8fa;
-  --superficie-afundada: #e8eaee; /* trilho dos filtros */
+  --superficie-afundada: #e8eaee;
   --texto: #14161b;
   --texto-medio: #444a57;
   --texto-suave: #5b6170;
-  --texto-apagado: #6b7280; /* etapas futuras, ícones; 4,8:1 sobre o branco */
+  --texto-apagado: #6b7280;
 
-  /* ---- cores: bordas */
   --borda: #e2e5ea;
   --borda-forte: #d5d9e0;
   --borda-campo: #c3c8d2;
   --linha-tabela: #eef0f3;
 
-  /* ---- cores: ação e situações (texto sobre o fundo de cada par passa de 4,5:1) */
   --primaria: #2348c7;
   --primaria-escura: #16328f;
   --primaria-clara: #e8edfb;
@@ -34,22 +25,18 @@
   --erro: #a12828;
   --erro-fundo: #fdecea;
 
-  /* ---- cabeçalho escuro */
   --cabecalho: #14161b;
   --cabecalho-texto: #ffffff;
   --cabecalho-texto-suave: #c9ceda;
   --cabecalho-icone: #8fa8ff;
 
-  /* ---- fontes. Mono para IDs de partida, nomes de arquivo e dinheiro; números pequenos em
-     selos e contadores usam a Sans com algarismos de mesma largura: o zero da Mono tem um
-     ponto no meio e, em 12 px, "100%" parece riscado. */
   --fonte: 'IBM Plex Sans', system-ui, sans-serif;
   --fonte-mono: 'IBM Plex Mono', ui-monospace, monospace;
   --texto-xs: 12px;
   --texto-sm: 13px;
   --texto-md: 14px;
   --texto-base: 15px;
-  --texto-marca: 16px; /* o nome do sistema no cabeçalho */
+  --texto-marca: 16px;
   --texto-lg: 17px;
   --texto-xl: 18px;
   --texto-numero: 26px;
@@ -59,7 +46,6 @@
   --peso-medio: 500;
   --peso-forte: 600;
 
-  /* ---- espaçamentos (escala de 4 px) */
   --espaco-1: 4px;
   --espaco-2: 8px;
   --espaco-3: 12px;
@@ -70,22 +56,19 @@
   --espaco-8: 48px;
   --espaco-9: 56px;
 
-  /* ---- raios */
-  --raio-pequeno: 6px; /* selos */
-  --raio: 8px; /* botões, campos, quadros internos */
-  --raio-medio: 10px; /* trilho dos filtros */
-  --raio-grande: 12px; /* cartões */
+  --raio-pequeno: 6px;
+  --raio: 8px;
+  --raio-medio: 10px;
+  --raio-grande: 12px;
   --raio-dialogo: 14px;
   --raio-pilula: 999px;
 
-  /* ---- sombras e foco */
   --sombra-sutil: 0 1px 2px rgb(20 22 27 / 0.12);
   --sombra-dialogo: 0 12px 40px rgb(20 22 27 / 0.25);
   --fundo-modal: rgb(20 22 27 / 0.5);
-  --cor-foco: #6f8fe8; /* contorno do foco: 3:1 sobre o fundo e sobre o branco */
+  --cor-foco: #6f8fe8;
 
-  /* ---- medidas */
-  --alvo-toque: 44px; /* altura mínima de tudo que se clica */
+  --alvo-toque: 44px;
   --largura-pagina: 1120px;
   --largura-estreita: 760px;
   --margem-lateral: var(--espaco-6);
@@ -109,7 +92,7 @@ body {
   font-family: var(--fonte);
   font-size: var(--texto-base);
   line-height: var(--altura-linha);
-  overflow-wrap: anywhere; /* nomes e arquivos longos quebram em vez de alargar a página */
+  overflow-wrap: anywhere;
 }
 
 a {
@@ -119,7 +102,6 @@ a:hover {
   color: var(--primaria-escura);
 }
 
-/* foco visível em tudo que recebe o teclado */
 :focus-visible {
   outline: 3px solid var(--cor-foco);
   outline-offset: 2px;
@@ -144,7 +126,6 @@ p {
 .mono {
   font-family: var(--fonte-mono);
 }
-/* números que precisam alinhar, sem a Mono (ver --fonte) */
 .numeral {
   font-family: var(--fonte);
   font-variant-numeric: tabular-nums;
@@ -157,7 +138,6 @@ p {
   font-size: var(--texto-md);
 }
 
-/* ---- página */
 .pagina {
   max-width: var(--largura-pagina);
   margin: 0 auto;
@@ -187,7 +167,6 @@ p {
   color: var(--texto-suave);
 }
 
-/* ---- cartões */
 .cartao {
   background: var(--superficie);
   border: 1px solid var(--borda);
@@ -211,7 +190,6 @@ p {
   font-size: var(--texto-md);
 }
 
-/* ---- etiquetas em pílula (prêmio, percentuais, modo) */
 .pilulas {
   display: flex;
   flex-wrap: wrap;
@@ -225,7 +203,6 @@ p {
   padding: var(--espaco-1) var(--espaco-3);
 }
 
-/* ---- selos de situação */
 .selo {
   display: inline-block;
   font-size: var(--texto-xs);
@@ -260,12 +237,10 @@ p {
   background: var(--erro-fundo);
   color: var(--erro);
 }
-/* contador com algo a fazer (a aba Pendências com itens faltando) */
 .contador.destaque {
   background: var(--alerta-fundo);
   color: var(--alerta);
 }
-/* contador ao lado de uma aba ou filtro */
 .contador {
   display: inline-block;
   font-size: var(--texto-sm);
@@ -275,7 +250,6 @@ p {
   margin-left: var(--espaco-1);
 }
 
-/* ---- botões */
 .botao {
   font: inherit;
   font-weight: var(--peso-forte);
@@ -341,7 +315,6 @@ p {
   text-decoration: underline;
 }
 
-/* ---- formulário */
 .grupo {
   display: flex;
   flex-direction: column;
@@ -375,7 +348,6 @@ p {
   color: var(--erro);
 }
 
-/* ---- avisos em faixa */
 .aviso {
   border-radius: var(--raio);
   padding: var(--espaco-3) var(--espaco-4);
@@ -401,7 +373,6 @@ p {
   color: var(--primaria-escura);
 }
 
-/* ---- tabelas */
 .rolagem {
   overflow-x: auto;
 }
@@ -432,10 +403,6 @@ p {
   font-variant-numeric: tabular-nums;
 }
 
-/*
- * No celular, a tabela vira uma lista: cada linha é um bloco, e cada célula mostra o nome da
- * coluna (data-rotulo) ao lado do valor. Nada de rolagem lateral.
- */
 @media (max-width: 640px) {
   .tabela.empilhavel thead {
     position: absolute;
@@ -469,10 +436,6 @@ p {
   }
 }
 
-/*
- * Tabelas do resultado e da página pública (protótipo 2-resultado): no celular, a tabela rola
- * dentro da caixa (as colunas de número se leem melhor lado a lado); a página não alarga.
- */
 .caixa-tabela {
   overflow-x: auto;
   min-width: 0;
@@ -516,7 +479,6 @@ p {
   font-weight: var(--peso-normal);
 }
 
-/* ---- abas sublinhadas (tela do torneio) */
 .abas {
   display: flex;
   flex-wrap: wrap;
@@ -539,7 +501,6 @@ p {
   border-bottom-color: var(--primaria);
 }
 
-/* ---- filtros segmentados (lista de torneios) */
 .segmentos {
   display: flex;
   flex-wrap: wrap;
@@ -571,7 +532,6 @@ p {
   margin-left: var(--espaco-1);
 }
 @media (max-width: 640px) {
-  /* no celular, os filtros dividem a largura numa linha só */
   .segmentos {
     flex-wrap: nowrap;
     width: 100%;

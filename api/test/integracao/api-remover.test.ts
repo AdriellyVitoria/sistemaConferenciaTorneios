@@ -17,7 +17,6 @@ const arquivo = (relativo: string) => path.join(RAIZ, relativo);
 const DADOS_DO_SITE = [arquivo('testes/site-oficial.json'), arquivo('api/test/fixtures/site-setembro.json')];
 
 let bd: Knex;
-/** O relógio do MySQL: a API e o job usam o mesmo relógio que grava a próxima tentativa na importação. */
 let relogio: () => Date;
 let api: Server;
 let site: Server;
@@ -59,7 +58,6 @@ async function pedir(metodo: string, caminho: string, corpo?: unknown) {
 const rodada = (siteUsado: SiteOficial = clienteDoSite) =>
   executarRodada({ bd, site: siteUsado, agora: () => new Date(relogio().getTime() + 2_000), intervalosMs: [60_000], lote: 3, presaAposMs: 120_000 });
 
-/** Setembro importado; com `conferir`, conferido e com os 3 Cientes. */
 async function setembro({ nome = 'Torneio de setembro', conferir = true } = {}): Promise<number> {
   const { corpo } = await pedir('POST', '/torneios', { nome, premioCentavos: 1_000_000, percentuais: [50, 30, 20], modoDivisao: 'minutos' });
   expect((await pedir('PUT', `/torneios/${corpo.id}/planilha`, readFileSync(arquivo('torneio-setembro.csv')))).status).toBe(200);
@@ -70,7 +68,6 @@ async function setembro({ nome = 'Torneio de setembro', conferir = true } = {}):
   return corpo.id;
 }
 
-/** Quanto sobrou do torneio em cada tabela. */
 async function oQueSobrou(id: number) {
   const partidaIds = (await bd('partidas').where({ torneio_id: id }).select('id')).map((p: { id: number }) => p.id);
   const contar = async (consulta: Knex.QueryBuilder) => Number((await consulta.count({ n: '*' }).first())!.n);
@@ -134,7 +131,6 @@ describe('DELETE /torneios/:id', () => {
   it('remover e calcular ao mesmo tempo: um espera o outro, e nunca fica um cálculo sem torneio', async () => {
     const id = await setembro();
     const [remocao, calculo] = await Promise.all([pedir('DELETE', `/torneios/${id}`), pedir('POST', `/torneios/${id}/calculo`)]);
-    // ou removeu primeiro (o cálculo não encontra o torneio), ou calculou primeiro (a remoção é recusada)
     expect(['204 404', '409 200']).toContain(`${remocao.status} ${calculo.status}`);
     const sobrou = await oQueSobrou(id);
     if (remocao.status === 204) expect(sobrou).toEqual(NADA);
@@ -146,7 +142,6 @@ describe('remoção durante a consulta do job', () => {
   it('o site responde depois da remoção: o recibo descarta o resultado, sem erro, e nada é gravado', async () => {
     const id = await setembro({ conferir: false });
 
-    // o site demora na consulta da #40923: enquanto isso, a Maria remove o torneio
     let removeu = false;
     const lento: SiteOficial = {
       async consultarPartida(idPartida) {
@@ -163,7 +158,6 @@ describe('remoção durante a consulta do job', () => {
     expect(resumo.descartadas).toBeGreaterThanOrEqual(1);
     expect(resumo.erros).toBe(0);
     expect(await oQueSobrou(id)).toEqual(NADA);
-    // nenhuma participação de setembro foi gravada depois da remoção
     expect(await bd('participacoes')).toEqual([]);
   });
 });

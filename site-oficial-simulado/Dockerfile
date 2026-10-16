@@ -1,5 +1,3 @@
-# Contexto de build: raiz do repositório (npm workspaces usam o package-lock.json da raiz)
-
 FROM node:22-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./

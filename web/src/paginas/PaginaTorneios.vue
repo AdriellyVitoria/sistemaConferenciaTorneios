@@ -1,9 +1,4 @@
 <script setup lang="ts">
-/**
- * A lista de torneios (página inicial), agrupada por mês (M1): "Em andamento" sempre no topo, de
- * qualquer mês, e abaixo um grupo por mês da primeira partida, do mais recente para o mais antigo,
- * com o mês atual aberto e os anteriores recolhidos. Filtros: situação, divisão, mês e busca.
- */
 import { computed, nextTick, onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import CartaoDoTorneio from '../componentes/CartaoDoTorneio.vue';
@@ -26,13 +21,11 @@ import { pegarAvisoDaLista } from '../utilitarios/aviso-da-lista';
 const torneios = ref<ResumoTorneio[] | null>(null);
 const erro = ref<string | null>(null);
 
-/** "Torneio removido." (M2): depois de remover aqui, ou ao voltar da página do torneio removido. */
 const avisoRemovido = ref<string | null>(null);
 const elementoDoAviso = ref<HTMLElement | null>(null);
 
 async function mostrarAviso(texto: string) {
   avisoRemovido.value = texto;
-  // o foco vai para o aviso: o botão clicado sumiu junto com o cartão, e o leitor de tela lê o aviso
   await nextTick();
   elementoDoAviso.value?.focus();
 }
@@ -54,7 +47,6 @@ async function aoRemover(id: number) {
 
 const mesAtual = mesDeHoje();
 
-/** Os filtros de quando a página abre: "Limpar filtros" volta a eles (R4). */
 const PADRAO = { situacao: 'todos' as Filtro, divisao: 'todas' as FiltroDeDivisao, mes: 'todos', busca: '' };
 
 const filtro = ref<Filtro>(PADRAO.situacao);
@@ -62,14 +54,11 @@ const divisao = ref<FiltroDeDivisao>(PADRAO.divisao);
 const mes = ref(PADRAO.mes);
 const busca = ref(PADRAO.busca);
 
-/** Algum filtro diferente do padrão: só então o botão "Limpar filtros" aparece. */
 const temFiltro = computed(
   () => filtro.value !== PADRAO.situacao || divisao.value !== PADRAO.divisao || mes.value !== PADRAO.mes || busca.value !== PADRAO.busca,
 );
 
-/** O que o leitor de tela lê depois de limpar: "Filtros limpos: 3 torneios." */
 const anuncioDosFiltros = ref('');
-/** O botão "Todos" da situação, o primeiro filtro: recebe o foco depois de limpar. */
 const primeiroFiltro = ref<HTMLButtonElement | null>(null);
 
 async function limparFiltros() {
@@ -80,14 +69,12 @@ async function limparFiltros() {
   await nextTick();
   const quantos = visiveis.value.length;
   anuncioDosFiltros.value = `Filtros limpos: ${quantos} ${quantos === 1 ? 'torneio' : 'torneios'}.`;
-  // o botão sumiu: o foco vai para o primeiro filtro, e não se perde no começo da página
   primeiroFiltro.value?.focus();
 }
 
 const lista = computed(() => torneios.value ?? []);
 const filtros = computed(() => ({ situacao: filtro.value, busca: busca.value, mes: mes.value, divisao: divisao.value }));
 const visiveis = computed(() => filtrarTorneios(lista.value, filtros.value));
-// as contagens das abas de situação seguem os outros filtros: o número bate com o que aparece
 const contagem = computed(() => contarPorFiltro(filtrarTorneios(lista.value, { ...filtros.value, situacao: 'todos' })));
 const grupos = computed(() => agruparPorMes(visiveis.value, mesAtual, { abrirTodos: busca.value.trim() !== '' || mes.value !== 'todos' }));
 const meses = computed(() => mesesDisponiveis(lista.value));
@@ -138,7 +125,6 @@ const DIVISOES: { id: FiltroDeDivisao; rotulo: string }[] = [
           <strong class="numero-grande numeral">{{ emAndamentoNoTotal }}</strong>
         </div>
         <div class="cartao-numero">
-          <!-- pelo mês do torneio, o mesmo dos grupos: bate com o "R$ total" do grupo do mês -->
           <span class="rotulo-numero">{{ rotuloDosPremios(mes, mesAtual) }}</span>
           <strong class="numero-grande mono dinheiro">{{ formatarCentavos(premiosCalculados(torneios, mes)) }}</strong>
         </div>
@@ -161,7 +147,6 @@ const DIVISOES: { id: FiltroDeDivisao; rotulo: string }[] = [
             </button>
           </div>
           <div class="grupo-de-filtro">
-            <!-- só visual: o grupo já tem o nome "Divisão" para o leitor de tela -->
             <span class="ajuda" aria-hidden="true">Divisão</span>
             <div role="group" aria-label="Divisão" class="segmentos">
               <button
@@ -189,7 +174,6 @@ const DIVISOES: { id: FiltroDeDivisao; rotulo: string }[] = [
           </div>
           <button v-if="temFiltro" type="button" class="botao secundario limpar" @click="limparFiltros">Limpar filtros</button>
       </div>
-      <!-- fora do botão, que some: o leitor de tela lê quantos torneios aparecem depois de limpar -->
       <p class="visualmente-oculto anuncio-dos-filtros" role="status">{{ anuncioDosFiltros }}</p>
 
       <div id="lista-torneios" role="tabpanel" class="lista" aria-live="polite">
@@ -244,7 +228,6 @@ const DIVISOES: { id: FiltroDeDivisao; rotulo: string }[] = [
 .numero-grande.dinheiro {
   font-weight: var(--peso-medio);
 }
-/* os quatro filtros numa linha, que só quebra quando falta espaço */
 .controles {
   display: flex;
   flex-wrap: wrap;
@@ -291,7 +274,6 @@ const DIVISOES: { id: FiltroDeDivisao; rotulo: string }[] = [
 .grupo-do-mes summary::-webkit-details-marker {
   display: none;
 }
-/* a seta no lugar do triângulo padrão (que o display: flex esconde): aponta para baixo quando aberto */
 .grupo-do-mes summary::before {
   content: '';
   align-self: center;

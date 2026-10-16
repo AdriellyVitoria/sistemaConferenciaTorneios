@@ -8,11 +8,9 @@ import { inserirPartidas, listarPartidas, type NovaPartida } from '../../src/rep
 import { buscarTorneio, criarTorneio, registrarImportacao, type NovoTorneio } from '../../src/repositorios/torneios';
 import { conectarAoBancoDeTeste, esvaziarTabelas } from './banco-de-teste';
 
-// A planilha original é só lida.
 const RAIZ = path.resolve(__dirname, '../../..');
 
 let bd: Knex;
-/** O "agora" da importação nos testes (R2a): a próxima tentativa nasce com este relógio. */
 const AGORA = new Date('2026-10-15T12:34:56.789Z');
 beforeAll(() => { bd = conectarAoBancoDeTeste(); });
 afterAll(() => bd.destroy());
@@ -31,7 +29,6 @@ function linhasDeSetembro(): LinhaPlanilha[] {
   return resultado.linhas;
 }
 
-/** As partidas como a importação vai montá-las: uma por ID, com os dois times da planilha. */
 function partidasDasLinhas(linhas: LinhaPlanilha[]): NovaPartida[] {
   const porId = new Map<string, NovaPartida>();
   for (const l of linhas) {
@@ -78,7 +75,6 @@ describe('repositório de torneios', () => {
       planilhaArquivo: 'torneio-setembro.csv',
       planilhaConvertidaDeWindows1252: true,
     });
-    // o horário da importação também vem do "agora" que ela recebe (R2a)
     expect(torneio!.planilhaImportadaEm).toEqual(new Date('2026-10-15T12:34:56.000Z'));
   });
 
@@ -112,8 +108,6 @@ describe('repositório de partidas (também a tabela de tarefas da conferência)
       emConsultaDesde: null,
       ultimoErro: null,
     });
-    // a primeira tentativa já pode acontecer: nasce com o "agora" da importação (R2a, um relógio só
-    // no código), em segundos inteiros, como o job grava. Sem depender do relógio do MySQL.
     expect(p40923.proximaTentativaEm).toEqual(new Date('2026-10-15T12:34:56.000Z'));
   });
 
@@ -136,7 +130,6 @@ describe('repositório de linhas da planilha', () => {
 
     const lidas = await listarLinhas(bd, torneioId);
     expect(lidas).toHaveLength(152);
-    // volta exatamente o que o domínio leu, na ordem das linhas do Excel
     expect(lidas.map(({ partidaId: _p, ...linha }) => linha)).toEqual(linhas);
     expect(lidas.every((l) => l.partidaId === partidaIds.get(l.idPartida))).toBe(true);
   });
@@ -150,9 +143,8 @@ describe('repositório de linhas da planilha', () => {
     expect(nicks).toContain('xxsniperxx');
     expect(nicks).toContain('xXSniperXx');
     expect(nicks).toContain('Tchê');
-    expect(nicks.filter((n) => n === 'Pantera_X')).toHaveLength(6); // 5 partidas + a duplicata
+    expect(nicks.filter((n) => n === 'Pantera_X')).toHaveLength(6);
 
-    // a coluna diferencia maiúsculas e acentos: xxsniperxx não é xXSniperXx para o banco
     const iguais = await bd('linhas_planilha').where({ torneio_id: torneioId, nick: 'xxsniperxx' }).count({ n: '*' });
     expect(Number(iguais[0].n)).toBe(1);
     const semAcento = await bd('linhas_planilha').where({ torneio_id: torneioId, time: 'Falcoes' }).count({ n: '*' });

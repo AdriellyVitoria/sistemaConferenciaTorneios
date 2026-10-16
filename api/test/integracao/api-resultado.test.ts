@@ -17,7 +17,6 @@ const arquivo = (relativo: string) => path.join(RAIZ, relativo);
 const DADOS_DO_SITE = [arquivo('testes/site-oficial.json'), arquivo('api/test/fixtures/site-setembro.json')];
 
 let bd: Knex;
-/** O relógio do MySQL: a API e o job usam o mesmo relógio que grava a próxima tentativa na importação. */
 let relogio: () => Date;
 let api: Server;
 let site: Server;
@@ -55,7 +54,6 @@ async function pedir(metodo: string, caminho: string, corpo?: unknown) {
   return { status: resposta.status, corpo: await resposta.json() };
 }
 
-/** Setembro importado e conferido; com `calcular`, também com os 3 Cientes e calculado. */
 async function setembro({ calcular = true } = {}): Promise<number> {
   const { corpo } = await pedir('POST', '/torneios', { nome: 'Torneio de Setembro/2026', premioCentavos: 1_000_000, percentuais: [50, 30, 20], modoDivisao: 'minutos' });
   await pedir('PUT', `/torneios/${corpo.id}/planilha`, readFileSync(arquivo('torneio-setembro.csv')));
@@ -124,7 +122,7 @@ describe('GET /torneios/:id/resultado.csv', () => {
     expect(resposta.headers.get('content-type')).toBe('text/csv; charset=utf-8');
 
     const bytes = new Uint8Array(await resposta.arrayBuffer());
-    expect([...bytes.slice(0, 3)]).toEqual([0xef, 0xbb, 0xbf]); // o BOM: o Excel reconhece o UTF-8
+    expect([...bytes.slice(0, 3)]).toEqual([0xef, 0xbb, 0xbf]);
     const texto = new TextDecoder('utf-8').decode(bytes.slice(3));
     expect(texto).toContain('Falcões');
     expect(texto).toContain('Tubarões');
@@ -138,9 +136,7 @@ describe('GET /torneios/:id/resultado.csv', () => {
     });
     expect(centavos.reduce((s, c) => s + c, 0)).toBe(1_000_000);
 
-    // a coluna "Pago" vazia no final, para a Maria marcar no Excel (D12)
     expect(linhas).toContain('2;Corvos;Tuca;19;5;65,90;sim;');
-    // ordem: posição, valor maior, nick; Falcões e Tubarões juntos no 3º lugar
     expect(linhas.map((l) => l.split(';')[0])).toEqual([...'11111', ...'222222', ...'3333333333', ...'55555', ...'66666']);
     expect(linhas.slice(0, 1)[0]).toMatch(/^1;Lobos;Dona\.Tank;211;\d+;1000,00;não;$/);
     expect(linhas[11].split(';').slice(0, 3)).toEqual(['3', 'Falcões', 'Dudu.pro']);

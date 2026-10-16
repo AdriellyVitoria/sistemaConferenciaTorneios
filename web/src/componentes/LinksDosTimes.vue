@@ -1,13 +1,4 @@
 <script setup lang="ts">
-/**
- * "Links para os times premiados" (7d, D11), na tela do resultado: o link da página pública e um
- * por time premiado, para a Maria copiar e mandar. O endereço é montado com a origem da própria
- * tela (a API não sabe em que endereço a tela está, 7b).
- *
- * "Copiar link" usa a área de transferência do navegador. Ela pode falhar: o navegador nega, ou nem
- * oferece (endereço sem https, fora do localhost). Aí o link aparece num campo, já selecionado,
- * para copiar à mão.
- */
 import { computed, nextTick, onMounted, onUnmounted, ref, useId } from 'vue';
 import { formatarCentavos } from '../dominio/dinheiro';
 import { enderecoDoLink } from '../dominio/link-do-time';
@@ -54,7 +45,6 @@ const itens = computed<Item[]>(() => {
 const prefixo = useId();
 const idDoCampo = (item: Item) => `link-${prefixo}-${item.chave}`;
 
-/** O item com "Link copiado" (some depois de alguns segundos) e os que pedem cópia à mão. */
 const copiado = ref<string | null>(null);
 const aMao = ref<string[]>([]);
 let relogio: ReturnType<typeof setTimeout> | undefined;
@@ -145,7 +135,6 @@ async function copiar(item: Item) {
   font-size: var(--texto-sm);
   color: var(--sucesso);
 }
-/* o aviso fica sempre na página (o leitor de tela anuncia quando o texto aparece), mas só ocupa espaço com texto */
 .aviso-copia:not(:empty) {
   margin-right: var(--espaco-3);
 }
@@ -159,7 +148,6 @@ async function copiar(item: Item) {
 .a-mao p {
   margin: 0;
 }
-/* no celular, o nome numa linha e o botão na de baixo, igual em todos os itens */
 @media (max-width: 640px) {
   .cabeca {
     flex-direction: column;

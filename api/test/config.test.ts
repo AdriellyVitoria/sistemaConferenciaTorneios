@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { lerConfig as lerConfigCompleta } from '../src/config';
 
-/** A senha é obrigatória (R3): os testes da consulta ao site partem de um ambiente que a tem. */
 const lerConfig = (ambiente: Record<string, string | undefined>) => lerConfigCompleta({ ADMIN_SENHA: 'senha-de-teste', ...ambiente });
 
 describe('senha da organizadora (R3)', () => {

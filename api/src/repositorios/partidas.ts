@@ -4,21 +4,17 @@ import { emSegundosInteiros } from './conferencia';
 export type StatusConferencia = 'aguardando' | 'em_consulta' | 'conferida' | 'nao_encontrada' | 'times_diferentes';
 export type OrigemDoErro = 'site' | 'interno';
 
-/** Uma partida como a importação cria: os dados que só a planilha sabe. */
 export interface NovaPartida {
   idPartida: string;
   rodada: number;
-  /** aaaa-mm-dd */
   data: string;
   timeA: string;
   timeB: string;
 }
 
-/** A partida guardada, com os campos de conferência (ela é também a tabela de tarefas). */
 export interface Partida extends NovaPartida {
   id: number;
   torneioId: number;
-  /** O ID como veio na planilha; idPartida pode ser corrigido pela Maria (D16). */
   idPartidaPlanilha: string;
   vencedor: string | null;
   statusConferencia: StatusConferencia;
@@ -27,7 +23,6 @@ export interface Partida extends NovaPartida {
   ultimaTentativaEm: Date | null;
   emConsultaDesde: Date | null;
   ultimoErro: string | null;
-  /** De quem foi a última falha: do site, ou nossa ("erro interno, não é o site"). */
   origemDoErro: OrigemDoErro | null;
 }
 
@@ -50,13 +45,6 @@ interface LinhaPartida {
   origem_do_erro: OrigemDoErro | null;
 }
 
-/**
- * Cria as partidas do torneio, todas "aguardando" e com a primeira tentativa para `agora`.
- * Devolve o ID interno de cada uma pelo ID do jogo ("#40923" -> 17), para ligar as linhas.
- *
- * R2a: a próxima tentativa vem do "agora" da API, e não do NOW() do MySQL: um relógio só no
- * código, o mesmo do job e da correção de ID. Em segundos inteiros, como o job grava.
- */
 export async function inserirPartidas(
   bd: Executor,
   torneioId: number,
@@ -77,7 +65,6 @@ export async function inserirPartidas(
       proxima_tentativa_em: proximaTentativaEm,
     })),
   );
-  // um INSERT com várias linhas no MySQL só devolve o primeiro ID: busca todos pelo ID do jogo
   const criadas: { id: number; id_partida: string }[] = await bd('partidas')
     .select('id', 'id_partida')
     .where({ torneio_id: torneioId })
@@ -85,10 +72,6 @@ export async function inserirPartidas(
   return new Map(criadas.map((c) => [c.id_partida, c.id]));
 }
 
-/**
- * Apaga as partidas do torneio. As linhas da planilha ligadas a elas saem junto (chave
- * estrangeira com ON DELETE CASCADE). Usado quando a Maria envia a planilha de novo (D22).
- */
 export async function apagarPartidasDoTorneio(bd: Executor, torneioId: number): Promise<number> {
   return bd('partidas').where({ torneio_id: torneioId }).del();
 }
@@ -98,7 +81,6 @@ export async function listarPartidas(bd: Executor, torneioId: number): Promise<P
   return linhas.map(paraPartida);
 }
 
-/** A partida do torneio, TRAVADA até o fim da transação (SELECT ... FOR UPDATE). */
 export async function buscarPartidaParaAtualizar(trx: Executor, torneioId: number, partidaId: number): Promise<Partida | null> {
   const linha: LinhaPartida | undefined = await trx('partidas').where({ id: partidaId, torneio_id: torneioId }).forUpdate().first();
   return linha ? paraPartida(linha) : null;
@@ -109,19 +91,11 @@ export async function buscarPartida(bd: Executor, partidaId: number): Promise<Pa
   return linha ? paraPartida(linha) : null;
 }
 
-/** Outra partida do torneio já usa esse ID? */
 export async function idJaUsado(bd: Executor, torneioId: number, idPartida: string, excetoPartidaId: number): Promise<boolean> {
   const outra = await bd('partidas').where({ torneio_id: torneioId, id_partida: idPartida }).whereNot({ id: excetoPartidaId }).first('id');
   return outra !== undefined;
 }
 
-/**
- * Correção do ID (D16, 5b): a partida passa a ter o ID novo e volta para a fila do zero, como uma
- * partida recém-importada. As participações do ID antigo saem: eram de outra consulta ao site.
- * id_partida_planilha não muda: continua sendo o ID da planilha, mesmo depois de várias correções.
- * Se a partida estava em consulta, em_consulta_desde fica nulo e o recibo do job não vale mais
- * (4b): o resultado do ID antigo é descartado.
- */
 export async function corrigirIdPartida(bd: Executor, partidaId: number, idPartida: string, agora: Date): Promise<void> {
   await bd('participacoes').where({ partida_id: partidaId }).del();
   await bd('partidas').where({ id: partidaId }).update({

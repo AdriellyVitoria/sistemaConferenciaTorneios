@@ -9,7 +9,6 @@ const jogador = (nomeDoTime: string, nick: string, minutos: number, baseTime: nu
   premioCentavos, recebeuCentavo: extra.recebeuCentavo ?? false, explicacao: extra.explicacao ?? null,
 });
 
-// o setembro gravado, com os jogadores de Corvos, Falcões e um de Lobos
 const SETEMBRO: ResultadoDoTime = {
   calculadoEm: new Date('2026-10-15T13:05:00.000Z'),
   premioCentavos: 1_000_000,
@@ -25,7 +24,6 @@ const SETEMBRO: ResultadoDoTime = {
   ],
   jogadores: [
     jogador('Lobos', 'xXSniperXx', 211, 1055, 100_000),
-    // na ordem em que o cálculo grava: a tela recebe por valor e nick
     jogador('Corvos', 'Tuca', 19, 865, 6_590, { recebeuCentavo: true }),
     jogador('Corvos', 'Zeca', 173, 865, 60_000),
     jogador('Corvos', 'Bia.gg', 154, 865, 53_410),

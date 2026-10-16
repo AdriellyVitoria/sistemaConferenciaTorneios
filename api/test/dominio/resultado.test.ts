@@ -5,11 +5,9 @@ import { compararComSite, type PartidaSite } from '../../src/dominio/comparacao'
 import { lerPlanilha } from '../../src/dominio/planilha';
 import { montarResultado } from '../../src/dominio/resultado';
 
-// Arquivos só lidos.
 const RAIZ = path.resolve(__dirname, '../../..');
 const SITE_SETEMBRO: Record<string, PartidaSite> = JSON.parse(readFileSync(path.join(__dirname, '../fixtures/site-setembro.json'), 'utf8'));
 
-/** Os dados oficiais de setembro, como a comparação entrega ao cálculo (D3). */
 function partidasDeSetembro(): PartidaSite[] {
   const leitura = lerPlanilha(readFileSync(path.join(RAIZ, 'torneio-setembro.csv')));
   if (!leitura.ok) throw new Error('planilha inválida');
@@ -51,14 +49,12 @@ describe('montarResultado: o resultado completo a partir dos dados do site', () 
   });
 
   it('jogadores dos times sem prêmio também entram, com R$ 0 e os números deles (6b)', () => {
-    // Pantera_X, duplicado na planilha, conta uma vez: os dados são os do site (D6)
     const panteraX = r.jogadores.filter((j) => j.nick === 'Pantera_X');
     expect(panteraX).toHaveLength(1);
     expect(panteraX[0]).toMatchObject({ time: 'Panteras', premioCentavos: 0, recebeuCentavo: false, baseUsada: 'minutos' });
     expect(panteraX[0].minutos).toBeGreaterThan(0);
     expect(r.jogadores.filter((j) => j.time === 'Serpentes')).toHaveLength(5);
     expect(r.jogadores.filter((j) => j.time === 'Serpentes').every((j) => j.premioCentavos === 0)).toBe(true);
-    // todo jogador do site aparece uma vez por time em que jogou
     expect(r.jogadores).toHaveLength(31);
   });
 

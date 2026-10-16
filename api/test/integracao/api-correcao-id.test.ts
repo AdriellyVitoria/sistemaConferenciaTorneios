@@ -15,12 +15,6 @@ import { COM_SENHA, SENHA_DE_TESTE } from '../ajudantes/senha';
 const RAIZ = path.resolve(__dirname, '../../..');
 const arquivo = (relativo: string) => path.join(RAIZ, relativo);
 
-/**
- * O site simulado com todas as partidas dos testes e mais três, só deste arquivo:
- * - #46056: a mesma partida que #46065 (como se o ID certo fosse esse), com os mesmos dados;
- * - #46057: a mesma partida, mas o site registra 40 min para Pantera_X (e não 42);
- * - #48078: a mesma partida que #48087, com os mesmos dados.
- */
 function dadosDoSite() {
   const partidas = carregarPartidas([arquivo('testes/site-oficial.json'), arquivo('api/test/fixtures/site-setembro.json')]);
   const copia = (de: string, para: string) => structuredClone({ ...partidas.get(de)!, id: para });
@@ -33,7 +27,6 @@ function dadosDoSite() {
 }
 
 let bd: Knex;
-/** O relógio do MySQL: a API e o job usam o mesmo relógio que grava a próxima tentativa na importação. */
 let relogio: () => Date;
 let api: Server;
 let site: Server;
@@ -135,7 +128,6 @@ describe('PUT /torneios/:id/partidas/:partidaId/id-partida', () => {
       id_partida: '#45695', status_conferencia: 'aguardando', tentativas: 0, vencedor: null,
       ultimo_erro: null, origem_do_erro: null, ultima_tentativa_em: null, em_consulta_desde: null,
     });
-    // a API grava a hora da correção em segundos inteiros, cortando a fração: nunca fica no futuro
     expect(corrigida.proxima_tentativa_em.getTime()).toBeLessThanOrEqual(relogio().getTime());
     expect(await bd('participacoes').where({ partida_id: p.id })).toEqual([]);
   });
@@ -202,11 +194,9 @@ describe('correção durante a consulta: o recibo do 4b descarta o resultado do 
     await pedir('PUT', `/torneios/${id}/planilha`, readFileSync(arquivo('torneio-setembro.csv')));
     const alvo = await partidaDoBanco(id, '#45659');
     await bd('partidas').where({ torneio_id: id }).whereNot({ id: alvo.id }).update({ status_conferencia: 'conferida', proxima_tentativa_em: null });
-    // a rodada começa antes da correção: a partida corrigida (próxima tentativa = agora) fica para a rodada seguinte
     await bd('partidas').where({ id: alvo.id }).update({ proxima_tentativa_em: new Date(relogio().getTime() - 60_000) });
     const inicioDaRodada = new Date(relogio().getTime() - 30_000);
 
-    // o site demora na consulta do #45659: enquanto isso, a Maria corrige o ID
     let soltar!: () => void;
     const consultaPresa = new Promise<void>((pronto) => { soltar = pronto; });
     let comecou!: () => void;

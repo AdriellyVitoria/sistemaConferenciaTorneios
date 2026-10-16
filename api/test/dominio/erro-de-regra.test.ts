@@ -6,12 +6,6 @@ import { ErroDeRegra } from '../../src/dominio/erro-de-regra';
 import { premiarTimes, type PremioTime } from '../../src/dominio/premio';
 import { ratearEntreJogadores } from '../../src/dominio/rateio';
 
-/**
- * Code review, item 4: as frases que o domínio escreveu para a Maria viravam "Erro inesperado no
- * servidor". Agora são ErroDeRegra, que o cálculo devolve com 409. As proteções de programação
- * (valor que não é inteiro, nome repetido) continuam como erro comum: são bug, e viram 500.
- */
-
 const time = (posicao: number, nome: string): ClassificacaoTime => ({ posicao, time: nome, vitorias: 0, killsTime: 0, criterio: null });
 const premioDe = (nome: string, premioCentavos: number): PremioTime => ({
   posicao: 1, time: nome, vitorias: 0, killsTime: 0, criterio: null, premioCentavos, recebeuCentavo: false,

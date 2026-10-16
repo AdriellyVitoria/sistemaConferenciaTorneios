@@ -1,4 +1,3 @@
-// @vitest-environment happy-dom
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createMemoryHistory, createRouter } from 'vue-router';
@@ -13,7 +12,6 @@ afterEach(() => {
   document.body.innerHTML = '';
 });
 
-/** A página do torneio; `comCiente` marca o Ciente nessas pendências antes de abrir. */
 async function montar(opcoes: OpcoesApiFalsa & { comCiente?: string[]; semBloqueante?: boolean } = {}) {
   const api = criarApiFalsa(opcoes);
   for (const p of api.pendencias) {
@@ -81,7 +79,6 @@ describe('aba Conferidas: filtros', () => {
 
     await filtro(pagina, 'Com Ciente').trigger('click');
     expect(idsVisiveis(pagina)).toEqual(['#46065', '#48087', '#40923']);
-    // a rodada sem partida no filtro some
     expect(painel(pagina).findAll('th[scope="rowgroup"]').map((t) => t.text())).toEqual(['Rodada 2 · 06/09', 'Rodada 3 · 07/09', 'Rodada 5 · 09/09']);
   });
 
@@ -99,7 +96,6 @@ describe('aba Conferidas: filtros', () => {
 describe('Desfazer pela aba Conferidas', () => {
   it('Ciente dado em Pendências: a partida vai para Conferidas e lá dá para ver a diferença e desfazer', async () => {
     const { pagina, api } = await montar();
-    // dá o Ciente na aba Pendências
     await aba(pagina, 'Pendências').trigger('click');
     const duplicata = pagina.findAll('article.pendencia').find((c) => c.find('.selo').text() === 'Linha duplicada')!;
     await botao(duplicata, 'Ciente')!.trigger('click');
@@ -118,7 +114,6 @@ describe('Desfazer pela aba Conferidas', () => {
     await botao(detalhe, 'Desfazer')!.trigger('click');
     await flushPromises();
     expect(api.estado.pedidos).toContain(`DELETE /api/torneios/1/pendencias/${'b'.repeat(64)}/ciente`);
-    // a partida voltou para Pendências
     expect(idsVisiveis(pagina)).not.toContain('#46065');
     expect(contador(pagina, 'Pendências')).toBe('4');
   });

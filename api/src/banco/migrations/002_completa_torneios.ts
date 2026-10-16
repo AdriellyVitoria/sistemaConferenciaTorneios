@@ -1,9 +1,5 @@
 import type { Knex } from 'knex';
 
-// Completa a tabela da etapa 0 sem editar a 001, que já rodou.
-// - status "criado": o torneio existe antes da planilha ser enviada
-// - dados da planilha importada, incluindo se veio convertida de Windows-1252 (D18), para a tela avisar
-// - CHECK: prêmio nunca negativo
 export async function up(knex: Knex): Promise<void> {
   await knex.schema.alterTable('torneios', (t) => {
     t.enum('status', ['criado', 'importado', 'conferindo', 'pronto', 'calculado']).notNullable().defaultTo('criado').alter();

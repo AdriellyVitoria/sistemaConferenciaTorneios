@@ -1,8 +1,3 @@
-/**
- * Página do modo demonstração: mostra o estado do site e tem os botões para derrubar
- * (com erro ou sem resposta) e religar. Também consulta uma partida, para ver o efeito na hora.
- * HTML simples, sem dependências, servido pelo próprio simulador em GET /demo.
- */
 export const PAGINA_DEMO = `<!doctype html>
 <html lang="pt-BR">
 <head>

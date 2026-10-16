@@ -1,5 +1,3 @@
-/** O aviso "pronto para calcular" do topo da página do torneio (5e), a partir do campo calculo da API (5c). */
-
 import type { SituacaoDoCalculo } from '../servicos/api';
 import { formatarHora } from './conferencia';
 import { formatarDataDeCriacao } from './torneio';
@@ -9,7 +7,6 @@ export type AbaDoTorneio = 'conferidas' | 'pendencias' | 'aguardando';
 export interface AvisoDoCalculo {
   estado: 'sem_planilha' | 'faltando' | 'pronto' | 'calculado';
   texto: string;
-  /** O que falta, cada item com a aba onde se resolve. Vazio fora do estado "faltando". */
   itens: { texto: string; aba: AbaDoTorneio }[];
 }
 

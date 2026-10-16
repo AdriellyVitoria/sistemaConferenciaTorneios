@@ -1,5 +1,3 @@
-/** Regras e textos da revisão das pendências (etapa 5d, D17), sem Vue nem HTTP. */
-
 import type { ListaDePendencias, Partida, Pendencia, TipoPendencia } from '../servicos/api';
 import { progressoDaConferencia } from './conferencia';
 import { rotuloDoId } from './torneio';
@@ -19,13 +17,10 @@ const TIPOS: Record<TipoPendencia, string> = {
 
 export const rotuloDoTipo = (tipo: TipoPendencia) => TIPOS[tipo];
 
-/** Quantas ainda faltam: as bloqueantes (corrigir o ID) e as não bloqueantes sem Ciente. */
 export const pendenciasQueFaltam = (lista: ListaDePendencias) => lista.resumo.bloqueantes + lista.resumo.semCiente;
 
-/** As partidas de uma pendência: a dela, ou as do torneio todo (jogador em dois times, nome de time). */
 const partidasDa = (p: Pendencia) => (p.idPartida ? [p.idPartida] : (p.partidas ?? []));
 
-/** "#46065" -> "Partida #46065 · Rodada 2 · Lobos x Panteras"; itens do torneio todo listam as partidas. */
 export function tituloDaPendencia(p: Pendencia, partidas: Partida[]): string {
   if (!p.idPartida) {
     const ids = partidasDa(p);
@@ -35,7 +30,6 @@ export function tituloDaPendencia(p: Pendencia, partidas: Partida[]): string {
   return partida ? `Partida ${rotuloDoId(partida)} · Rodada ${partida.rodada} · ${partida.timeA} x ${partida.timeB}` : `Partida ${p.idPartida}`;
 }
 
-/** Para o rótulo acessível dos botões: "Nick escrito diferente, partida #48087". */
 export function descricaoCurta(p: Pendencia): string {
   const ids = partidasDa(p);
   return `${rotuloDoTipo(p.tipo)}, ${ids.length === 1 ? 'partida' : 'partidas'} ${ids.join(', ')}`;
@@ -43,7 +37,6 @@ export function descricaoCurta(p: Pendencia): string {
 
 const CAMPOS = { minutos: 'Minutos', kills: 'Kills', vencedor: 'Vencedor', time: 'Time' } as const;
 
-/** O nome da linha no lado a lado (planilha × site). */
 export function rotuloDoValor(p: Pendencia): string {
   if (p.campo) return CAMPOS[p.campo];
   switch (p.tipo) {
@@ -57,7 +50,6 @@ export function rotuloDoValor(p: Pendencia): string {
   }
 }
 
-/** O valor de um lado; vazio vira uma frase, e não um traço sem sentido. */
 export function valorDoLado(p: Pendencia, lado: 'planilha' | 'site'): string {
   const valor = lado === 'planilha' ? p.valorPlanilha : p.valorSite;
   if (valor !== null && valor !== '') return valor;
@@ -70,15 +62,9 @@ export function valorDoLado(p: Pendencia, lado: 'planilha' | 'site'): string {
 
 export interface PartidaConferida {
   partida: Partida;
-  /** As pendências da partida que já receberam Ciente; vazio = bateu com o site. */
   comCiente: Pendencia[];
 }
 
-/**
- * A aba "Conferidas" (D17): partidas conferidas no site sem nada faltando, ou seja, que bateram
- * com o site ou cujas pendências já receberam Ciente. Uma partida com pendência bloqueante ou
- * sem Ciente fica em "Pendências", nunca nas duas.
- */
 export function partidasConferidas(partidas: Partida[], lista: ListaDePendencias): PartidaConferida[] {
   const faltando = new Set([...lista.bloqueantes, ...lista.naoBloqueantes.filter((p) => !p.ciente)].flatMap(partidasDa));
   const comCiente = lista.naoBloqueantes.filter((p) => p.ciente);
@@ -100,7 +86,6 @@ export function contarConferidas(conferidas: PartidaConferida[]): Record<FiltroC
   return { todas: conferidas.length, bateram: conferidas.length - comCiente, com_ciente: comCiente };
 }
 
-/** As partidas por rodada, na ordem; a data da rodada é a da sua primeira partida ("05/09"). */
 export function agruparPorRodada(conferidas: PartidaConferida[]): { rodada: number; data: string; itens: PartidaConferida[] }[] {
   const grupos = new Map<number, PartidaConferida[]>();
   for (const c of [...conferidas].sort((a, b) => a.partida.rodada - b.partida.rodada || a.partida.id - b.partida.id)) {
@@ -112,7 +97,6 @@ export function agruparPorRodada(conferidas: PartidaConferida[]): { rodada: numb
   });
 }
 
-/** Uma linha com o que era a diferença, para a aba Conferidas: "Nick escrito diferente: xxsniperxx → xXSniperXx". */
 export function resumoDaDiferenca(p: Pendencia): string {
   const de = p.valorPlanilha ?? '—';
   const para = p.valorSite ?? '—';
@@ -132,7 +116,6 @@ export function resumoDaDiferenca(p: Pendencia): string {
 
 const plural = (n: number, singular: string, plural: string) => `${n} ${n === 1 ? singular : plural}`;
 
-/** Os textos do modal do "Ciente de todas". */
 export function textosDoCienteDeTodas(semCiente: number, bloqueantes: number) {
   let aviso: string | null = null;
   if (bloqueantes === 1) aviso = 'A pendência que pede correção do ID não entra.';
@@ -144,12 +127,6 @@ export function textosDoCienteDeTodas(semCiente: number, bloqueantes: number) {
   };
 }
 
-/**
- * Por que o "Ciente de todas" está desabilitado, ou null se não está: enquanto o site não
- * respondeu todas as partidas, uma pendência nova pode chegar entre olhar e clicar (a API
- * também recusa, com 409). O progresso conta as que o site já respondeu, inclusive as não
- * encontradas.
- */
 export function motivoDoCienteDeTodasTravado(partidas: Partida[]): string | null {
   const { total, aguardandoOSite } = progressoDaConferencia(partidas);
   if (aguardandoOSite === 0) return null;

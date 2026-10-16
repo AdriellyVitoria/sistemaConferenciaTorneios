@@ -5,13 +5,6 @@ import type { AddressInfo } from 'node:net';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { criarClienteSiteOficial } from '../../src/conferencia/site-oficial';
 
-/**
- * Code review, item 3: a resposta do site era validada no formato, mas não na coerência. Com o
- * vencedor "lobos" (e os times "Lobos" e "Corvos"), a classificação criava um time fantasma e o
- * cálculo quebrava; a Maria não teria como corrigir (o site é a verdade, D3). Agora a resposta
- * incoerente é "resposta_invalida": tentada de novo, com o motivo na aba "Aguardando o site".
- */
-
 let resposta: unknown;
 let servidor: Server;
 let base: string;

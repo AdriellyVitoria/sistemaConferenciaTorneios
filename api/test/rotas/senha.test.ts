@@ -5,8 +5,6 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { criarApp } from '../../src/app';
 import { COM_SENHA, SENHA_DE_TESTE } from '../ajudantes/senha';
 
-// Sem banco: a senha é conferida antes de qualquer consulta. Um "banco" que falha em tudo prova
-// que a requisição barrada nem chega a ele.
 const bancoFora = (() => { throw new Error('não devia consultar o banco'); }) as unknown as Knex;
 
 let servidor: Server;
@@ -66,7 +64,6 @@ describe('senha única da organizadora (R3)', () => {
 
   it('abertas, sem senha: /saude, /publico/:codigo e /time/:codigo', async () => {
     expect((await pedir('/saude')).status).toBe(200);
-    // código fora do formato: a rota responde 404 sem consultar o banco
     for (const caminho of ['/publico/curto', '/time/curto']) {
       const { status, corpo } = await pedir(caminho);
       expect(status).toBe(404);

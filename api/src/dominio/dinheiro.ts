@@ -1,7 +1,3 @@
-/**
- * Formata centavos inteiros em reais no padrão brasileiro: 1000000 -> "R$ 10.000,00".
- * Só usa aritmética inteira; dinheiro nunca passa por float.
- */
 export function formatarCentavos(centavos: number): string {
   if (!Number.isSafeInteger(centavos)) {
     throw new Error(`Valor em centavos precisa ser inteiro: ${centavos}`);

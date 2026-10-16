@@ -1,6 +1,7 @@
 /** Regras e textos da revisão das pendências (etapa 5d, D17), sem Vue nem HTTP. */
 
 import type { ListaDePendencias, Partida, Pendencia, TipoPendencia } from '../servicos/api';
+import { progressoDaConferencia } from './conferencia';
 import { rotuloDoId } from './torneio';
 
 const TIPOS: Record<TipoPendencia, string> = {
@@ -141,6 +142,18 @@ export function textosDoCienteDeTodas(semCiente: number, bloqueantes: number) {
     bloqueantes: aviso,
     confirmar: `Marcar Ciente em ${semCiente}`,
   };
+}
+
+/**
+ * Por que o "Ciente de todas" está desabilitado, ou null se não está: enquanto o site não
+ * respondeu todas as partidas, uma pendência nova pode chegar entre olhar e clicar (a API
+ * também recusa, com 409). O progresso conta as que o site já respondeu, inclusive as não
+ * encontradas.
+ */
+export function motivoDoCienteDeTodasTravado(partidas: Partida[]): string | null {
+  const { total, aguardandoOSite } = progressoDaConferencia(partidas);
+  if (aguardandoOSite === 0) return null;
+  return `"Ciente de todas" libera quando o site conferir todas as partidas (${total - aguardandoOSite} de ${total} até agora). Enquanto isso, dê Ciente uma a uma.`;
 }
 
 export const textoDasMarcadas = (marcadas: number) =>

@@ -103,6 +103,7 @@ export function criarApiFalsa({ calculado = false, semPlanilha = false, aguardan
     autorizacoes: [] as { pedido: string; authorization: string | null }[],
   };
 
+  const contarAguardando = () => partidas.filter((p) => p.statusConferencia === 'aguardando' || p.statusConferencia === 'em_consulta').length;
   const lista = () => {
     const bloqueantes = pendencias.filter((p) => p.bloqueante);
     const naoBloqueantes = pendencias.filter((p) => !p.bloqueante);
@@ -110,12 +111,15 @@ export function criarApiFalsa({ calculado = false, semPlanilha = false, aguardan
     return {
       bloqueantes,
       naoBloqueantes,
-      resumo: { bloqueantes: bloqueantes.length, naoBloqueantes: naoBloqueantes.length, comCiente, semCiente: naoBloqueantes.length - comCiente, aguardandoSite: 0 },
+      resumo: {
+        bloqueantes: bloqueantes.length, naoBloqueantes: naoBloqueantes.length, comCiente, semCiente: naoBloqueantes.length - comCiente,
+        aguardandoSite: contarAguardando(),
+      },
     };
   };
   const torneio = () => {
     const { resumo } = lista();
-    const aguardandoSite = partidas.filter((p) => p.statusConferencia === 'aguardando' || p.statusConferencia === 'em_consulta').length;
+    const aguardandoSite = contarAguardando();
     return {
       id: 1, nome: 'Torneio de setembro', premioCentavos: 1_000_000, percentuais: [50, 30, 20], modoDivisao: 'minutos',
       status: estado.calculado ? 'calculado' : 'importado', calculadoEm: estado.calculado ? '2026-10-15T13:00:00.000Z' : null,
@@ -167,6 +171,11 @@ export function criarApiFalsa({ calculado = false, semPlanilha = false, aguardan
 
     if (metodo === 'POST' && caminho === '/api/torneios/1/pendencias/ciente-de-todas') {
       if (estado.calculado) return json(409, { erro: 'O torneio já foi calculado: os Cientes não podem mais mudar.' });
+      const aguardandoSite = contarAguardando();
+      if (aguardandoSite) {
+        const quantas = aguardandoSite === 1 ? '1 partida ainda aguarda' : `${aguardandoSite} partidas ainda aguardam`;
+        return json(409, { erro: `${quantas} o site: o "Ciente de todas" só libera depois que o site conferir todas. Enquanto isso, dê Ciente uma a uma.` });
+      }
       const semCiente = pendencias.filter((p) => !p.bloqueante && !p.ciente);
       for (const p of semCiente) {
         p.ciente = true;

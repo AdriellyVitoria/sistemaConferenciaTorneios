@@ -228,6 +228,47 @@ describe('Ciente de todas', () => {
     expect((await cienteDeTodas(id)).corpo).toEqual({ marcadas: 0 });
     expect((await pendencias(id)).corpo.bloqueantes[0].ciente).toBe(false);
   });
+
+  const quantosCientes = async (id: number) => Number((await bd('cientes').where({ torneio_id: id }).count({ n: '*' }))[0].n);
+
+  // senão, uma pendência que chegou do site depois de a Maria abrir a tela levaria o Ciente sem ela ter visto
+  it('com partida aguardando o site ou em consulta: 409, sem marcar nenhuma', async () => {
+    const id = await torneioCom('torneio-setembro.csv');
+    await bd('partidas').where({ torneio_id: id, id_partida: '#45659' }).update({ status_conferencia: 'aguardando' });
+    await bd('partidas').where({ torneio_id: id, id_partida: '#46903' }).update({ status_conferencia: 'em_consulta', em_consulta_desde: new Date() });
+
+    const { status, corpo } = await cienteDeTodas(id);
+    expect(status).toBe(409);
+    expect(corpo.erro).toBe('2 partidas ainda aguardam o site: o "Ciente de todas" só libera depois que o site conferir todas. Enquanto isso, dê Ciente uma a uma.');
+    expect(await quantosCientes(id)).toBe(0);
+  });
+
+  it('com partida aguardando o site, o Ciente de uma pendência continua liberado', async () => {
+    const id = await torneioCom('torneio-setembro.csv');
+    await bd('partidas').where({ torneio_id: id, id_partida: '#45659' }).update({ status_conferencia: 'aguardando' });
+    const [duplicata] = (await pendencias(id)).corpo.naoBloqueantes;
+    expect((await ciente(id, duplicata.chave)).status).toBe(200);
+  });
+
+  it('antes de o site responder qualquer partida: 409 com a contagem', async () => {
+    const id = await torneioCom('torneio-setembro.csv', { conferir: false });
+    expect((await cienteDeTodas(id)).corpo.erro).toMatch(/^15 partidas ainda aguardam o site/);
+  });
+
+  it('a verificação é feita dentro da transação, com o torneio travado', async () => {
+    const id = await torneioCom('torneio-setembro.csv');
+    // outra gravação (como uma correção de ID) trava o torneio e põe uma partida de volta na fila
+    const trx = await bd.transaction();
+    await trx('torneios').where({ id }).forUpdate().first();
+    const pedido = cienteDeTodas(id);
+    await new Promise((pronto) => setTimeout(pronto, 300));
+    await trx('partidas').where({ torneio_id: id, id_partida: '#45659' }).update({ status_conferencia: 'aguardando' });
+    await trx.commit();
+
+    // o "Ciente de todas" esperou a trava e viu a partida na fila
+    expect((await pedido).status).toBe(409);
+    expect(await quantosCientes(id)).toBe(0);
+  });
 });
 
 describe('depois do cálculo, nada muda', () => {

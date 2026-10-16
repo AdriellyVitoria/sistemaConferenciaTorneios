@@ -12,6 +12,7 @@ import DialogoConfirmacao from './DialogoConfirmacao.vue';
 import LadoALado from './LadoALado.vue';
 import {
   descricaoCurta,
+  motivoDoCienteDeTodasTravado,
   rotuloDoTipo,
   textoDasMarcadas,
   textosDoCienteDeTodas,
@@ -39,6 +40,8 @@ const confirmandoTodas = ref(false);
 const semCiente = computed(() => props.lista.naoBloqueantes.filter((p) => !p.ciente));
 const comCiente = computed(() => props.lista.naoBloqueantes.length - semCiente.value.length);
 const textosDoModal = computed(() => textosDoCienteDeTodas(semCiente.value.length, props.lista.bloqueantes.length));
+/** Enquanto o site não respondeu todas as partidas, o "Ciente de todas" fica desabilitado. */
+const motivoTodasTravado = computed(() => motivoDoCienteDeTodasTravado(props.partidas));
 /** Nada a fazer aqui: nem bloqueante nem não bloqueante sem Ciente. */
 const nadaFaltando = computed(() => props.lista.bloqueantes.length === 0 && semCiente.value.length === 0);
 
@@ -188,9 +191,19 @@ async function salvarCorrecao(p: Pendencia) {
           {{ lista.bloqueantes.length === 1 ? 'Uma partida precisa' : `${lista.bloqueantes.length} partidas precisam` }} de correção do ID.
         </template>
       </p>
-      <button v-if="!somenteLeitura && semCiente.length" type="button" class="botao secundario" @click="confirmandoTodas = true">
+      <button
+        v-if="!somenteLeitura && semCiente.length"
+        type="button"
+        class="botao secundario"
+        :disabled="Boolean(motivoTodasTravado)"
+        :aria-describedby="motivoTodasTravado ? 'motivo-ciente-de-todas' : undefined"
+        @click="confirmandoTodas = true"
+      >
         Ciente de todas
       </button>
+      <p v-if="!somenteLeitura && semCiente.length && motivoTodasTravado" id="motivo-ciente-de-todas" class="ajuda motivo">
+        {{ motivoTodasTravado }}
+      </p>
     </div>
 
     <article v-for="p in lista.bloqueantes" :key="p.chave" class="cartao pendencia bloqueante" :aria-label="descricaoCurta(p)">
@@ -285,6 +298,11 @@ async function salvarCorrecao(p: Pendencia) {
 }
 .introducao p {
   flex: 1 1 320px;
+}
+/* o motivo do "Ciente de todas" desabilitado: numa linha só, embaixo do texto e do botão */
+.introducao .motivo {
+  flex-basis: 100%;
+  text-align: right;
 }
 .pendencia {
   gap: 14px;

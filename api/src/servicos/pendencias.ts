@@ -153,17 +153,25 @@ export async function definirCiente(bd: Knex, torneioId: number, chave: string, 
 
 export type ResultadoCienteDeTodas =
   | { tipo: 'marcadas'; marcadas: number }
+  | { tipo: 'aguardando_site'; aguardandoSite: number }
   | { tipo: 'torneio_nao_encontrado' }
   | { tipo: 'torneio_calculado' };
 
-/** "Ciente de todas": marca as não bloqueantes que ainda não têm Ciente e diz quantas marcou. */
+/**
+ * "Ciente de todas": marca as não bloqueantes que ainda não têm Ciente e diz quantas marcou.
+ * Só depois que o site respondeu todas as partidas: enquanto o job confere, uma pendência pode
+ * chegar entre a Maria abrir a tela e clicar, e levaria o Ciente sem ela ter visto (D17). A
+ * contagem é feita aqui dentro, com o torneio travado: depois disso, nenhuma partida volta para
+ * a fila (correção de ID e planilha nova também travam o torneio).
+ */
 export async function cienteDeTodas(bd: Knex, torneioId: number, agora = new Date()): Promise<ResultadoCienteDeTodas> {
   return bd.transaction(async (trx) => {
     const torneio = await buscarTorneioParaAtualizar(trx, torneioId);
     if (!torneio) return { tipo: 'torneio_nao_encontrado' } as const;
     if (torneio.status === 'calculado') return { tipo: 'torneio_calculado' } as const;
 
-    const { naoBloqueantes } = await calcularPendencias(trx, torneioId);
+    const { naoBloqueantes, resumo } = await calcularPendencias(trx, torneioId);
+    if (resumo.aguardandoSite > 0) return { tipo: 'aguardando_site', aguardandoSite: resumo.aguardandoSite } as const;
     const semCiente = naoBloqueantes.filter((p) => !p.ciente).map((p) => p.chave);
     await gravarCientes(trx, torneioId, semCiente, agora);
     return { tipo: 'marcadas', marcadas: semCiente.length } as const;

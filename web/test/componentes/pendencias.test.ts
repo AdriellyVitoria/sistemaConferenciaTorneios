@@ -5,14 +5,14 @@ import { vi } from 'vitest';
 import { createMemoryHistory, createRouter } from 'vue-router';
 import PaginaTorneio from '../../src/paginas/PaginaTorneio.vue';
 import { rotas } from '../../src/roteador';
-import { criarApiFalsa } from './api-falsa';
+import { criarApiFalsa, type OpcoesApiFalsa } from './api-falsa';
 
 afterEach(() => {
   vi.unstubAllGlobals();
   document.body.innerHTML = '';
 });
 
-async function montar(opcoes: { calculado?: boolean } = {}) {
+async function montar(opcoes: OpcoesApiFalsa = {}) {
   const api = criarApiFalsa(opcoes);
   const roteador = createRouter({ history: createMemoryHistory(), routes: rotas });
   const pagina = mount(PaginaTorneio, { props: { id: 1 }, global: { plugins: [roteador] }, attachTo: document.body });
@@ -136,6 +136,47 @@ describe('"Ciente de todas"', () => {
     expect(api.estado.pedidos).toContain('POST /api/torneios/1/pendencias/ciente-de-todas');
     expect(pagina.find('[role="status"].aviso').text()).toContain('2 pendências marcadas com Ciente.');
     expect(aba(pagina, 'Pendências')!.find('.contador').text()).toBe('1'); // só a bloqueante
+  });
+
+  it('com partida aguardando o site: desabilitado, com o motivo e o progresso; o Ciente de uma continua', async () => {
+    const { pagina, api } = await montar({ aguardando: 3 });
+    await abrirPendencias(pagina);
+
+    const todas = botao(pagina, 'Ciente de todas')!;
+    expect(todas.attributes('disabled')).toBeDefined();
+    const motivo = pagina.find(`#${todas.attributes('aria-describedby')}`);
+    // 8 partidas: 5 o site já respondeu (4 conferidas e a não encontrada), 3 aguardando
+    expect(motivo.text()).toBe('"Ciente de todas" libera quando o site conferir todas as partidas (5 de 8 até agora). Enquanto isso, dê Ciente uma a uma.');
+
+    await todas.trigger('click');
+    await flushPromises();
+    expect(dialogoDoCienteDeTodas(pagina).attributes('open')).toBeUndefined();
+
+    await botao(cartao(pagina, 'Linha duplicada'), 'Ciente')!.trigger('click');
+    await flushPromises();
+    expect(api.estado.pedidos).toContain(`PUT /api/torneios/1/pendencias/${'b'.repeat(64)}/ciente`);
+  });
+
+  it('o site terminou: o botão libera e o motivo some', async () => {
+    const { pagina } = await montar();
+    await abrirPendencias(pagina);
+    const todas = botao(pagina, 'Ciente de todas')!;
+    expect(todas.attributes('disabled')).toBeUndefined();
+    expect(todas.attributes('aria-describedby')).toBeUndefined();
+    expect(pagina.text()).not.toContain('libera quando o site conferir');
+  });
+
+  it('a API recusou (409: uma partida voltou para a fila entre a tela e o clique): mostra a frase da API', async () => {
+    const { pagina, api } = await montar();
+    await abrirPendencias(pagina);
+    await botao(pagina, 'Ciente de todas')!.trigger('click');
+    await flushPromises();
+    api.partidas[0].statusConferencia = 'aguardando';
+
+    await botao(dialogoDoCienteDeTodas(pagina), 'Marcar Ciente em 3')!.trigger('click');
+    await flushPromises();
+    expect(pagina.find('#painel-pendencias [role="alert"].aviso').text()).toContain('1 partida ainda aguarda o site');
+    expect(api.pendencias.filter((p) => p.ciente)).toHaveLength(0);
   });
 
   it('cancelar não marca nada', async () => {

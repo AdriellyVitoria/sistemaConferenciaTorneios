@@ -12,9 +12,6 @@ import { criarClienteSiteOficial } from '../../src/conferencia/site-oficial';
 import { COM_SENHA, SENHA_DE_TESTE } from '../ajudantes/senha';
 import { conectarAoBancoDeTeste, esvaziarTabelas, relogioDoBanco } from './banco-de-teste';
 
-// Senha única da organizadora (R3): as rotas da Maria pedem a senha; a página pública e o link do
-// time, não. Um torneio de setembro calculado de verdade, para as rotas responderem 200.
-
 const RAIZ = path.resolve(__dirname, '../../..');
 const arquivo = (relativo: string) => path.join(RAIZ, relativo);
 const DADOS_DO_SITE = [arquivo('testes/site-oficial.json'), arquivo('api/test/fixtures/site-setembro.json')];

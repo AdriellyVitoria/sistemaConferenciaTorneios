@@ -21,7 +21,6 @@ function torneio(extra: Partial<ResumoTorneio>): ResumoTorneio {
   };
 }
 
-// hoje: 15/10/2026
 const MES_ATUAL = '2026-10';
 const OUTUBRO_SEM_PLANILHA = torneio({ id: 5, nome: 'Torneio de outubro', status: 'criado', planilhaArquivo: null, quantidadeDePartidas: 0, primeiraPartidaEm: null, criadoEm: '2026-10-13T15:00:00.000Z' });
 const PRIMAVERA_DE_AGOSTO = torneio({ id: 4, nome: 'Copa de Primavera', modoDivisao: 'kills', status: 'conferindo', primeiraPartidaEm: '2026-08-30', criadoEm: '2026-08-29T15:00:00.000Z' });
@@ -47,7 +46,6 @@ describe('mesDoTorneio: o mês da primeira partida da planilha; sem planilha, o 
 describe('agruparPorMes', () => {
   it('"Em andamento" no topo, de qualquer mês; depois um grupo por mês, do mais recente para o mais antigo', () => {
     const { emAndamento, meses } = agruparPorMes(LISTA, MES_ATUAL, { fuso: FUSO });
-    // o torneio de agosto ainda em andamento não some na virada do mês
     expect(nomes(emAndamento)).toEqual(['Torneio de outubro', 'Copa de Primavera']);
     expect(meses.map((m) => [m.mes, nomes(m.torneios)])).toEqual([
       ['2026-10', ['Copa relâmpago']],
@@ -89,7 +87,6 @@ describe('filtrarTorneios: situação, busca, mês e divisão, juntos', () => {
 
 describe('o seletor de mês e o cartão "Prêmios calculados": um conceito só de mês, o do torneio', () => {
   it('os meses do seletor: só os dos torneios, do mais recente para o mais antigo', () => {
-    // um torneio de julho calculado em novembro: novembro não entra no seletor
     const deJulho = torneio({ id: 9, status: 'calculado', primeiraPartidaEm: '2026-07-04', calculadoEm: '2026-11-02T12:00:00.000Z' });
     expect(mesesDisponiveis([...LISTA, deJulho], FUSO)).toEqual(['2026-10', '2026-09', '2026-08', '2026-07']);
   });
@@ -98,7 +95,6 @@ describe('o seletor de mês e o cartão "Prêmios calculados": um conceito só d
     expect(premiosCalculados(LISTA, 'todos', FUSO)).toBe(1_800_000);
     expect(premiosCalculados(LISTA, '2026-09', FUSO)).toBe(1_500_000);
     expect(premiosCalculados(LISTA, '2026-10', FUSO)).toBe(300_000);
-    // agosto só tem um torneio em andamento
     expect(premiosCalculados(LISTA, '2026-08', FUSO)).toBe(0);
   });
 

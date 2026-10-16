@@ -1,8 +1,4 @@
 <script setup lang="ts">
-/**
- * Um torneio na lista da página inicial: nome, situação, criação, prêmio, divisão, partidas, o
- * próximo passo e, antes do cálculo, "Remover" (M2).
- */
 import { RouterLink } from 'vue-router';
 import RemoverTorneio from './RemoverTorneio.vue';
 import { formatarCentavos } from '../dominio/dinheiro';
@@ -37,7 +33,6 @@ const tom: Record<StatusTorneio, string> = {
       </div>
     </div>
     <div class="acoes">
-      <!-- só antes do cálculo: depois, o resultado é o registro do pagamento, e o botão não existe -->
       <RemoverTorneio v-if="torneio.status !== 'calculado'" :torneio="torneio" rotulo="Remover" @removido="emit('removido')" />
       <RouterLink
         :to="{ name: 'torneio', params: { id: torneio.id } }"

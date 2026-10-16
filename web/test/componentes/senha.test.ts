@@ -1,4 +1,3 @@
-// @vitest-environment happy-dom
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createMemoryHistory, createRouter } from 'vue-router';
@@ -6,9 +5,6 @@ import App from '../../src/App.vue';
 import { rotas } from '../../src/roteador';
 import { textoDe } from '../ajudantes/espacos';
 import { criarApiFalsa, SENHA_FALSA, type OpcoesApiFalsa } from './api-falsa';
-
-// Senha única da organizadora (R3): qualquer 401 nas telas da Maria mostra a tela de senha; as
-// páginas por link (D11) nunca pedem.
 
 const CHAVE = 'senha-da-organizadora';
 const montadas: VueWrapper[] = [];
@@ -38,7 +34,6 @@ async function entrar(app: VueWrapper, senha: string) {
   await telaDeSenha(app).find('form').trigger('submit');
   await flushPromises();
 }
-/** Os pedidos às rotas da Maria (tudo menos a saúde) e o cabeçalho de cada um. */
 const pedidosDaMaria = (api: ReturnType<typeof criarApiFalsa>) => api.estado.autorizacoes.filter((a) => a.pedido !== 'GET /api/saude');
 
 describe('tela "Senha da organizadora"', () => {
@@ -47,12 +42,10 @@ describe('tela "Senha da organizadora"', () => {
     expect(telaDeSenha(app).exists()).toBe(true);
     expect(textoDe(telaDeSenha(app).find('h1'))).toBe('Senha da organizadora');
     expect(app.text()).not.toContain('Torneio de setembro');
-    // o campo tem rótulo, é de senha e o gerenciador de senhas do navegador o reconhece
     expect(textoDe(telaDeSenha(app).find(`label[for="${campo(app).attributes('id')}"]`))).toBe('Senha');
     expect(campo(app).attributes('autocomplete')).toBe('current-password');
     expect(document.activeElement).toBe(campo(app).element);
     expect(telaDeSenha(app).findAll('button').map((b) => textoDe(b))).toEqual(['Entrar']);
-    // sem senha, não há o que "Sair"
     expect(botaoSair(app)).toBeUndefined();
   });
 
@@ -82,7 +75,6 @@ describe('tela "Senha da organizadora"', () => {
     expect(telaDeSenha(app).exists()).toBe(false);
     expect(textoDe(app.find('h1'))).toBe('Torneio de setembro');
     expect(sessionStorage.getItem(CHAVE)).toBe(SENHA_FALSA);
-    // depois de conferir a senha (/api/acesso), toda chamada leva o cabeçalho
     const depois = pedidosDaMaria(api).slice(pedidosDaMaria(api).findIndex((a) => a.pedido === 'GET /api/acesso'));
     expect(depois.length).toBeGreaterThan(1);
     for (const a of depois) expect(a.authorization, a.pedido).toBe(`Bearer ${SENHA_FALSA}`);

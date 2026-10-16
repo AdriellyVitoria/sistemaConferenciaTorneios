@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { nomeDoArquivoBaixado } from '../src/utilitarios/arquivo';
 
-// O "Baixar CSV" baixa pelo fetch (R3), para mandar a senha; o nome do arquivo vem do
-// Content-Disposition que a API já devolve (6c).
 describe('nomeDoArquivoBaixado', () => {
   it('prefere o filename*, com os acentos (RFC 6266)', () => {
     const disposicao = `attachment; filename="resultado-torneio-de-setembro-2026.csv"; filename*=UTF-8''${encodeURIComponent('resultado-Torneio de Março-2026.csv')}`;

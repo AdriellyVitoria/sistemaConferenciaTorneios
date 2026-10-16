@@ -1,5 +1,4 @@
 <script setup lang="ts">
-/** Planilha × site, lado a lado (D4), com o site destacado. Usado em Pendências e em Conferidas. */
 import { rotuloDoValor, valorDoLado } from '../dominio/pendencias';
 import type { Pendencia } from '../servicos/api';
 
@@ -51,7 +50,6 @@ withDefaults(defineProps<{ pendencia: Pendencia; tituloDoSite?: string }>(), {
 .lado.site .titulo-lado {
   color: var(--primaria-escura);
 }
-/* o rótulo (nick, campo) nunca quebra no meio; um valor longo desce para a linha de baixo */
 .linha-valor {
   display: flex;
   flex-wrap: wrap;

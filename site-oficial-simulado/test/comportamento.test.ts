@@ -6,7 +6,6 @@ import { criarApp, type OpcoesSite } from '../src/app';
 import { carregarPartidas } from '../src/dados';
 import { lerDemora } from '../src/config';
 
-// Os arquivos de dados são só lidos: nenhum é alterado.
 const RAIZ = path.resolve(__dirname, '../..');
 const ARQUIVOS = [
   path.join(RAIZ, 'testes/site-oficial.json'),
@@ -16,7 +15,6 @@ const ARQUIVOS = [
 let servidor: Server | undefined;
 afterEach(() => new Promise<void>((fechado) => (servidor ? servidor.close(() => fechado()) : fechado())));
 
-/** Sobe o site com dados novos (o contador de falhas começa do zero) e devolve a função de consulta. */
 async function subir(opcoes: OpcoesSite) {
   servidor = criarApp(carregarPartidas(ARQUIVOS), opcoes).listen(0);
   await new Promise((pronto) => servidor!.once('listening', pronto));
@@ -27,7 +25,6 @@ async function subir(opcoes: OpcoesSite) {
   };
 }
 
-/** Um "esperar" falso: registra quanto foi pedido e só libera quando o teste mandar. Nada espera de verdade. */
 function esperaControlada() {
   const pedidos: number[] = [];
   const pendentes: (() => void)[] = [];
@@ -49,8 +46,8 @@ describe('demora de cada consulta', () => {
 
     let chegou = false;
     const consulta = consultar('40923').then((r) => { chegou = true; return r; });
-    await new Promise((r) => setTimeout(r, 50)); // dá tempo de a requisição chegar ao servidor
-    expect(espera.pedidos).toEqual([6_000]); // 2 s + metade de 8 s
+    await new Promise((r) => setTimeout(r, 50));
+    expect(espera.pedidos).toEqual([6_000]);
     expect(chegou).toBe(false);
 
     espera.liberarTudo();
@@ -58,7 +55,7 @@ describe('demora de cada consulta', () => {
   });
 
   it('sorteia entre o mínimo e o máximo, incluindo os dois extremos', async () => {
-    const sorteios = [0, 0.999999, 0.25]; // o menor sorteio possível, o maior e um do meio
+    const sorteios = [0, 0.999999, 0.25];
     const pedidos: number[] = [];
     const consultar = await subir({
       demora: { minMs: 2_000, maxMs: 10_000 },

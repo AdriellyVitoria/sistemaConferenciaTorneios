@@ -1,10 +1,4 @@
 <script setup lang="ts">
-/**
- * A tela do resultado (6e, protótipo 2-resultado): o que foi gravado no cálculo, nada recalculado.
- * Cabeçalho (data, modo travado, total distribuído e o CSV), classificação com o critério e a
- * frase dos empates (D2), o prêmio por jogador com o filtro por nick e, no fim, os links da página
- * pública e de cada time premiado para a Maria copiar (7d).
- */
 import { computed, onMounted, ref, useId } from 'vue';
 import { RouterLink } from 'vue-router';
 import LinksDosTimes from '../componentes/LinksDosTimes.vue';
@@ -31,7 +25,6 @@ onMounted(async () => {
   }
 });
 
-// R3: o CSV vem pelo fetch, com a senha; um link comum não mandaria o cabeçalho
 const baixando = ref(false);
 const erroDoCsv = ref<string | null>(null);
 async function baixarCsv() {
@@ -56,7 +49,6 @@ const quando = computed(() => {
 });
 const rotuloDaBase = computed(() => (resultado.value?.modoDivisao === 'kills' ? 'Kills' : 'Minutos'));
 
-/** O rodapé da tabela, anunciado ao leitor de tela quando o filtro muda. */
 const resumo = computed(() => {
   const total = premiados.value.length;
   const palavra = total === 1 ? 'jogador premiado' : 'jogadores premiados';

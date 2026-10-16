@@ -1,15 +1,3 @@
-/**
- * Pendências do torneio e o "Ciente" da Maria (etapa 5a).
- *
- * As pendências saem sempre da comparação atual (compararComSite, D19) entre o que a Maria
- * digitou (linhas_planilha) e o que o site registrou (partidas + participacoes). Só os Cientes
- * são gravados, pela chave de cada pendência: uma pendência que mudou tem outra chave, e o Ciente
- * antigo não vale para ela.
- *
- * Bloqueantes (não encontrada, times diferentes) não aceitam Ciente: se resolvem corrigindo o ID
- * (etapa 5b). Depois do cálculo, nenhum Ciente muda.
- */
-
 import type { Knex } from 'knex';
 import type { Executor } from '../banco/conexao';
 import { chaveDaPendencia, ehBloqueante } from '../dominio/chave-pendencia';
@@ -34,9 +22,7 @@ export interface PendenciaListada extends ItemPendencia {
 }
 
 export interface ListaDePendencias {
-  /** Só se resolvem corrigindo o ID da partida. */
   bloqueantes: PendenciaListada[];
-  /** Aceitam Ciente; enquanto não o recebem, também seguram o cálculo (D17). */
   naoBloqueantes: PendenciaListada[];
   resumo: { bloqueantes: number; naoBloqueantes: number; comCiente: number; semCiente: number; aguardandoSite: number };
 }
@@ -46,24 +32,17 @@ export async function listarPendencias(bd: Knex, torneioId: number): Promise<Lis
   return calcularPendencias(bd, torneioId);
 }
 
-/**
- * A comparação atual do torneio (D19), montada com o que está no banco: as linhas da planilha e o
- * que o job gravou do site. É a fonte única das pendências (5a) e dos dados oficiais do cálculo
- * (6a, D3): o que a Maria revisou é exatamente o que entra no prêmio.
- */
 export async function compararAtual(bd: Executor, torneioId: number): Promise<{ partidas: Partida[]; comparacao: ResultadoComparacao }> {
   const [partidas, linhas, participacoes] = await Promise.all([
     listarPartidas(bd, torneioId),
     listarLinhas(bd, torneioId),
     listarParticipacoes(bd, torneioId),
   ]);
-  // a linha é comparada com o ID atual da partida: se a Maria corrigir o ID (etapa 5b), a linha vai junto
   const idAtual = new Map(partidas.map((p) => [p.id, p.idPartida]));
   const linhasComIdAtual: LinhaPlanilha[] = linhas.map(({ partidaId, ...linha }) => ({ ...linha, idPartida: idAtual.get(partidaId)! }));
   return { partidas, comparacao: compararComSite(linhasComIdAtual, respostasDoSite(partidas, participacoes)) };
 }
 
-/** As pendências atuais do torneio (sem conferir se o torneio existe). */
 export async function calcularPendencias(bd: Executor, torneioId: number): Promise<ListaDePendencias> {
   const [{ partidas, comparacao }, cientes] = await Promise.all([compararAtual(bd, torneioId), listarCientes(bd, torneioId)]);
   const { pendencias, aguardandoSite } = comparacao;
@@ -90,14 +69,6 @@ export async function calcularPendencias(bd: Executor, torneioId: number): Promi
   };
 }
 
-/**
- * O que o site respondeu para cada partida, montado com o que o job gravou (etapa 4b):
- * - aguardando ou em consulta: o site ainda não respondeu (sem resposta);
- * - não encontrada: o site não conhece o ID;
- * - conferida: o vencedor da partida e os jogadores de participacoes. Os dois times do site são
- *   os times desses jogadores, na ordem em que aparecem: no formato do site, todo jogador é de
- *   um dos dois times da partida.
- */
 function respostasDoSite(partidas: Partida[], participacoes: ParticipacaoGuardada[]): Record<string, RespostaSite | undefined> {
   const jogadoresPorPartida = new Map<number, ParticipacaoGuardada[]>();
   for (const j of participacoes) jogadoresPorPartida.set(j.partidaId, [...(jogadoresPorPartida.get(j.partidaId) ?? []), j]);
@@ -130,11 +101,6 @@ export type ResultadoCiente =
   | { tipo: 'torneio_nao_encontrado' }
   | { tipo: 'torneio_calculado' };
 
-/**
- * Marca (ciente = true) ou desfaz (false) o Ciente de uma pendência. Numa transação, com o
- * torneio travado: um Ciente não corre junto com uma planilha nova (D22) nem com o cálculo.
- * A chave precisa ser de uma pendência ATUAL: se os valores mudaram, ela não existe mais.
- */
 export async function definirCiente(bd: Knex, torneioId: number, chave: string, ciente: boolean, agora = new Date()): Promise<ResultadoCiente> {
   return bd.transaction(async (trx) => {
     const torneio = await buscarTorneioParaAtualizar(trx, torneioId);
@@ -157,13 +123,6 @@ export type ResultadoCienteDeTodas =
   | { tipo: 'torneio_nao_encontrado' }
   | { tipo: 'torneio_calculado' };
 
-/**
- * "Ciente de todas": marca as não bloqueantes que ainda não têm Ciente e diz quantas marcou.
- * Só depois que o site respondeu todas as partidas: enquanto o job confere, uma pendência pode
- * chegar entre a Maria abrir a tela e clicar, e levaria o Ciente sem ela ter visto (D17). A
- * contagem é feita aqui dentro, com o torneio travado: depois disso, nenhuma partida volta para
- * a fila (correção de ID e planilha nova também travam o torneio).
- */
 export async function cienteDeTodas(bd: Knex, torneioId: number, agora = new Date()): Promise<ResultadoCienteDeTodas> {
   return bd.transaction(async (trx) => {
     const torneio = await buscarTorneioParaAtualizar(trx, torneioId);

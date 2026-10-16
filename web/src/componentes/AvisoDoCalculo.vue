@@ -1,10 +1,4 @@
 <script setup lang="ts">
-/**
- * "Pronto para calcular" (5e), no topo da página do torneio: diz o que falta, com as contagens, e
- * cada item leva para a aba onde se resolve. Tem o botão "Calcular prêmios" (6d), habilitado só
- * quando a API diz que pode; quem pergunta antes de calcular é a página, com o modal (D22).
- * Depois do cálculo, mostra a data e o link "Ver resultado".
- */
 import { computed, useId } from 'vue';
 import { RouterLink } from 'vue-router';
 import { avisoDoCalculo, type AbaDoTorneio } from '../dominio/calculo';
@@ -13,7 +7,6 @@ import type { SituacaoDoCalculo } from '../servicos/api';
 const props = defineProps<{
   torneioId: number;
   calculo: SituacaoDoCalculo;
-  /** Pedido de cálculo em andamento: o botão fica desabilitado (sem clique duplo). */
   calculando: boolean;
 }>();
 const emit = defineEmits<{ irPara: [aba: AbaDoTorneio]; calcular: [] }>();
@@ -93,7 +86,6 @@ const idDoTexto = `situacao-calculo-${useId()}`;
   flex-wrap: wrap;
   gap: var(--espaco-2);
 }
-/* cada item é um botão que leva à aba; com cara de etiqueta, mas alvo de toque inteiro */
 .item {
   font: inherit;
   font-size: var(--texto-md);

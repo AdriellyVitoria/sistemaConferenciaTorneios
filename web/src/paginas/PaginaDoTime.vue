@@ -1,10 +1,4 @@
 <script setup lang="ts">
-/**
- * O link de um time premiado (7d, D11, protótipo 3-link-do-time): o extrato de cada jogador do
- * time, com a conta, para responder "por que eu recebi só isso?" sem a Maria precisar explicar.
- * Mostra só o que a API manda em GET /time/:codigo (nada dos outros times). Página para jogadores:
- * a rota é marcada como pública, e o único link é o da classificação completa (página pública).
- */
 import { computed, onMounted, onUnmounted, ref, useId } from 'vue';
 import { RouterLink } from 'vue-router';
 import AvisoDaPaginaPorLink from '../componentes/AvisoDaPaginaPorLink.vue';
@@ -18,7 +12,6 @@ const estado = ref<{ tipo: 'carregando' } | LeituraPorLink<PaginaDoTime>>({ tipo
 
 const tituloOriginal = document.title;
 onMounted(async () => {
-  // sem código, nem pergunta à API
   estado.value = props.codigo ? await buscarPaginaDoTime(props.codigo) : { tipo: 'nao_encontrada' };
   if (estado.value.tipo === 'ok') document.title = `Prêmio do time ${estado.value.pagina.time.nome}`;
 });
@@ -32,7 +25,6 @@ const passos = computed(() => (pagina.value ? passosDoCalculo(pagina.value) : []
 const busca = ref('');
 const idDaBusca = `nick-time-${useId()}`;
 const encontrados = computed(() => filtrarPorNick(pagina.value?.jogadores ?? [], busca.value));
-/** Anunciado ao leitor de tela quando a busca muda. */
 const resumo = computed(() => {
   const total = pagina.value?.jogadores.length ?? 0;
   const palavra = total === 1 ? 'jogador' : 'jogadores';
@@ -104,7 +96,6 @@ const rotuloDaBase = computed(() => (pagina.value?.time.baseUsada === 'kills' ? 
 .sobretitulo {
   font-size: var(--texto-sm);
 }
-/* o resumo escuro do protótipo, com as cores do cabeçalho */
 .resumo {
   background: var(--cabecalho);
   color: var(--cabecalho-texto);

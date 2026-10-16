@@ -1,4 +1,3 @@
-// @vitest-environment happy-dom
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createMemoryHistory, createRouter } from 'vue-router';
@@ -15,7 +14,6 @@ function torneio(extra: Partial<ResumoTorneio>): ResumoTorneio {
   };
 }
 
-// hoje: 15/10/2026. Em andamento: um de outubro sem planilha e um de agosto que ainda não terminou.
 const TORNEIOS = [
   torneio({ id: 5, nome: 'Torneio de outubro', status: 'criado', planilhaArquivo: null, quantidadeDePartidas: 0, primeiraPartidaEm: null, criadoEm: '2026-10-13T15:00:00.000Z', premioCentavos: 1_200_000 }),
   torneio({ id: 4, nome: 'Copa de Primavera', modoDivisao: 'kills', status: 'conferindo', primeiraPartidaEm: '2026-08-30', criadoEm: '2026-08-29T15:00:00.000Z', premioCentavos: 500_000 }),
@@ -60,7 +58,6 @@ describe('lista agrupada por mês', () => {
     const pagina = await montar();
     expect(grupos(pagina).map((d) => [textoDe(d.find('.nome-do-mes')), nomesDe(d)])).toEqual([
       ['Outubro de 2026', ['Copa relâmpago']],
-      // setembro foi calculado em outubro, mas as partidas foram em setembro
       ['Setembro de 2026', ['Torneio de setembro', 'Desafio de setembro']],
     ]);
   });
@@ -129,7 +126,6 @@ describe('filtros', () => {
     expect(grupos(pagina).map((d) => textoDe(d.find('.nome-do-mes')))).toEqual(['Setembro de 2026']);
     expect(grupo(pagina, 'Setembro de 2026').attributes('open')).toBeDefined();
 
-    // o torneio de agosto ainda em andamento aparece no mês dele
     await escolherMes(pagina, '2026-08');
     expect(nomesDe(emAndamento(pagina))).toEqual(['Copa de Primavera']);
   });

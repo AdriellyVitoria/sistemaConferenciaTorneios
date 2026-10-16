@@ -1,9 +1,5 @@
 import { z } from 'zod';
 
-// Variáveis de ambiente validadas na subida: se faltar algo, a API para com uma mensagem clara.
-// Os padrões servem para rodar fora do Docker, apontando para o MySQL do compose (porta 3307).
-
-/** "60000,120000,300000" -> [60000, 120000, 300000]: milissegundos inteiros e positivos. */
 const listaDeMilissegundos = z.string().transform((texto, ctx) => {
   const partes = texto.split(',').map((p) => p.trim());
   if (partes.some((p) => !/^\d+$/.test(p) || Number(p) === 0)) {
@@ -16,11 +12,6 @@ const listaDeMilissegundos = z.string().transform((texto, ctx) => {
   return partes.map(Number);
 });
 
-/**
- * A senha única da organizadora (R3). Sem padrão: a API não sobe sem ela. Só caracteres que o
- * navegador consegue mandar num cabeçalho HTTP (sem acento), e sem espaço nas pontas, que se
- * perderia no caminho e faria a senha certa nunca bater.
- */
 const senhaDaOrganizadora = z
   .string({ required_error: 'ADMIN_SENHA não foi definida: é a senha das telas da organizadora. Defina no .env (veja o .env.example) ou, fora do Docker, no ambiente.' })
   .min(8, 'ADMIN_SENHA precisa ter pelo menos 8 caracteres.')
@@ -37,25 +28,16 @@ const esquema = z
     MYSQL_USER: z.string().min(1).default('torneios'),
     MYSQL_PASSWORD: z.string().min(1).default('torneios'),
 
-    // site oficial (etapa 4)
     SITE_URL: z.string().url().default('http://localhost:4000'),
-    /** A maior demora de uma consulta que ainda é normal: 10 s no site real (contexto.md, seção 9). */
     SITE_DEMORA_MAX_MS: z.coerce.number().int().nonnegative().default(10_000),
-    /** Depois disso, a consulta conta como "site sem resposta" e é tentada de novo. */
     SITE_TEMPO_LIMITE_MS: z.coerce.number().int().positive().default(15_000),
-    /** Espera antes de cada nova tentativa (D10): 1, 2, 5 e depois 10 minutos. */
     CONFERENCIA_INTERVALOS_MS: listaDeMilissegundos.default('60000,120000,300000,600000'),
 
-    // job da conferência (etapa 4b)
-    /** De quanto em quanto tempo o job acorda para procurar partidas prontas para consultar. */
     CONFERENCIA_ACORDAR_A_CADA_MS: z.coerce.number().int().positive().default(5_000),
-    /** Quantas partidas são consultadas ao mesmo tempo: rápido para a Maria, leve para o site. */
     CONFERENCIA_LOTE: z.coerce.number().int().positive().default(3),
-    /** Partida "em_consulta" há mais que isso ficou presa (o processo caiu no meio) e volta para a fila. */
     CONFERENCIA_PRESA_APOS_MS: z.coerce.number().int().positive().default(120_000),
   })
   .superRefine((c, ctx) => {
-    // com o tempo limite abaixo da demora normal, uma consulta lenta mas certa viraria falha
     if (c.SITE_TEMPO_LIMITE_MS <= c.SITE_DEMORA_MAX_MS) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -63,7 +45,6 @@ const esquema = z
         message: `SITE_TEMPO_LIMITE_MS (${c.SITE_TEMPO_LIMITE_MS}) precisa ser maior que a demora máxima do site, SITE_DEMORA_MAX_MS (${c.SITE_DEMORA_MAX_MS}).`,
       });
     }
-    // uma consulta dura no máximo o tempo limite; antes disso, a partida pode estar sendo consultada
     if (c.CONFERENCIA_PRESA_APOS_MS <= c.SITE_TEMPO_LIMITE_MS) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -75,7 +56,6 @@ const esquema = z
 
 export type Config = z.infer<typeof esquema>;
 
-/** Lê e valida a configuração; separado do process.env para os testes. */
 export function lerConfig(ambiente: Record<string, string | undefined>): Config {
   const lido = esquema.safeParse(ambiente);
   if (!lido.success) {

@@ -1,4 +1,3 @@
-// @vitest-environment happy-dom
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createMemoryHistory, createRouter } from 'vue-router';
@@ -13,7 +12,6 @@ const jogador = (nick: string, base: number, centesimos: number, premioCentavos:
   nick, base, baseUsada: 'minutos', centesimosDePercentual: centesimos, premioCentavos, recebeuCentavo, explicacao: null,
 });
 
-/** O link dos Corvos como a API devolve em GET /time/:codigo (a ordem é a da API: do maior valor para o menor). */
 const CORVOS = {
   torneio: { nome: 'Torneio de Setembro/2026' },
   calculadoEm: '2026-10-15T13:05:00.000Z',
@@ -113,7 +111,6 @@ describe('"Procurar meu nick"', () => {
     expect(nicks(app)).toEqual(['Tuca']);
     expect(app.find('.resumo-jogadores').attributes('aria-live')).toBe('polite');
     expect(textoDe(app.find('.resumo-jogadores'))).toBe('1 de 6 jogadores');
-    // o total continua o do time inteiro
     expect(textoDe(app.find('.total-do-time'))).toContain('R$ 3.000,00');
   });
 

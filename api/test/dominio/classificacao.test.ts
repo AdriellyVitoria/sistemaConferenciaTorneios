@@ -5,7 +5,6 @@ import { classificar, type CriterioClassificacao } from '../../src/dominio/class
 import type { PartidaSite } from '../../src/dominio/comparacao';
 import { lerPlanilha } from '../../src/dominio/planilha';
 
-// Arquivos só lidos: nenhuma planilha, esperado ou site-oficial.json é alterado.
 const RAIZ = path.resolve(__dirname, '../../..');
 const SITE_OFICIAL: Record<string, PartidaSite> = JSON.parse(
   readFileSync(path.join(RAIZ, 'testes/site-oficial.json'), 'utf8'),
@@ -14,7 +13,6 @@ const SITE_SETEMBRO: Record<string, PartidaSite> = JSON.parse(
   readFileSync(path.join(__dirname, '../fixtures/site-setembro.json'), 'utf8'),
 );
 
-/** Os dados oficiais de um cenário: as partidas da planilha, como o site as registra. */
 function partidasOficiais(planilha: string, site: Record<string, PartidaSite>): PartidaSite[] {
   const resultado = lerPlanilha(readFileSync(path.join(RAIZ, planilha)));
   if (!resultado.ok) throw new Error(`planilha inválida: ${planilha}`);
@@ -22,11 +20,6 @@ function partidasOficiais(planilha: string, site: Record<string, PartidaSite>): 
   return ids.map((id) => site[id]);
 }
 
-/**
- * Lê um *-classificacao.csv. O critério do arquivo de empate total é
- * "divisão igual (empate em vitórias e kills)": a classificação só afirma o que está entre
- * parênteses; "divisão igual" é do prêmio (parte 4).
- */
 function esperado(nome: string) {
   const texto = readFileSync(path.join(RAIZ, 'testes/esperado', `${nome}-classificacao.csv`), 'utf8');
   return texto.split(/\r?\n/).filter(Boolean).slice(1).map((linha) => {
@@ -70,10 +63,7 @@ describe('classificar — esperados de testes/esperado/', () => {
   });
 });
 
-// ---------------------------------------------------------------- casos pequenos
-
 let proximoId = 1;
-/** Partida com um jogador por time, só para controlar vencedor e kills. */
 function partida(a: string, b: string, vencedor: string, killsA: number, killsB: number): PartidaSite {
   return {
     id: `#${proximoId++}`,
@@ -89,7 +79,6 @@ function partida(a: string, b: string, vencedor: string, killsA: number, killsB:
 
 describe('classificar — casos pequenos', () => {
   it('empate triplo em vitórias com kills diferentes: as kills decidem as três posições', () => {
-    // A, B e C vencem uma vez cada (ciclo) e todos vencem D
     const tabela = classificar([
       partida('A', 'B', 'A', 10, 5),
       partida('B', 'C', 'B', 10, 5),
@@ -107,7 +96,6 @@ describe('classificar — casos pequenos', () => {
   });
 
   it('empate em vitórias e kills entre dois times: mesma posição, e o próximo pula', () => {
-    // Corvos e Ursos: 1 vitória e 10 kills cada
     const tabela = classificar([
       partida('Lobos', 'Panteras', 'Lobos', 10, 0),
       partida('Lobos', 'Corvos', 'Lobos', 10, 5),

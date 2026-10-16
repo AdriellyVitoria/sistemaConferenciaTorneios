@@ -14,7 +14,7 @@ describe('criarSondagem: consultar a API a cada 5 s enquanto houver o que espera
     const sondagem = criarSondagem({ atualizar, intervaloMs: 5_000 });
 
     sondagem.garantirAtiva();
-    expect(atualizar).not.toHaveBeenCalled(); // a tela já tem os dados: a primeira consulta é daqui a 5 s
+    expect(atualizar).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(5_000);
     expect(atualizar).toHaveBeenCalledTimes(1);
     await vi.advanceTimersByTimeAsync(15_000);
@@ -31,7 +31,7 @@ describe('criarSondagem: consultar a API a cada 5 s enquanto houver o que espera
     await vi.advanceTimersByTimeAsync(60_000);
     expect(atualizar).toHaveBeenCalledTimes(3);
     expect(sondagem.ativa()).toBe(false);
-    expect(vi.getTimerCount()).toBe(0); // nenhum intervalo esquecido
+    expect(vi.getTimerCount()).toBe(0);
   });
 
   it('parar (ao sair da página) cancela a próxima consulta', async () => {
@@ -51,7 +51,7 @@ describe('criarSondagem: consultar a API a cada 5 s enquanto houver o que espera
     const atualizar = vi.fn(() => new Promise<boolean>((pronto) => { terminar = pronto; }));
     const sondagem = criarSondagem({ atualizar, intervaloMs: 5_000 });
     sondagem.garantirAtiva();
-    await vi.advanceTimersByTimeAsync(5_000); // a consulta começou e ainda não voltou
+    await vi.advanceTimersByTimeAsync(5_000);
 
     sondagem.parar();
     terminar(true);

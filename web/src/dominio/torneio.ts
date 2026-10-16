@@ -1,43 +1,27 @@
-/** Regras e textos da tela do torneio, sem Vue nem HTTP, para serem testados sozinhos. */
-
 import type { ErroPlanilha, ModoDivisao, Partida, StatusConferencia, StatusTorneio, Torneio } from '../servicos/api';
 
 export type EnvioDaPlanilha = 'primeira' | 'substituir' | 'travada';
 
-/**
- * D22: enquanto o torneio não foi calculado, a planilha pode ser enviada de novo, e a nova
- * substitui a anterior inteira; a tela pede confirmação. Depois do cálculo, não pode mais.
- */
 export function envioDaPlanilha(torneio: Pick<Torneio, 'status' | 'planilhaArquivo'>): EnvioDaPlanilha {
   if (torneio.status === 'calculado') return 'travada';
   return torneio.planilhaArquivo === null ? 'primeira' : 'substituir';
 }
 
-/**
- * O ID da partida para mostrar. Corrigido pela Maria (D16): "#40932 → #40923 (corrigido)", com o
- * ID da planilha primeiro, porque é o que ela vê no Excel.
- */
 export function rotuloDoId(partida: Pick<Partida, 'idPartida' | 'idPartidaPlanilha'>): string {
   return partida.idPartidaPlanilha === partida.idPartida
     ? partida.idPartida
     : `${partida.idPartidaPlanilha} → ${partida.idPartida} (corrigido)`;
 }
 
-/** As linhas do Excel onde procurar o erro: todas, quando o problema é de uma partida inteira (D23). */
 export function linhasDoErro(erro: ErroPlanilha): string {
   if (erro.linhas?.length) return erro.linhas.join(', ');
   return erro.linha === undefined ? '—' : String(erro.linha);
 }
 
-/**
- * Data de criação ("2026-10-14T13:00:00Z", um instante em UTC) -> "14/10/2026", no fuso do
- * navegador (ou no informado, para os testes): perto da meia-noite, o dia em UTC é outro.
- */
 export function formatarDataDeCriacao(iso: string, fuso?: string): string {
   return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: fuso }).format(new Date(iso));
 }
 
-/** "2026-09-19" -> "19/09/2026". Só texto: como Date, o dia poderia mudar com o fuso. */
 export function formatarData(data: string): string {
   const [ano, mes, dia] = data.split('-');
   return `${dia}/${mes}/${ano}`;

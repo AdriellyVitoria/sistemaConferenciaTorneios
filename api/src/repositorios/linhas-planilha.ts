@@ -2,7 +2,6 @@ import type { Executor } from '../banco/conexao';
 import type { LinhaPlanilha } from '../dominio/planilha';
 
 export interface LinhaGuardada extends LinhaPlanilha {
-  /** A partida a que a linha pertence (pela chave, não pelo texto do ID). */
   partidaId: number;
 }
 
@@ -20,10 +19,8 @@ interface LinhaBanco {
   venceu: number | null;
 }
 
-/** Linhas por INSERT: planilhas maiores vão em partes, sem um comando gigante. */
 const POR_INSERT = 500;
 
-/** Guarda as linhas exatamente como o domínio leu, cada uma ligada à sua partida. */
 export async function inserirLinhas(
   bd: Executor,
   torneioId: number,
@@ -55,7 +52,6 @@ export async function inserirLinhas(
   }
 }
 
-/** As linhas do torneio na ordem do Excel. */
 export async function listarLinhas(bd: Executor, torneioId: number): Promise<LinhaGuardada[]> {
   const linhas: LinhaBanco[] = await bd('linhas_planilha').where({ torneio_id: torneioId }).orderBy('numero_linha');
   return linhas.map((l) => ({

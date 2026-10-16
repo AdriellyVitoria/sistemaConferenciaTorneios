@@ -43,12 +43,9 @@ const roteador = useRouter();
 const torneio = ref<TorneioComPartidas | null>(null);
 const pendencias = ref<ListaDePendencias | null>(null);
 const erroAoCarregar = ref<string | null>(null);
-/** Falha ao atualizar uma tela que já tem dados: avisa, sem apagar o que está na tela. */
 const semConexao = ref(false);
-/** O relógio da tela, para a contagem do botão e o "próxima em instantes". */
 const agora = ref(Date.now());
 
-// --- atualização periódica (etapa 4c): a cada 5 s enquanto houver partida esperando o site
 const sondagem = criarSondagem({
   intervaloMs: 5_000,
   atualizar: async () => {
@@ -59,7 +56,6 @@ const sondagem = criarSondagem({
 
 async function carregar() {
   try {
-    // o torneio e as pendências juntos: a conferência que avança também faz pendências aparecerem
     const [recebido, recebidas] = await Promise.all([buscarTorneio(props.id), listarPendencias(props.id)]);
     torneio.value = recebido;
     pendencias.value = recebidas;
@@ -88,22 +84,18 @@ const partidas = computed(() =>
   [...(torneio.value?.partidas ?? [])].sort((a, b) => a.rodada - b.rodada || a.id - b.id),
 );
 
-// --- progresso e abas
 const progresso = computed(() => progressoDaConferencia(partidas.value));
 const naFila = computed(() =>
   partidas.value
     .filter((p) => p.statusConferencia === 'aguardando' || p.statusConferencia === 'em_consulta')
     .map((p) => ({ partida: p, situacao: situacaoNaFila(p, new Date(agora.value)) })),
 );
-// as três abas da D17: cada partida está em uma só
 const conferidas = computed(() => (pendencias.value ? partidasConferidas(partidas.value, pendencias.value) : []));
 const faltam = computed(() => (pendencias.value ? pendenciasQueFaltam(pendencias.value) : 0));
 const somenteLeitura = computed(() => torneio.value?.status === 'calculado');
 
 type Aba = 'conferidas' | 'pendencias' | 'aguardando';
 const abaEscolhida = ref<Aba | null>(null);
-// sem escolha da Maria: abre onde há algo a fazer (pendências), depois no que depende do site
-// --- calcular os prêmios (6d, D22): o modal pergunta antes; a API confere de novo e trava
 const confirmandoCalculo = ref(false);
 const calculando = ref(false);
 const avisoDoCalculo = ref<{ tom: 'sucesso' | 'alerta' | 'erro'; texto: string } | null>(null);
@@ -115,14 +107,12 @@ const resumoDaConferencia = computed(() => {
 });
 
 async function calcular() {
-  // a trava vem antes de qualquer espera: um segundo clique encontra o pedido já em andamento
   if (calculando.value) return;
   calculando.value = true;
   confirmandoCalculo.value = false;
   avisoDoCalculo.value = null;
   try {
     const resultado = await calcularPremios(props.id);
-    // em qualquer caso, a página mostra o estado novo: calculado, ou o que mudou (409)
     await carregar();
     if (resultado.tipo === 'ok') avisoDoCalculo.value = { tom: 'sucesso', texto: 'Prêmios calculados. O torneio está travado.' };
     else avisoDoCalculo.value = { tom: resultado.tipo === 'recusado' ? 'alerta' : 'erro', texto: resultado.mensagem };
@@ -133,7 +123,6 @@ async function calcular() {
   }
 }
 
-/** Cada item do aviso "pronto para calcular" leva à aba onde se resolve, e o foco vai junto. */
 async function irParaAba(destino: Aba) {
   abaEscolhida.value = destino;
   await nextTick();
@@ -156,7 +145,6 @@ const contagemDaAba = computed<Record<Aba, number>>(() => ({
   aguardando: naFila.value.length,
 }));
 
-// --- "tentar agora": a contagem do bloqueio de 30 s vem da API e corre aqui a cada segundo
 let liberaEm = 0;
 let relogio: ReturnType<typeof setInterval> | undefined;
 const segundosRestantes = computed(() => segundosAte(liberaEm, agora.value));
@@ -212,8 +200,6 @@ async function clicarTentarAgora() {
   }
 }
 
-// ao sair da página, nada fica rodando
-/** Removido (M2): para de acompanhar e volta para a lista, que mostra "Torneio removido." */
 async function aoRemover() {
   sondagem.parar();
   deixarAvisoParaALista('Torneio removido.');
@@ -225,7 +211,6 @@ onUnmounted(() => {
   pararContagem();
 });
 
-// --- envio da planilha ---
 const seletor = ref<HTMLInputElement | null>(null);
 const arquivoEscolhido = ref<File | null>(null);
 const confirmandoSubstituicao = ref(false);
@@ -241,10 +226,9 @@ function escolherArquivo() {
 function aoEscolher(evento: Event) {
   const entrada = evento.target as HTMLInputElement;
   const arquivo = entrada.files?.[0] ?? null;
-  entrada.value = ''; // permite escolher o mesmo arquivo de novo depois de corrigir no Excel
+  entrada.value = '';
   if (!arquivo) return;
   arquivoEscolhido.value = arquivo;
-  // D22: a planilha nova substitui a anterior e a conferência feita; pede confirmação antes
   if (envio.value === 'substituir') confirmandoSubstituicao.value = true;
   else void enviar();
 }
@@ -271,7 +255,7 @@ async function enviar() {
       recusa.value = { arquivo: arquivo.name, erros: resultado.erros, convertidoDeWindows1252: resultado.convertidoDeWindows1252 };
     } else {
       erroDoEnvio.value = resultado.mensagem;
-      await carregar(); // por exemplo, o torneio foi calculado em outra aba
+      await carregar();
     }
   } catch (e) {
     erroDoEnvio.value = (e as Error).message;
@@ -295,7 +279,6 @@ async function enviar() {
         <div class="trilha"><RouterLink to="/">Torneios</RouterLink> / {{ torneio.nome }}</div>
         <div class="titulo-e-remover">
           <h1>{{ torneio.nome }}</h1>
-          <!-- discreto, e só antes do cálculo: depois, o resultado é o registro do pagamento (M2) -->
           <RemoverTorneio v-if="torneio.status !== 'calculado'" :torneio="torneio" rotulo="Remover torneio" discreto @removido="aoRemover" />
         </div>
         <div class="pilulas">
@@ -516,7 +499,6 @@ async function enviar() {
   justify-content: space-between;
   gap: var(--espaco-2) var(--espaco-4);
 }
-/* o resumo do modal de cálculo: rótulo e valor em cada linha */
 .resumo-calculo {
   margin: 0;
   display: flex;

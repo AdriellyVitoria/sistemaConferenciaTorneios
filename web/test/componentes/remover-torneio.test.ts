@@ -1,4 +1,3 @@
-// @vitest-environment happy-dom
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createMemoryHistory, createRouter } from 'vue-router';
@@ -84,7 +83,7 @@ describe('"Remover" no cartão da lista', () => {
     expect(dialogo().open).toBe(false);
 
     await clicar(remover(pagina, 'Teste 4c')!.element);
-    dialogo().dispatchEvent(new Event('cancel', { cancelable: true })); // o Esc do navegador
+    dialogo().dispatchEvent(new Event('cancel', { cancelable: true }));
     await flushPromises();
     expect(dialogo().open).toBe(false);
     expect(pedidos.filter((p) => p.startsWith('DELETE'))).toEqual([]);

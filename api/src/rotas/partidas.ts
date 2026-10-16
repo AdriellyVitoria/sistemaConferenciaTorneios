@@ -1,11 +1,3 @@
-/**
- * Rota da correção do ID (etapa 5b). Só recebe, valida e responde; as regras ficam no serviço.
- *
- *   PUT /torneios/:id/partidas/:partidaId/id-partida   { "idPartida": "#52241" }
- *       :partidaId é o id interno da partida (o que vem em GET /torneios/:id), que não muda
- *       com a correção. Responde a partida, de volta à fila ("aguardando").
- */
-
 import { Router } from 'express';
 import type { Knex } from 'knex';
 import { z } from 'zod';

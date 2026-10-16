@@ -3,12 +3,10 @@ import { criarApp } from './app';
 import { lerDemora } from './config';
 import { carregarPartidas } from './dados';
 
-// Por padrão (fora do Docker), lê os arquivos do próprio repositório; no Docker, SITE_ARQUIVOS
-// aponta para os arquivos montados somente leitura.
 const RAIZ = path.resolve(__dirname, '../..');
 const ARQUIVOS_PADRAO = [
   path.join(RAIZ, 'testes/site-oficial.json'),
-  path.join(RAIZ, 'api/test/fixtures/site-setembro.json'), // setembro com a #40923 da D15
+  path.join(RAIZ, 'api/test/fixtures/site-setembro.json'),
 ];
 
 const porta = Number(process.env.SITE_PORTA ?? 4000);
@@ -23,7 +21,6 @@ const servidor = criarApp(partidas, { demora }).listen(porta, () => {
   );
 });
 
-// ao desligar, encerra também as consultas penduradas pelo modo "sem resposta"
 const desligar = () => {
   servidor.close(() => process.exit(0));
   servidor.closeAllConnections();

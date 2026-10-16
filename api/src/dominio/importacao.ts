@@ -1,19 +1,9 @@
-/**
- * Monta as partidas a partir das linhas lidas da planilha (etapa 3b). Função pura.
- *
- * Uma partida por ID, com os dois times na ordem em que aparecem. D23: toda partida precisa de
- * exatamente dois times; um ID com um time só (ou com três) é quase sempre um ID digitado errado
- * numa linha, e o arquivo é recusado com todas as linhas envolvidas, para a Maria achar no Excel.
- * Nomes de time são comparados sem acentos e maiúsculas (D19); data e rodada vêm da primeira linha.
- */
-
 import type { ErroLeitura, LinhaPlanilha } from './planilha';
 import { juntarComE, normalizarNome } from './texto';
 
 export interface PartidaDaPlanilha {
   idPartida: string;
   rodada: number;
-  /** aaaa-mm-dd */
   data: string;
   timeA: string;
   timeB: string;
@@ -43,7 +33,6 @@ function agruparPorPartida(linhas: LinhaPlanilha[]): Map<string, LinhaPlanilha[]
   return grupos;
 }
 
-/** Times da partida na ordem da primeira aparição, com as linhas de cada um. */
 function agruparPorTime(linhas: LinhaPlanilha[]): { nome: string; linhas: number[] }[] {
   const times = new Map<string, { nome: string; linhas: number[] }>();
   for (const l of linhas) {

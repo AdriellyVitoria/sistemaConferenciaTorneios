@@ -3,7 +3,6 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { lerPlanilha, type ErroLeitura, type LinhaPlanilha } from '../../src/dominio/planilha';
 
-// Os arquivos são só lidos; nenhuma planilha é alterada pelos testes.
 const RAIZ = path.resolve(__dirname, '../../..');
 const PLANILHAS = path.join(RAIZ, 'testes/planilhas');
 const lerArquivo = (caminho: string) => readFileSync(caminho);
@@ -11,7 +10,6 @@ const lerArquivo = (caminho: string) => readFileSync(caminho);
 const CABECALHO = 'Data;Rodada;ID Partida;Partida;Time;Nick;Minutos;Kills;Venceu?';
 const LINHA_OK = '05/09/2026;1;#45659;Lobos x Serpentes;Lobos;Lua_;43;14;sim';
 
-/** Monta um arquivo pequeno em bytes, como o Excel salvaria. */
 function arquivo(linhas: string[], { bom = true, quebra = '\r\n' } = {}): Uint8Array {
   const texto = linhas.join(quebra) + quebra;
   const bytes = Buffer.from(texto, 'utf8');
@@ -39,7 +37,6 @@ describe('lerPlanilha — arquivos reais', () => {
     expect(resultado.convertidoDeWindows1252).toBe(false);
     expect(resultado.linhas).toHaveLength(152);
 
-    // primeira linha de dados é a linha 2 do Excel
     expect(resultado.linhas[0]).toEqual({
       numeroLinha: 2,
       data: '2026-09-05',
@@ -84,7 +81,6 @@ describe('lerPlanilha — arquivos reais', () => {
 
   it('lê a 06b (vírgula) com o mesmo resultado da versão com ponto e vírgula', () => {
     const bytes = lerArquivo(path.join(PLANILHAS, '06b-separador-virgula.csv'));
-    // versão com ";" montada em memória: o arquivo não tem aspas nem vírgulas nos valores
     const comPontoEVirgula = Buffer.from(bytes.toString('utf8').replaceAll(',', ';'), 'utf8');
 
     const virgula = lerPlanilha(bytes);
@@ -128,7 +124,6 @@ describe('lerPlanilha — formato do arquivo', () => {
   });
 
   it('converte de Windows-1252 quando o arquivo não é UTF-8 e avisa que converteu', () => {
-    // "CSV (separado por vírgulas)" do Excel brasileiro: acentos em Windows-1252, sem BOM
     const texto = `${CABECALHO}\r\n19/09/2026;5;#40923;Falcões x Panteras;Falcões;Tchê;38;10;não\r\n`;
     const resultado = lerPlanilha(Buffer.from(texto, 'latin1'));
     expect(resultado.ok).toBe(true);

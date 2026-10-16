@@ -10,7 +10,6 @@ import {
 import type { Partida, StatusConferencia } from '../src/servicos/api';
 
 const FUSO = 'America/Sao_Paulo';
-// 12:00:00 em Brasília
 const AGORA = new Date('2026-10-14T15:00:00.000Z');
 const daqui = (ms: number) => new Date(AGORA.getTime() + ms).toISOString();
 

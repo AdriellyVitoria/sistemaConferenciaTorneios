@@ -6,7 +6,6 @@ import type { PartidaSite } from '../../src/dominio/comparacao';
 import { lerPlanilha } from '../../src/dominio/planilha';
 import { erroDosPercentuais, premiarTimes } from '../../src/dominio/premio';
 
-// Arquivos só lidos: nenhuma planilha, esperado ou site-oficial.json é alterado.
 const RAIZ = path.resolve(__dirname, '../../..');
 const SITE_OFICIAL: Record<string, PartidaSite> = JSON.parse(
   readFileSync(path.join(RAIZ, 'testes/site-oficial.json'), 'utf8'),
@@ -14,7 +13,7 @@ const SITE_OFICIAL: Record<string, PartidaSite> = JSON.parse(
 const SITE_SETEMBRO: Record<string, PartidaSite> = JSON.parse(
   readFileSync(path.join(__dirname, '../fixtures/site-setembro.json'), 'utf8'),
 );
-const PREMIO = 1_000_000; // R$ 10.000,00
+const PREMIO = 1_000_000;
 const PERCENTUAIS = [50, 30, 20];
 
 function classificacaoDoCenario(planilha: string, site: Record<string, PartidaSite>): ClassificacaoTime[] {
@@ -24,7 +23,6 @@ function classificacaoDoCenario(planilha: string, site: Record<string, PartidaSi
   return classificar(ids.map((id) => site[id]));
 }
 
-/** Lê um *-classificacao.csv: posição, time, prêmio em centavos e critério completo. */
 function esperado(nome: string) {
   const texto = readFileSync(path.join(RAIZ, 'testes/esperado', `${nome}-classificacao.csv`), 'utf8');
   return texto.split(/\r?\n/).filter(Boolean).slice(1).map((linha) => {
@@ -65,8 +63,6 @@ describe('premiarTimes — esperados de testes/esperado/', () => {
     ]);
   });
 });
-
-// ---------------------------------------------------------------- casos pequenos
 
 const time = (
   posicao: number, nome: string, criterio: ClassificacaoTime['criterio'] = null,
@@ -138,7 +134,6 @@ describe('premiarTimes — casos pequenos', () => {
   });
 
   it('R$ 1.234,57 em 50/30/20: o prêmio é dividido entre as posições pelo maior resto (D20)', () => {
-    // exatos: 61.728,5 / 37.037,1 / 24.691,4 centavos; sobra 1 centavo, para a maior fração (1º lugar)
     const premios = premiarTimes([time(1, 'A'), time(2, 'B'), time(3, 'C'), time(4, 'D')], 123_457, PERCENTUAIS);
     expect(premios.map((p) => [p.time, p.premioCentavos])).toEqual([
       ['A', 61_729],
@@ -150,7 +145,6 @@ describe('premiarTimes — casos pequenos', () => {
   });
 
   it('empate na fração entre posições: o centavo vai para a melhor colocada, não pelo nome', () => {
-    // R$ 1.234,57 em 50/50: os dois lugares valem 61.728,5 centavos
     const premios = premiarTimes([time(1, 'Zebras'), time(2, 'Águias')], 123_457, [50, 50]);
     expect(premios.map((p) => [p.time, p.premioCentavos])).toEqual([
       ['Zebras', 61_729],
@@ -159,7 +153,6 @@ describe('premiarTimes — casos pequenos', () => {
   });
 
   it('times empatados somam os valores já arredondados das posições e dividem igual', () => {
-    // 2º e 3º valem 37.037 + 24.691 = 61.728 centavos, divididos por 2 = 30.864 para cada
     const premios = premiarTimes(
       [time(1, 'A'), time(2, 'B', 'empate em vitórias e kills'), time(2, 'C', 'empate em vitórias e kills')],
       123_457,
@@ -184,14 +177,11 @@ describe('premiarTimes — menos times do que posições premiadas (D24)', () =>
   });
 
   it('a sobra que não divide exato vai, centavo por centavo, primeiro ao mais bem colocado', () => {
-    // R$ 10,00 em 40/30/20/10 com 3 times: posições 400, 300, 200 e 100 sem time;
-    // os 100 centavos divididos por 3 = 33 cada e sobra 1, que vai ao 1º: 434, 333, 233
     const premios = premiarTimes([time(1, 'A'), time(2, 'B'), time(3, 'C')], 1_000, [40, 30, 20, 10]);
     expect(premios.map((p) => [p.time, p.premioCentavos])).toEqual([['A', 434], ['B', 333], ['C', 233]]);
   });
 
   it('times empatados continuam somando as posições que ocupam, já com a sobra', () => {
-    // 2 times empatados em 1º com 50/30/20: 6.000 + 4.000 = 10.000, divididos igual
     const premios = premiarTimes(
       [time(1, 'A', 'empate em vitórias e kills'), time(1, 'B', 'empate em vitórias e kills')],
       PREMIO,

@@ -1,12 +1,4 @@
 <script setup lang="ts">
-/**
- * "Remover" um torneio ainda não calculado (M2, plano item 9), com o modal de confirmação: o nome,
- * o que será apagado e que não pode ser desfeito. O foco começa no "Cancelar" (DialogoConfirmacao).
- * Quem decide se o botão aparece é a tela: depois do cálculo, ele não existe.
- *
- * `discreto`: o botão do topo da página do torneio, em texto, para não competir com as ações da
- * conferência; no cartão da lista, um botão secundário.
- */
 import { ref } from 'vue';
 import DialogoConfirmacao from './DialogoConfirmacao.vue';
 import { removerTorneio } from '../servicos/api';
@@ -24,7 +16,6 @@ function abrir() {
 }
 
 async function confirmar() {
-  // a trava antes de qualquer espera: dois cliques no mesmo instante geram um pedido só
   if (removendo.value) return;
   removendo.value = true;
   try {

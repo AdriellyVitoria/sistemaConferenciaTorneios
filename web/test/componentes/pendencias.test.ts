@@ -1,4 +1,3 @@
-// @vitest-environment happy-dom
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 import { vi } from 'vitest';
@@ -24,9 +23,7 @@ const aba = (pagina: VueWrapper, rotulo: string) => pagina.findAll('[role="tab"]
 async function abrirPendencias(pagina: VueWrapper) {
   await aba(pagina, 'Pendências')!.trigger('click');
 }
-/** O cartão de uma pendência, pelo texto do selo. */
 const cartao = (pagina: VueWrapper, selo: string) => pagina.findAll('article.pendencia').find((c) => c.find('.selo').text() === selo)!;
-/** O diálogo do Ciente de todas, pelo título: a página tem outros (substituir planilha, calcular). */
 const dialogoDoCienteDeTodas = (pagina: VueWrapper) => pagina.findAll('dialog').find((d) => d.find('h2').text().startsWith('Marcar Ciente'))!;
 const botao = (raiz: VueWrapper | ReturnType<VueWrapper['find']>, texto: string) => raiz.findAll('button').find((b) => b.text() === texto);
 
@@ -40,7 +37,7 @@ describe('abas da página do torneio (D17)', () => {
   it('a aba Pendências conta as que ainda faltam (bloqueantes e sem Ciente); Conferidas só as partidas sem nada faltando', async () => {
     const { pagina } = await montar();
     expect(aba(pagina, 'Pendências')!.find('.contador').text()).toBe('4');
-    expect(aba(pagina, 'Conferidas')!.find('.contador').text()).toBe('1'); // só a #45659 bateu com o site
+    expect(aba(pagina, 'Conferidas')!.find('.contador').text()).toBe('1');
   });
 
   it('abre em Pendências quando há o que resolver', async () => {
@@ -59,7 +56,6 @@ describe('pendências', () => {
     const bloqueante = cartao(pagina, 'Partida não encontrada no site');
     expect(bloqueante.text()).toContain('Corrija o ID');
     expect(bloqueante.text()).toContain('#52214');
-    // o único botão é o de corrigir o ID (5e): nada de Ciente nem Desfazer
     expect(bloqueante.findAll('button').map((b) => b.text())).toEqual(['Corrigir ID']);
   });
 
@@ -73,8 +69,6 @@ describe('pendências', () => {
     expect(duplicata.find('.lado.site').text()).toContain('42 min, 8 kills');
   });
 
-  // 5f: com o Ciente, a pendência sai daqui e vai para Conferidas (D17: um lugar só); o
-  // "Desfazer" fica no aviso, para o arrependimento imediato, e em Conferidas
   it('"Ciente" tira o cartão de Pendências; o "Desfazer" do aviso traz de volta; a contagem acompanha', async () => {
     const { pagina, api } = await montar();
     await abrirPendencias(pagina);
@@ -109,7 +103,6 @@ describe('pendências', () => {
     await flushPromises();
 
     expect(pagina.find('[role="alert"]').text()).toContain('Os dados desta pendência mudaram');
-    // a lista foi lida de novo: a duplicata agora mostra o valor novo do site e continua sem Ciente
     expect(api.estado.pedidos.filter((p) => p === 'GET /api/torneios/1/pendencias').length).toBeGreaterThanOrEqual(2);
     expect(cartao(pagina, 'Linha duplicada').find('.lado.site').text()).toContain('40 min, 8 kills');
     expect(botao(cartao(pagina, 'Linha duplicada'), 'Ciente')).toBeDefined();
@@ -135,7 +128,7 @@ describe('"Ciente de todas"', () => {
     await flushPromises();
     expect(api.estado.pedidos).toContain('POST /api/torneios/1/pendencias/ciente-de-todas');
     expect(pagina.find('[role="status"].aviso').text()).toContain('2 pendências marcadas com Ciente.');
-    expect(aba(pagina, 'Pendências')!.find('.contador').text()).toBe('1'); // só a bloqueante
+    expect(aba(pagina, 'Pendências')!.find('.contador').text()).toBe('1');
   });
 
   it('com partida aguardando o site: desabilitado, com o motivo e o progresso; o Ciente de uma continua', async () => {
@@ -145,7 +138,6 @@ describe('"Ciente de todas"', () => {
     const todas = botao(pagina, 'Ciente de todas')!;
     expect(todas.attributes('disabled')).toBeDefined();
     const motivo = pagina.find(`#${todas.attributes('aria-describedby')}`);
-    // 8 partidas: 5 o site já respondeu (4 conferidas e a não encontrada), 3 aguardando
     expect(motivo.text()).toBe('"Ciente de todas" libera quando o site conferir todas as partidas (5 de 8 até agora). Enquanto isso, dê Ciente uma a uma.');
 
     await todas.trigger('click');

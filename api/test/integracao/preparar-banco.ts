@@ -2,11 +2,6 @@ import knex from 'knex';
 import { config } from '../../src/config';
 import { BANCO_DE_TESTE, conectarAoBancoDeTeste } from './banco-de-teste';
 
-/**
- * Roda uma vez antes dos testes de integração: recria o banco de teste do zero, dá acesso ao
- * usuário da aplicação e aplica todas as migrations. Assim as próprias migrations são testadas.
- * Só o root pode criar bancos; os testes em si usam o usuário da aplicação.
- */
 export default async function prepararBanco() {
   const root = knex({
     client: 'mysql2',

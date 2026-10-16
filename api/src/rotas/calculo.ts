@@ -1,12 +1,3 @@
-/**
- * Rota do cálculo (etapa 6b). Só recebe, valida e responde; as regras ficam no serviço.
- *
- *   POST /torneios/:id/calculo   calcula, grava o resultado congelado e trava o torneio.
- *       200: o resultado gravado.
- *       409: ainda não dá para calcular (com as contagens do que falta), já foi calculado, ou
- *            uma regra de negócio impediu a conta (a frase do domínio para a Maria).
- */
-
 import { Router } from 'express';
 import type { Knex } from 'knex';
 import { z } from 'zod';
@@ -16,7 +7,6 @@ import { calcularTorneio } from '../servicos/calculo';
 
 const esquemaId = z.coerce.number().int().positive();
 
-/** "Ainda não dá para calcular: 2 aguardando o site, 1 bloqueio, 3 sem Ciente." */
 export function motivoDeNaoPoder(c: SituacaoDoCalculo): string {
   if (c.semPlanilha) return 'Ainda não dá para calcular: envie a planilha.';
   const faltas: string[] = [];
@@ -43,7 +33,6 @@ export function rotasCalculo(bd: Knex, agora: () => Date = () => new Date()): Ro
         res.status(409).json({ erro: 'O torneio já foi calculado.' });
         return;
       case 'impossivel':
-        // a frase do domínio, escrita para a Maria (code review, item 4)
         res.status(409).json({ erro: resultado.mensagem });
         return;
       case 'torneio_nao_encontrado':

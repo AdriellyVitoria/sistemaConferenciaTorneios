@@ -1,24 +1,10 @@
-/**
- * Rotas do torneio (etapa 3b). Só recebem a requisição, validam a entrada e devolvem a resposta;
- * as regras ficam no serviço e no domínio.
- *
- *   GET  /torneios                  os torneios, o mais novo primeiro, com quantas partidas cada um tem
- *   POST /torneios                  cria o torneio
- *   GET  /torneios/:id              o torneio, com as partidas e o status de cada uma
- *   DELETE /torneios/:id            remove o torneio ainda não calculado (M2): 204; calculado: 409
- *   POST /torneios/:id/tentar-agora antecipa a próxima consulta das partidas aguardando o site
- *                                   (bloqueio de 30 s entre cliques: 429 com os segundos que faltam)
- *   PUT  /torneios/:id/planilha     envia (ou reenvia) a planilha: o arquivo vai direto no corpo,
- *                                   e o nome no cabeçalho X-Nome-Arquivo (codificado com encodeURIComponent)
- */
-
 import express, { Router } from 'express';
 import type { Knex } from 'knex';
 import { z } from 'zod';
 import { assincrono } from './assincrono';
 import { consultarTorneio, criarTorneio, importarPlanilha, listarTorneios, removerTorneio, tentarAgora } from '../servicos/torneios';
 
-const TAMANHO_MAXIMO = '5mb'; // a planilha de setembro tem 9 KB
+const TAMANHO_MAXIMO = '5mb';
 
 const esquemaTorneio = z.object({
   nome: z.string({ required_error: 'Informe o nome do torneio.' }).trim().min(1, 'Informe o nome do torneio.').max(120, 'O nome pode ter até 120 letras.'),
@@ -117,7 +103,6 @@ export function rotasTorneios(bd: Knex, agora: () => Date = () => new Date()): R
 
   rota.put(
     '/torneios/:id/planilha',
-    // aceita o arquivo como veio, em bytes: a leitura descobre a codificação (D18)
     express.raw({ type: () => true, limit: TAMANHO_MAXIMO }),
     assincrono(async (req, res) => {
       const id = esquemaId.safeParse(req.params.id);
@@ -150,7 +135,6 @@ export function rotasTorneios(bd: Knex, agora: () => Date = () => new Date()): R
   return rota;
 }
 
-/** O cabeçalho só aceita ASCII: o front envia o nome com encodeURIComponent. */
 function nomeDoArquivo(cabecalho: string | undefined): string {
   if (!cabecalho) return 'planilha.csv';
   try {

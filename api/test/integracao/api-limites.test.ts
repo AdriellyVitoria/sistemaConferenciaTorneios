@@ -8,16 +8,8 @@ import { criarApp } from '../../src/app';
 import { conectarAoBancoDeTeste, esvaziarTabelas } from './banco-de-teste';
 import { COM_SENHA, SENHA_DE_TESTE } from '../ajudantes/senha';
 
-/**
- * Code review, itens 2, 12 e 13, pela rota: valores maiores que as colunas do banco chegavam ao
- * INSERT e viravam 500 ("Erro inesperado no servidor"), sem a linha do Excel. Agora são recusados
- * na leitura, com 400 e a frase de sempre, e nada é gravado.
- */
-
-// A planilha original é só lida; as variações são montadas em memória.
 const RAIZ = path.resolve(__dirname, '../../..');
 const SETEMBRO = readFileSync(path.join(RAIZ, 'torneio-setembro.csv'), 'utf8');
-// linha 7 do Excel: Kaio_BR, dos Serpentes, na #45659
 const LINHA_7 = '05/09/2026;1;#45659;Lobos x Serpentes;Serpentes;Kaio_BR;43;8;não';
 
 let bd: Knex;
@@ -36,7 +28,6 @@ afterAll(async () => {
 });
 beforeEach(async () => {
   await esvaziarTabelas(bd);
-  // um 500 escreveria o erro no console; o teste mostra o status
   vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
@@ -54,7 +45,6 @@ async function criarTorneio(): Promise<number> {
   return corpo.id;
 }
 
-/** A planilha de setembro com a linha 7 trocada. */
 function setembroComLinha7(linha: string): Uint8Array {
   if (!SETEMBRO.includes(LINHA_7)) throw new Error('a linha 7 de setembro mudou');
   return Buffer.from(SETEMBRO.replace(LINHA_7, linha), 'utf8');
@@ -63,7 +53,6 @@ function setembroComLinha7(linha: string): Uint8Array {
 async function subirERecusar(conteudo: Uint8Array) {
   const id = await criarTorneio();
   const resposta = await pedir('PUT', `/torneios/${id}/planilha`, conteudo);
-  // nada foi gravado: o torneio continua sem partidas
   expect((await pedir('GET', `/torneios/${id}`)).corpo.partidas).toEqual([]);
   return resposta;
 }
@@ -91,7 +80,6 @@ describe('PUT /torneios/:id/planilha — valores acima do limite: 400 com a linh
     const idLongo = `#${'4'.repeat(25)}`;
     const { status, corpo } = await subirERecusar(setembroComLinha7(LINHA_7.replace('#45659', idLongo)));
     expect(status).toBe(400);
-    // a frase do limite, e não a da D23 ("tem só o time"), que também pegaria essa linha
     expect(corpo.erros).toEqual([expect.objectContaining({
       linha: 7, coluna: 'ID Partida', mensagem: `O ID da partida pode ter até 19 números. Veio "${idLongo}", com 25.`,
     })]);

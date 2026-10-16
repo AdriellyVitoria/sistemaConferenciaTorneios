@@ -8,7 +8,6 @@ import { COM_SENHA, SENHA_DE_TESTE } from '../ajudantes/senha';
 let servidor: Server | undefined;
 afterEach(() => new Promise<void>((fechado) => (servidor ? servidor.close(() => fechado()) : fechado())));
 
-/** Um "banco" que falha em qualquer consulta, como se o MySQL tivesse caído. */
 const bancoFora = (() => { throw new Error('conexão recusada'); }) as unknown as Knex;
 
 async function subir(bd: Knex) {

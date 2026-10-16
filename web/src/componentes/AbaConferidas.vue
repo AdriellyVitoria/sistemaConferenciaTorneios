@@ -1,10 +1,4 @@
 <script setup lang="ts">
-/**
- * A aba "Conferidas" (5f, D17, protótipo 1b-conferidas): as partidas confirmadas pelo site,
- * agrupadas por rodada, com os números do site (kills de cada time e vencedor). As que tiveram
- * pendência mostram qual era a diferença e a hora do Ciente; "Ver a diferença" abre o lado a lado
- * e permite desfazer o Ciente até o cálculo (a partida volta para Pendências).
- */
 import { computed, ref } from 'vue';
 import LadoALado from './LadoALado.vue';
 import { formatarHora } from '../dominio/conferencia';
@@ -23,7 +17,6 @@ import { definirCiente, type Pendencia } from '../servicos/api';
 const props = defineProps<{
   torneioId: number;
   conferidas: PartidaConferida[];
-  /** Depois do cálculo: só consulta, sem Desfazer. */
   somenteLeitura: boolean;
   recarregar: () => Promise<void>;
 }>();
@@ -37,7 +30,6 @@ const FILTROS: { id: FiltroConferidas; rotulo: string }[] = [
   { id: 'com_ciente', rotulo: 'Com Ciente' },
 ];
 
-/** Partidas com o lado a lado aberto ("Ver a diferença"). */
 const abertas = ref(new Set<number>());
 function alternar(partidaId: number) {
   const novas = new Set(abertas.value);
@@ -206,7 +198,6 @@ const kills = (c: PartidaConferida) => (c.partida.killsSite ? `${c.partida.kills
   color: var(--superficie);
   font-weight: var(--peso-forte);
 }
-/* a tabela pode rolar dentro da caixa; a página não */
 .caixa-tabela {
   border: 1px solid var(--borda);
   border-radius: var(--raio-grande);
@@ -217,7 +208,6 @@ const kills = (c: PartidaConferida) => (c.partida.killsSite ? `${c.partida.kills
   width: 100%;
   min-width: 640px;
   border-collapse: collapse;
-  /* a tabela rola dentro da caixa: aqui as palavras não quebram no meio (o padrão da página quebra) */
   overflow-wrap: normal;
 }
 .tabela-conferidas thead th,

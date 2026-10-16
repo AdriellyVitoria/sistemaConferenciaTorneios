@@ -15,14 +15,12 @@ import { corrigirId } from '../../src/servicos/partidas';
 import { criarTorneio, importarPlanilha } from '../../src/servicos/torneios';
 import { conectarAoBancoDeTeste, esvaziarTabelas, relogioDoBanco } from './banco-de-teste';
 
-// Arquivos só lidos: planilhas, dados do site e resultados esperados.
 const RAIZ = path.resolve(__dirname, '../../..');
 const arquivo = (relativo: string) => path.join(RAIZ, relativo);
 const DADOS_DO_SITE = [arquivo('testes/site-oficial.json'), arquivo('api/test/fixtures/site-setembro.json')];
 const MINUTO = 60_000;
 
 let bd: Knex;
-/** O relógio do MySQL: o job e a correção usam o mesmo relógio que grava a próxima tentativa na importação. */
 let relogio: () => Date;
 let siteSimulado: Server;
 let site: SiteOficial;
@@ -43,7 +41,6 @@ afterEach(async () => {
   await new Promise<void>((fechado) => siteSimulado.close(() => fechado()));
 });
 
-/** Importa a planilha e roda o job até o site responder tudo (o relógio avança até cada nova tentativa). */
 async function torneioConferido(planilha: string, modoDivisao: ModoDivisao = 'minutos'): Promise<number> {
   const criado = await criarTorneio(bd, { nome: planilha, premioCentavos: 1_000_000, percentuais: [50, 30, 20], modoDivisao });
   if (!criado.ok) throw new Error('não criou');
@@ -83,7 +80,6 @@ function jogadoresEsperados(nome: string) {
 const porChave = <T extends { time: string; nick: string }>(lista: T[]) =>
   [...lista].sort((a, b) => `${a.time}|${a.nick}`.localeCompare(`${b.time}|${b.nick}`));
 
-/** 02: antes de calcular, a Maria corrige o ID que o site não conhece (#52214 → #52241). */
 async function corrigirO02(id: number) {
   const errada = await bd('partidas').where({ torneio_id: id, id_partida: '#52214' }).first();
   expect((await corrigirId(bd, id, errada.id, '#52241', relogio())).tipo).toBe('corrigida');
@@ -109,7 +105,6 @@ describe('calcular e gravar: os cenários contra testes/esperado/, centavo por c
 
     expect(gravado.times.map(({ posicao, time, vitorias, killsTime, premioCentavos, criterio }) => ({ posicao, time, vitorias, killsTime, premioCentavos, criterio })))
       .toEqual(classificacaoEsperada(nome));
-    // os gabaritos listam só os jogadores dos times premiados; os sem prêmio têm o seu teste
     const premiados = gravado.jogadores.filter((j) => gravado.times.find((t) => t.time === j.time)!.premioCentavos > 0);
     expect(porChave(premiados.map(({ time, nick, minutos, baseTime, premioCentavos }) => ({ time, nick, minutos, baseTime, premioCentavos }))))
       .toEqual(porChave(jogadoresEsperados(nome)));
@@ -132,7 +127,6 @@ describe('setembro gravado', () => {
       expect(time(empatado)).toMatchObject({ posicao: 3, premioCentavos: 100_000, criterio: 'divisão igual (empate em vitórias e kills)' });
       expect(doTime(empatado).map((j) => j.premioCentavos)).toEqual([20_000, 20_000, 20_000, 20_000, 20_000]);
     }
-    // nick como o site registra (D7)
     expect(doTime('Lobos').map((j) => j.nick)).toContain('xXSniperXx');
   });
 
@@ -160,7 +154,6 @@ describe('setembro gravado', () => {
     const panteras = jogadores.filter((j) => j.time === 'Panteras');
     expect(panteras).toHaveLength(5);
     expect(panteras.every((j) => j.posicao === 5 && j.premioCentavos === 0 && j.recebeuCentavo === false)).toBe(true);
-    // Pantera_X, duplicado na planilha, aparece uma vez, com os números do site (D6)
     expect(panteras.filter((j) => j.nick === 'Pantera_X')).toEqual([expect.objectContaining({ minutos: expect.any(Number), kills: expect.any(Number), premioCentavos: 0 })]);
     expect(jogadores.filter((j) => j.time === 'Serpentes').every((j) => j.posicao === 6 && j.premioCentavos === 0)).toBe(true);
     expect(jogadores).toHaveLength(31);
@@ -181,8 +174,6 @@ describe('as somas fecham em todos os cenários que dá para calcular', () => {
     'testes/planilhas/03-divergencias.csv',
     'testes/planilhas/04-empate-em-kills.csv',
     'testes/planilhas/05-oito-times.csv',
-    // 06a (coluna faltando) é recusada na importação; 06b só testa o separador: os IDs dela não
-    // existem no site simulado, então não há o que calcular
     'testes/planilhas/07-jogador-em-dois-times.csv',
     'testes/planilhas/torneio-outubro.csv',
     'testes/planilhas/torneio-novembro.csv',
@@ -212,7 +203,6 @@ describe('as somas fecham em todos os cenários que dá para calcular', () => {
     const { jogadores } = (await buscarResultado(bd, id))!;
     const garra = jogadores.filter((j) => j.nick === 'Garra');
     expect(garra.map((j) => j.time).sort()).toEqual(['Leões', 'Ursos']);
-    // por Ursos ele jogou só a rodada 4, no lugar de Pardo: menos minutos que por Leões
     const porTime = Object.fromEntries(garra.map((j) => [j.time, j.minutos]));
     expect(porTime['Ursos']).toBeLessThan(porTime['Leões']);
   }, 60_000);

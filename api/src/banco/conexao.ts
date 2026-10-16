@@ -3,7 +3,6 @@ import path from 'node:path';
 import knex, { type Knex } from 'knex';
 import { config } from '../config';
 
-/** Quem executa SQL: a conexão ou uma transação aberta. Os repositórios aceitam os dois. */
 export type Executor = Knex | Knex.Transaction;
 
 export interface DadosConexao {
@@ -16,11 +15,6 @@ export interface DadosConexao {
 
 const PASTA_MIGRATIONS = path.join(__dirname, 'migrations');
 
-/**
- * Lista as migrations e registra cada uma SEMPRE com o nome terminado em .js.
- * Em desenvolvimento (tsx, testes) os arquivos são .ts; no contêiner, .js compilados. Sem isso,
- * o Knex gravaria nomes diferentes nos dois casos e acusaria a pasta de migrations como corrompida.
- */
 const fonteDeMigrations: Knex.MigrationSource<string> = {
   async getMigrations() {
     return readdirSync(PASTA_MIGRATIONS)
@@ -40,9 +34,7 @@ export function criarConexao(dados: DadosConexao): Knex {
     client: 'mysql2',
     connection: {
       ...dados,
-      // datas e horas sempre em UTC no banco; a tela converte para o horário local
       timezone: 'Z',
-      // DATE volta como texto 'aaaa-mm-dd', igual ao domínio, sem passar por fuso horário
       typeCast(campo: { type: string; string(): string | null }, proximo: () => unknown) {
         return campo.type === 'DATE' ? campo.string() : proximo();
       },
@@ -50,9 +42,6 @@ export function criarConexao(dados: DadosConexao): Knex {
     pool: {
       min: 0,
       max: 10,
-      // R2a: o `timezone: 'Z'` acima só converte as datas do JavaScript; o NOW() e o CURRENT_TIMESTAMP
-      // usam o fuso da SESSÃO. Fixado em UTC em toda conexão nova: num MySQL configurado em -03:00,
-      // o horário de criação do torneio (o "mês do torneio" sem planilha) sairia 3 horas errado.
       afterCreate(conexao: { query(sql: string, feito: (erro: unknown) => void): void }, pronto: (erro: unknown, conexao: unknown) => void) {
         conexao.query("SET time_zone = '+00:00'", (erro) => pronto(erro, conexao));
       },

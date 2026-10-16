@@ -1,5 +1,3 @@
-/** O resultado congelado do cálculo (etapa 6a): gravar e ler. */
-
 import type { Executor } from '../banco/conexao';
 import { gerarCodigoDeAcesso } from '../dominio/codigo-de-acesso';
 import type { PremioTime } from '../dominio/premio';
@@ -26,7 +24,6 @@ export type JogadorGravado = Pick<
   JogadorDoResultado,
   'time' | 'nick' | 'minutos' | 'kills' | 'base' | 'baseTime' | 'baseUsada' | 'premioCentavos' | 'recebeuCentavo' | 'explicacao'
 > & {
-  /** A posição do time na classificação do cálculo (vem de premios_time). */
   posicao: number;
 };
 
@@ -36,11 +33,6 @@ export interface ResultadoGravado extends ConfiguracaoUsada {
   jogadores: JogadorGravado[];
 }
 
-/**
- * Grava o resultado e a configuração usada, com os códigos dos links (D11, 7a): o público e um por
- * time premiado. Se o torneio já tinha um cálculo, ele é substituído (as linhas e os códigos saem
- * junto, pela chave estrangeira). Quem impede um segundo cálculo é a etapa 6b.
- */
 export async function gravarResultado(
   bd: Executor,
   torneioId: number,
@@ -72,7 +64,6 @@ export async function gravarResultado(
         recebeu_centavo: t.recebeuCentavo,
       })),
     );
-    // times sem prêmio não recebem código: eles veem a página pública (D11)
     const premiados: { id: number }[] = await bd('premios_time').where({ calculo_id: calculoId }).andWhere('premio_centavos', '>', 0).select('id');
     if (premiados.length) {
       await bd('codigos_time').insert(premiados.map(({ id }) => ({ premio_time_id: id, codigo: gerarCodigoDeAcesso() })));
@@ -97,7 +88,6 @@ export async function gravarResultado(
   }
 }
 
-/** O torneio do código público, ou null se nenhum cálculo tem esse código. */
 export async function buscarPorCodigoPublico(bd: Executor, codigo: string): Promise<{ torneioId: number; nome: string } | null> {
   const linha = await bd('calculos as c')
     .join('torneios as t', 't.id', 'c.torneio_id')
@@ -106,7 +96,6 @@ export async function buscarPorCodigoPublico(bd: Executor, codigo: string): Prom
   return linha ? { torneioId: linha.id, nome: linha.nome } : null;
 }
 
-/** O time do código, com o torneio e o código público, ou null se nenhum time premiado tem esse código. */
 export async function buscarPorCodigoDeTime(
   bd: Executor,
   codigo: string,
@@ -122,11 +111,9 @@ export async function buscarPorCodigoDeTime(
 
 export interface CodigosDoTorneio {
   publico: { codigo: string };
-  /** Os times premiados, na ordem da classificação. */
   times: { time: string; posicao: number; premioCentavos: number; codigo: string }[];
 }
 
-/** Os códigos dos links do torneio, para a Maria copiar, ou null se ainda não foi calculado. */
 export async function buscarCodigos(bd: Executor, torneioId: number): Promise<CodigosDoTorneio | null> {
   const calculo = await bd('calculos').where({ torneio_id: torneioId }).first('id', 'codigo_publico');
   if (!calculo) return null;
@@ -141,12 +128,10 @@ export async function buscarCodigos(bd: Executor, torneioId: number): Promise<Co
   };
 }
 
-/** O resultado gravado do torneio, ou null se ainda não foi calculado. */
 export async function buscarResultado(bd: Executor, torneioId: number): Promise<ResultadoGravado | null> {
   const calculo = await bd('calculos').where({ torneio_id: torneioId }).first();
   if (!calculo) return null;
   const times = await bd('premios_time').where({ calculo_id: calculo.id }).orderBy('ordem');
-  // os jogadores na ordem dos times da classificação, e por nick dentro do time
   const jogadores = await bd('premios_jogador as j')
     .join('premios_time as t', function ligar() {
       this.on('t.calculo_id', '=', 'j.calculo_id').andOn('t.time', '=', 'j.time');

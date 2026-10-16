@@ -1,12 +1,6 @@
-/**
- * Uma API falsa, em memória, no lugar do fetch: responde como a API de verdade às rotas que a
- * página do torneio usa e guarda o estado (um Ciente marcado aparece marcado na próxima leitura).
- */
-
 import { vi } from 'vitest';
 import { esquecerSenha, guardarSenha, pedeSenha } from '../../src/servicos/sessao';
 
-/** A senha que a API falsa aceita (R3): como a de verdade, sem ela as rotas da Maria dão 401. */
 export const SENHA_FALSA = 'senha-da-api-falsa';
 
 type Pendencia = {
@@ -26,7 +20,6 @@ type Pendencia = {
 };
 
 const partida = (id: number, idPartida: string, rodada: number, timeA: string, timeB: string, statusConferencia = 'conferida') => ({
-  // um dia por rodada: rodada 1 = 05/09, rodada 2 = 06/09...
   id, torneioId: 1, idPartida, idPartidaPlanilha: idPartida, rodada, data: `2026-09-${String(rodada + 4).padStart(2, '0')}`, timeA, timeB,
   vencedor: statusConferencia === 'conferida' ? timeA : null,
   statusConferencia, tentativas: 0, proximaTentativaEm: null, ultimaTentativaEm: '2026-10-15T12:00:00.000Z',
@@ -38,25 +31,15 @@ const chave = (letra: string) => letra.repeat(64);
 
 export interface OpcoesApiFalsa {
   calculado?: boolean;
-  /** Torneio criado, ainda sem planilha: nenhuma partida, nenhuma pendência. */
   semPlanilha?: boolean;
-  /** Quantas partidas a mais estão aguardando o site. */
   aguardando?: number;
-  /** Sem nenhuma pendência (tudo bateu com o site). */
   semPendencias?: boolean;
-  /** O cálculo responde 409: algo mudou entre a tela e o clique. */
   recusarCalculo?: boolean;
-  /**
-   * A tela começa sem a senha guardada (R3). Sem esta opção, a Maria já entrou: a senha certa
-   * está guardada e vai em toda chamada. Com uma string, começa com ESSA senha guardada (uma
-   * senha antiga, que a API não aceita mais).
-   */
   semSenha?: boolean;
   senhaGuardada?: string;
 }
 
 export function criarApiFalsa({ calculado = false, semPlanilha = false, aguardando = 0, semPendencias = false, recusarCalculo = false, semSenha = false, senhaGuardada }: OpcoesApiFalsa = {}) {
-  // cada teste começa do zero: o que outro teste do arquivo guardou não vale aqui
   esquecerSenha();
   pedeSenha.value = false;
   if (!semSenha) guardarSenha(senhaGuardada ?? SENHA_FALSA);
@@ -94,12 +77,9 @@ export function criarApiFalsa({ calculado = false, semPlanilha = false, aguardan
   if (semPlanilha || semPendencias) pendencias.splice(0);
   const estado = {
     calculado,
-    /** A próxima marcação desta chave responde 404: os dados mudaram enquanto a Maria olhava. */
     mudarAoMarcar: null as string | null,
     pedidos: [] as string[],
-    /** O torneio foi removido (M2): some da lista. */
     removido: false,
-    /** O cabeçalho Authorization de cada pedido, na ordem (null = sem cabeçalho). */
     autorizacoes: [] as { pedido: string; authorization: string | null }[],
   };
 
@@ -143,7 +123,6 @@ export function criarApiFalsa({ calculado = false, semPlanilha = false, aguardan
     estado.autorizacoes.push({ pedido: `${metodo} ${caminho}`, authorization });
 
     if (metodo === 'GET' && caminho === '/api/saude') return json(200, { api: 'ok', banco: 'ok' });
-    // abertas, como na API de verdade: a página pública e o link do time (D11)
     if (metodo === 'GET' && /^\/api\/(publico|time)\//.test(caminho)) return json(404, { erro: 'Página não encontrada.' });
     if (authorization !== `Bearer ${SENHA_FALSA}`) return json(401, { erro: 'Acesso só da organizadora.' });
     if (metodo === 'GET' && caminho === '/api/acesso') return new Response(null, { status: 204 });
@@ -156,7 +135,6 @@ export function criarApiFalsa({ calculado = false, semPlanilha = false, aguardan
       const p = pendencias.find((x) => x.chave === ciente[1]);
       if (!p || estado.mudarAoMarcar === p.chave) {
         if (p) {
-          // o site respondeu de novo com outro valor: é outra pendência, com outra chave
           p.chave = chave('e');
           p.valorSite = '40 min, 8 kills';
           estado.mudarAoMarcar = null;
@@ -184,7 +162,6 @@ export function criarApiFalsa({ calculado = false, semPlanilha = false, aguardan
       return json(200, { marcadas: semCiente.length });
     }
 
-    // correção do ID (5b), com as mesmas regras e frases da API de verdade
     const correcao = /^\/api\/torneios\/1\/partidas\/(\d+)\/id-partida$/.exec(caminho);
     if (correcao && metodo === 'PUT') {
       if (estado.calculado) return json(409, { erro: 'O torneio já foi calculado: o ID da partida não pode mais mudar.' });
@@ -199,17 +176,14 @@ export function criarApiFalsa({ calculado = false, semPlanilha = false, aguardan
       if (partidas.some((x) => x.id !== p.id && x.idPartida === novo)) {
         return json(409, { erro: `O ID ${novo} já é de outra partida deste torneio. Confira o ID: cada partida tem o seu.` });
       }
-      // a partida volta para a fila; as pendências do ID antigo somem até o site responder
       for (let i = pendencias.length - 1; i >= 0; i--) if (pendencias[i].idPartida === p.idPartida) pendencias.splice(i, 1);
       Object.assign(p, { idPartida: novo, statusConferencia: 'aguardando', tentativas: 0, vencedor: null, ultimaTentativaEm: null, proximaTentativaEm: '2026-10-15T12:31:00.000Z' });
       return json(200, p);
     }
 
-    // cálculo (6b): 409 se mudou algo; senão, o torneio fica calculado
     if (metodo === 'POST' && caminho === '/api/torneios/1/calculo') {
       if (estado.calculado) return json(409, { erro: 'O torneio já foi calculado.' });
       if (recusarCalculo) {
-        // entre a tela e o clique, um Ciente foi desfeito
         const p = pendencias.find((x) => !x.bloqueante && x.ciente);
         if (p) Object.assign(p, { ciente: false, cienteEm: null });
         return json(409, { erro: 'Ainda não dá para calcular: 1 sem Ciente.', calculo: torneio().calculo });
@@ -218,7 +192,6 @@ export function criarApiFalsa({ calculado = false, semPlanilha = false, aguardan
       return json(200, { calculadoEm: '2026-10-15T13:00:00.000Z', times: [], jogadores: [] });
     }
 
-    // remover (M2): só antes do cálculo; depois, a lista não tem mais o torneio
     if (metodo === 'DELETE' && caminho === '/api/torneios/1') {
       if (estado.calculado) return json(409, { erro: 'Torneio calculado não pode ser removido: o resultado é o registro do pagamento.' });
       estado.removido = true;

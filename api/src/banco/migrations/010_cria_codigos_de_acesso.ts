@@ -1,27 +1,10 @@
 import { randomBytes } from 'node:crypto';
 import type { Knex } from 'knex';
 
-/**
- * Os códigos dos links (D11, etapa 7a), gerados no cálculo, na mesma transação do resultado.
- *
- * - calculos.codigo_publico: o da página pública do torneio. Fica no próprio cálculo: um por
- *   cálculo, obrigatório, e some junto com ele.
- * - codigos_time: um por time PREMIADO (premios_time com prêmio > 0), ligado à linha do time no
- *   cálculo. Times sem prêmio não têm código: eles veem a página pública.
- *
- * Os dois são únicos no banco e com collation binária: o código é base64url, em que "a" e "A" são
- * caracteres diferentes. Com a collation padrão (que ignora maiúsculas), "abc" acharia "ABC".
- *
- * Torneios calculados antes desta migration recebem os códigos aqui mesmo, para nenhum cálculo
- * ficar sem link. A geração está repetida aqui de propósito (e não importada do domínio): uma
- * migration é uma foto, e precisa fazer sempre a mesma coisa, mesmo que o domínio mude depois.
- */
-
 const COLLATION_BINARIA = 'utf8mb4_bin';
 const novoCodigo = () => randomBytes(24).toString('base64url');
 
 export async function up(knex: Knex): Promise<void> {
-  // nasce aceitando nulo, para preencher os cálculos que já existem; depois vira obrigatória
   await knex.schema.alterTable('calculos', (t) => {
     t.string('codigo_publico', 32).collate(COLLATION_BINARIA).nullable();
   });

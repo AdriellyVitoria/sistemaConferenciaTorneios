@@ -9,7 +9,6 @@ let servidor: Server;
 let base: string;
 
 beforeAll(async () => {
-  // a rota de saúde não usa o banco diretamente: só a verificação injetada
   servidor = criarApp({ bd: {} as Knex, verificarBanco: async () => {}, senhaDaOrganizadora: SENHA_DE_TESTE }).listen(0);
   await new Promise((pronto) => servidor.once('listening', pronto));
   base = `http://127.0.0.1:${(servidor.address() as AddressInfo).port}`;

@@ -17,7 +17,6 @@ const arquivo = (relativo: string) => path.join(RAIZ, relativo);
 const DADOS_DO_SITE = [arquivo('testes/site-oficial.json'), arquivo('api/test/fixtures/site-setembro.json')];
 
 let bd: Knex;
-/** O relógio do MySQL: a API e o job usam o mesmo relógio que grava a próxima tentativa na importação. */
 let relogio: () => Date;
 let api: Server;
 let site: Server;
@@ -72,7 +71,6 @@ async function torneioCom(conteudo: Uint8Array, { conferir = true, percentuais =
   return corpo.id;
 }
 const setembro = () => readFileSync(arquivo('torneio-setembro.csv'));
-/** Setembro pronto para calcular: conferido e com os 3 Cientes. */
 async function setembroPronto() {
   const id = await torneioCom(setembro());
   expect((await pedir('POST', `/torneios/${id}/pendencias/ciente-de-todas`)).corpo).toEqual({ marcadas: 3 });
@@ -91,7 +89,6 @@ describe('POST /torneios/:id/calculo', () => {
       ['Lobos', 500_000], ['Corvos', 300_000], ['Falcões', 100_000], ['Tubarões', 100_000], ['Panteras', 0], ['Serpentes', 0],
     ]);
     expect(corpo.jogadores.find((j: { nick: string }) => j.nick === 'Tuca')).toMatchObject({ premioCentavos: 6_590, recebeuCentavo: true });
-    // jogador de time sem prêmio também está no cálculo, com R$ 0
     expect(corpo.jogadores.find((j: { nick: string }) => j.nick === 'Kaio_BR')).toMatchObject({ time: 'Serpentes', posicao: 6, premioCentavos: 0 });
 
     const torneio = (await pedir('GET', `/torneios/${id}`)).corpo;
@@ -179,7 +176,6 @@ describe('depois do cálculo, nada muda (D1, D22)', () => {
 
 describe('menos times do que posições premiadas (D24)', () => {
   it('2 times e 50/30/20: os 20% sem time são divididos igual: 1º R$ 6.000, 2º R$ 4.000', async () => {
-    // só a partida #45659 de setembro: Lobos x Serpentes
     const [cabecalho, ...linhas] = setembro().toString('utf8').split('\r\n');
     const umaPartida = Buffer.from([cabecalho, ...linhas.filter((l) => l.includes(';#45659;'))].join('\r\n'), 'utf8');
     const id = await torneioCom(umaPartida);
@@ -194,19 +190,16 @@ describe('menos times do que posições premiadas (D24)', () => {
 describe('erro de regra no cálculo (code review, item 4)', () => {
   it('time premiado sem nenhum minuto nem kill no site: 409 com a frase para a Maria, e nada é gravado', async () => {
     const id = await setembroPronto();
-    // o site registrou os Lobos (1º lugar) sem minutos nem kills: não há como dividir o prêmio deles
     const lobos = await bd('participacoes')
       .join('partidas', 'partidas.id', 'participacoes.partida_id')
       .where({ 'partidas.torneio_id': id, 'participacoes.time': 'Lobos' })
       .select('participacoes.id');
     await bd('participacoes').whereIn('id', lobos.map((l: { id: number }) => l.id)).update({ minutos: 0, kills: 0 });
-    // as divergências novas (planilha × site) recebem Ciente, para o cálculo liberar
     expect((await pedir('POST', `/torneios/${id}/pendencias/ciente-de-todas`)).status).toBe(200);
 
     const { status, corpo } = await calcular(id);
     expect(status).toBe(409);
     expect(corpo).toEqual({ erro: 'O time Lobos tem prêmio, mas nenhum minuto nem kill registrado no site: não há como dividir.' });
-    // nada foi gravado: o torneio não ficou calculado e não há resultado
     expect((await bd('torneios').where({ id }).first()).status).not.toBe('calculado');
     expect(await bd('calculos').where({ torneio_id: id })).toEqual([]);
   });

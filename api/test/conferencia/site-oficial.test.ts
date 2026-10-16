@@ -3,7 +3,6 @@ import type { AddressInfo } from 'node:net';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { criarClienteSiteOficial, type Cronometro } from '../../src/conferencia/site-oficial';
 
-// Servidor falso no lugar do site oficial: cada teste diz como ele responde.
 type Atendimento = (req: IncomingMessage, res: ServerResponse) => void;
 let atender: Atendimento;
 let pedidos: string[];
@@ -32,10 +31,6 @@ const json = (status: number, corpo: unknown): Atendimento => (_req, res) => {
   res.end(JSON.stringify(corpo));
 };
 
-/**
- * Cronômetro de mentira: em vez de esperar o tempo limite, o teste decide quando ele esgota.
- * Guarda o tempo pedido e se o cliente cancelou o cronômetro (para não deixar timer pendurado).
- */
 function cronometroDeTeste() {
   const estado = { pedidoMs: null as number | null, esgotar: () => {}, cancelado: false, iniciado: Promise.withResolvers<void>() };
   const cronometro: Cronometro = (ms, aoEsgotar) => {
@@ -72,7 +67,7 @@ describe('cliente do site oficial: os cinco casos', () => {
 
     expect(await cliente(cronometro).consultarPartida('#40923')).toEqual({ status: 'encontrada', partida: PARTIDA });
     expect(pedidos).toEqual(['/partidas/40923']);
-    expect(estado.cancelado).toBe(true); // respondeu a tempo: o cronômetro é desligado
+    expect(estado.cancelado).toBe(true);
   });
 
   it('404: não encontrada (vira pendência de corrigir o ID, D5)', async () => {
@@ -90,7 +85,7 @@ describe('cliente do site oficial: os cinco casos', () => {
   });
 
   it('sem resposta dentro do tempo limite: indisponível, sem o teste esperar de verdade', async () => {
-    atender = () => {}; // o site recebe o pedido e nunca responde
+    atender = () => {};
     const { estado, cronometro } = cronometroDeTeste();
 
     const consulta = cliente(cronometro).consultarPartida('#40923');
@@ -122,13 +117,13 @@ describe('cliente do site oficial: outras respostas', () => {
   it('o site manda o cabeçalho e trava no meio do corpo: o tempo limite vale até o fim da leitura', async () => {
     atender = (_req, res) => {
       res.writeHead(200, { 'content-type': 'application/json' });
-      res.write('{"id":"#40923",'); // e nunca termina
+      res.write('{"id":"#40923",');
     };
     const { estado, cronometro } = cronometroDeTeste();
 
     const consulta = cliente(cronometro).consultarPartida('#40923');
     await estado.iniciado.promise;
-    await new Promise((pronto) => setTimeout(pronto, 50)); // deixa o cabeçalho chegar
+    await new Promise((pronto) => setTimeout(pronto, 50));
     estado.esgotar();
 
     expect(await consulta).toMatchObject({ status: 'indisponivel', motivo: 'tempo_esgotado' });

@@ -1,16 +1,9 @@
-// @vitest-environment happy-dom
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createMemoryHistory, createRouter } from 'vue-router';
 import { rotas } from '../../src/roteador';
 import PaginaTorneios from '../../src/paginas/PaginaTorneios.vue';
 import type { ResumoTorneio } from '../../src/servicos/api';
-
-/**
- * R4: "Limpar filtros" na lista de torneios. Aparece só quando algum filtro (mês, divisão,
- * situação ou busca) está diferente do padrão da tela; limpa todos de uma vez, anuncia quantos
- * torneios aparecem e põe o foco no primeiro filtro, porque o botão some.
- */
 
 function torneio(extra: Partial<ResumoTorneio>): ResumoTorneio {
   return {
@@ -31,7 +24,6 @@ let pagina: VueWrapper;
 async function montar() {
   vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify(TORNEIOS), { status: 200, headers: { 'content-type': 'application/json' } })));
   const roteador = createRouter({ history: createMemoryHistory(), routes: rotas });
-  // presa ao documento, para o foco funcionar
   pagina = mount(PaginaTorneios, { global: { plugins: [roteador] }, attachTo: document.body });
   await flushPromises();
   return pagina;
@@ -99,7 +91,6 @@ describe('"Limpar filtros"', () => {
     expect((pagina.find('input#busca-torneio').element as HTMLInputElement).value).toBe('');
     expect(cartoes(pagina)).toBe(3);
     expect(botaoLimpar(pagina)).toBeUndefined();
-    // o anúncio para o leitor de tela
     expect(pagina.find('[role="status"].anuncio-dos-filtros').text()).toBe('Filtros limpos: 3 torneios.');
   });
 

@@ -8,7 +8,6 @@ import { criarApp } from '../../src/app';
 import { conectarAoBancoDeTeste, esvaziarTabelas } from './banco-de-teste';
 import { COM_SENHA, SENHA_DE_TESTE } from '../ajudantes/senha';
 
-// As planilhas são só lidas.
 const RAIZ = path.resolve(__dirname, '../../..');
 const planilha = (arquivo: string) => readFileSync(path.join(RAIZ, arquivo));
 
@@ -95,7 +94,6 @@ describe('GET /torneios', () => {
     const { corpo: semPlanilha } = await pedir('POST', '/torneios', { ...SETEMBRO, nome: 'Sem planilha' });
 
     const { corpo } = await pedir('GET', '/torneios');
-    // a planilha de setembro vai de 05/09 a 19/09: a primeira partida é a de 05/09
     expect(corpo.find((t: { id: number }) => t.id === setembro).primeiraPartidaEm).toBe('2026-09-05');
     expect(corpo.find((t: { id: number }) => t.id === semPlanilha.id).primeiraPartidaEm).toBeNull();
   });
@@ -103,7 +101,6 @@ describe('GET /torneios', () => {
   it('a planilha nova (D22) muda a data da primeira partida', async () => {
     const id = await criarSetembro();
     await subir(id, planilha('torneio-setembro.csv'), 'torneio-setembro.csv');
-    // só as partidas da última rodada de setembro (19/09)
     const [cabecalho, ...linhas] = planilha('torneio-setembro.csv').toString('utf8').split('\r\n');
     const soA19 = Buffer.from([cabecalho, ...linhas.filter((l) => l.startsWith('19/09/2026'))].join('\r\n'), 'utf8');
     expect((await subir(id, soA19, 'so-a-rodada-5.csv')).status).toBe(200);
@@ -161,7 +158,6 @@ describe('PUT /torneios/:id/planilha', () => {
 
   it('partida com um time só (ID digitado errado numa linha): recusa listando a linha (D23)', async () => {
     const id = await criarSetembro();
-    // linha 7 do Excel: Kaio_BR com o ID #45695 em vez de #45659
     const texto = planilha('torneio-setembro.csv').toString('utf8').replace('#45659;Lobos x Serpentes;Serpentes;Kaio_BR', '#45695;Lobos x Serpentes;Serpentes;Kaio_BR');
     const { status, corpo } = await subir(id, Buffer.from(texto, 'utf8'));
     expect(status).toBe(400);

@@ -1,5 +1,3 @@
-// Chamadas à API. Todas passam pelo prefixo /api, que o Vite repassa para o servidor.
-
 import { nomeDoArquivoBaixado } from '../utilitarios/arquivo';
 import { guardarSenha, senhaGuardada, senhaRecusada } from './sessao';
 
@@ -11,12 +9,10 @@ export interface Saude {
 export type ModoDivisao = 'minutos' | 'kills';
 export type StatusTorneio = 'criado' | 'importado' | 'conferindo' | 'pronto' | 'calculado';
 export type StatusConferencia = 'aguardando' | 'em_consulta' | 'conferida' | 'nao_encontrada' | 'times_diferentes';
-/** De quem foi a última falha: do site, ou nossa ("erro interno, não é o site"). */
 export type OrigemDoErro = 'site' | 'interno';
 
 export interface NovoTorneio {
   nome: string;
-  /** Sempre em centavos inteiros: R$ 10.000,00 = 1000000. */
   premioCentavos: number;
   percentuais: number[];
   modoDivisao: ModoDivisao;
@@ -34,7 +30,6 @@ export interface Torneio extends NovoTorneio {
 
 export interface ResumoTorneio extends Torneio {
   quantidadeDePartidas: number;
-  /** A data da primeira partida da planilha ('aaaa-mm-dd'), ou null sem planilha: a lista agrupa por mês. */
   primeiraPartidaEm: string | null;
 }
 
@@ -43,7 +38,6 @@ export interface Partida {
   idPartida: string;
   idPartidaPlanilha: string;
   rodada: number;
-  /** aaaa-mm-dd */
   data: string;
   timeA: string;
   timeB: string;
@@ -55,11 +49,9 @@ export interface Partida {
   emConsultaDesde: string | null;
   ultimoErro: string | null;
   origemDoErro: OrigemDoErro | null;
-  /** Kills do time A e do time B segundo o site (5f); null enquanto o site não respondeu. */
   killsSite: { timeA: number; timeB: number } | null;
 }
 
-/** Se o torneio pode ser calculado e, se não, quanto falta (5c). */
 export interface SituacaoDoCalculo {
   podeCalcular: boolean;
   calculado: boolean;
@@ -82,7 +74,6 @@ export type TipoPendencia =
   | 'time_escrito_diferente'
   | 'jogador_dois_times';
 
-/** Uma pendência como GET /torneios/:id/pendencias devolve (5a). */
 export interface Pendencia {
   chave: string;
   tipo: TipoPendencia;
@@ -107,17 +98,14 @@ export interface ListaDePendencias {
 export interface TorneioComPartidas extends Torneio {
   partidas: Partida[];
   calculo: SituacaoDoCalculo;
-  /** Quanto falta para o "tentar agora" liberar; 0 = liberado. */
   segundosParaTentarAgora: number;
 }
 
-/** Um erro de campo do formulário, como a API devolve no 400. */
 export interface ErroCampo {
   campo: string;
   mensagem: string;
 }
 
-/** Um erro de leitura da planilha (D18, D23), com a linha do Excel. */
 export interface ErroPlanilha {
   linha?: number;
   linhas?: number[];
@@ -138,12 +126,10 @@ export type ResultadoEnvio =
   | { tipo: 'recusada'; erros: ErroPlanilha[]; convertidoDeWindows1252: boolean }
   | { tipo: 'erro'; mensagem: string };
 
-/** Falha que a tela mostra como está: a API já devolve a frase pronta. */
 export class ErroDaApi extends Error {}
 
 export async function buscarSaude(): Promise<Saude> {
   const resposta = await fetch('/api/saude');
-  // 503 também traz o corpo com o estado do banco
   if (!resposta.ok && resposta.status !== 503) {
     throw new Error(`API respondeu ${resposta.status}`);
   }
@@ -174,7 +160,6 @@ export async function criarTorneio(
   return { ok: true, id };
 }
 
-/** O arquivo vai direto no corpo, como veio; a API descobre a codificação (D18). */
 export async function enviarPlanilha(torneioId: number, arquivo: File): Promise<ResultadoEnvio> {
   const resposta = await chamar(`/api/torneios/${torneioId}/planilha`, {
     method: 'PUT',
@@ -194,7 +179,6 @@ export type ResultadoTentarAgora =
   | { tipo: 'aguarde'; segundosParaTentarAgora: number; mensagem: string }
   | { tipo: 'erro'; mensagem: string };
 
-/** Antecipa a próxima consulta das partidas aguardando o site; a API bloqueia 30 s entre cliques. */
 export async function tentarAgora(torneioId: number): Promise<ResultadoTentarAgora> {
   const resposta = await chamar(`/api/torneios/${torneioId}/tentar-agora`, { method: 'POST' });
   const corpo = await resposta.json().catch(() => ({}));
@@ -207,10 +191,6 @@ export async function listarPendencias(torneioId: number): Promise<ListaDePenden
   return lerOuFalhar(await chamar(`/api/torneios/${torneioId}/pendencias`));
 }
 
-/**
- * Marca (ciente = true) ou desfaz o Ciente. "mudou" = a API respondeu 404: a pendência não existe
- * mais, porque os dados mudaram enquanto a Maria olhava; a tela recarrega a lista.
- */
 export type ResultadoCiente = { tipo: 'ok' } | { tipo: 'mudou' } | { tipo: 'erro'; mensagem: string };
 
 export async function definirCiente(torneioId: number, chave: string, ciente: boolean): Promise<ResultadoCiente> {
@@ -228,10 +208,6 @@ export async function cienteDeTodas(torneioId: number): Promise<{ tipo: 'ok'; ma
   return { tipo: 'erro', mensagem: corpo.erro ?? `Não foi possível marcar o Ciente (erro ${resposta.status}).` };
 }
 
-/**
- * Corrige o ID da partida (5b, D16). A partida volta para a fila. Os erros (formato, ID igual,
- * ID de outra partida) voltam com a frase da API, para a tela mostrar junto do campo.
- */
 export async function corrigirIdPartida(
   torneioId: number,
   partidaId: number,
@@ -247,15 +223,12 @@ export async function corrigirIdPartida(
   return { tipo: 'erro', mensagem: corpo.erro ?? `Não foi possível corrigir o ID (erro ${resposta.status}).` };
 }
 
-/** Um time na classificação gravada no cálculo (6c). */
-/** Um time na classificação gravada: o que a tela do resultado e a página pública mostram. */
 export interface TimeDaClassificacao {
   posicao: number;
   time: string;
   vitorias: number;
   killsTime: number;
   premioCentavos: number;
-  /** Como foi gravado: "desempate por kills do time", "divisão igual (empate em vitórias e kills)"... */
   criterio: string | null;
 }
 
@@ -263,7 +236,6 @@ export interface TimeDoResultado extends TimeDaClassificacao {
   recebeuCentavo: boolean;
 }
 
-/** Um jogador no resultado gravado, um por time em que jogou (os sem prêmio com R$ 0). */
 export interface JogadorDoResultado {
   time: string;
   posicao: number;
@@ -288,7 +260,6 @@ export interface ResultadoDoTorneio {
   jogadores: JogadorDoResultado[];
 }
 
-/** O resultado gravado no cálculo; "nao_calculado" = 409. */
 export async function buscarResultado(torneioId: number): Promise<{ tipo: 'ok'; resultado: ResultadoDoTorneio } | { tipo: 'nao_calculado' | 'erro'; mensagem: string }> {
   const resposta = await chamar(`/api/torneios/${torneioId}/resultado`);
   const corpo = await resposta.json().catch(() => ({}));
@@ -299,10 +270,6 @@ export async function buscarResultado(torneioId: number): Promise<{ tipo: 'ok'; 
   };
 }
 
-/**
- * O CSV do resultado (6c), pelo fetch, para levar a senha (R3): um link comum não manda o
- * cabeçalho. O nome do arquivo vem do Content-Disposition da API.
- */
 export async function baixarCsvDoResultado(torneioId: number): Promise<{ tipo: 'ok'; arquivo: Blob; nome: string } | { tipo: 'erro'; mensagem: string }> {
   let resposta: Response;
   try {
@@ -317,7 +284,6 @@ export async function baixarCsvDoResultado(torneioId: number): Promise<{ tipo: '
   return { tipo: 'ok', arquivo: await resposta.blob(), nome: nomeDoArquivoBaixado(resposta.headers.get('content-disposition'), 'resultado.csv') };
 }
 
-/** A página pública do torneio (7a): só o que é do torneio e dos times, sem dado de jogador. */
 export interface PaginaPublica {
   torneio: { nome: string };
   calculadoEm: string;
@@ -330,7 +296,6 @@ export interface PaginaPublica {
   classificacao: TimeDaClassificacao[];
 }
 
-/** Uma página aberta por link: "nao_encontrada" = 404 (código errado); "erro" = qualquer outra falha. */
 export type LeituraPorLink<T> = { tipo: 'ok'; pagina: T } | { tipo: 'nao_encontrada' } | { tipo: 'erro' };
 
 async function lerPorLink<T>(caminho: string): Promise<LeituraPorLink<T>> {
@@ -349,23 +314,18 @@ async function lerPorLink<T>(caminho: string): Promise<LeituraPorLink<T>> {
   }
 }
 
-/** GET /publico/:codigo (7a). */
 export const buscarPaginaPublica = (codigo: string) => lerPorLink<PaginaPublica>(`/api/publico/${encodeURIComponent(codigo)}`);
 
-/** Um jogador no link do time (7b): só deste time. */
 export interface JogadorDaPaginaDoTime {
   nick: string;
-  /** Minutos ou kills, conforme `baseUsada`. */
   base: number;
   baseUsada: ModoDivisao;
-  /** A parte do jogador no time, em centésimos de ponto percentual: 220 = 2,20%. */
   centesimosDePercentual: number;
   premioCentavos: number;
   recebeuCentavo: boolean;
   explicacao: string | null;
 }
 
-/** O link de um time premiado (7b): o extrato dos jogadores dele, sem nada dos outros times. */
 export interface PaginaDoTime {
   torneio: { nome: string };
   calculadoEm: string;
@@ -373,25 +333,19 @@ export interface PaginaDoTime {
   comoFoiCalculado: {
     premioTotalCentavos: number;
     percentualDaPosicao: number;
-    /** Como foi gravado: "desempate por kills do time", "divisão igual (empate em vitórias e kills)" ou null. */
     criterio: string | null;
-    /** Só no empate dividido: as posições somadas, os percentuais delas e quantos times dividiram. */
     empate: { posicoes: number[]; percentuais: number[]; quantidadeDeTimes: number } | null;
     modoDivisao: ModoDivisao;
   };
-  /** Do maior valor para o menor, e por nick no mesmo valor. */
   jogadores: JogadorDaPaginaDoTime[];
   totalCentavos: number;
   codigoPublico: string;
 }
 
-/** GET /time/:codigo (7b). */
 export const buscarPaginaDoTime = (codigo: string) => lerPorLink<PaginaDoTime>(`/api/time/${encodeURIComponent(codigo)}`);
 
-/** Os códigos dos links do torneio (7b), para a Maria copiar. */
 export interface LinksDoTorneio {
   publico: { codigo: string };
-  /** Os times premiados, na ordem da classificação. */
   times: { time: string; posicao: number; premioCentavos: number; codigo: string }[];
 }
 
@@ -399,10 +353,6 @@ export async function buscarLinks(torneioId: number): Promise<LinksDoTorneio> {
   return lerOuFalhar(await chamar(`/api/torneios/${torneioId}/links`));
 }
 
-/**
- * Calcula os prêmios (6b). "recusado" = 409: algo mudou entre a tela e o clique (um Ciente
- * desfeito, uma partida de volta na fila) ou o torneio já foi calculado; vem com a frase da API.
- */
 export async function calcularPremios(torneioId: number): Promise<{ tipo: 'ok' } | { tipo: 'recusado'; mensagem: string } | { tipo: 'erro'; mensagem: string }> {
   const resposta = await chamar(`/api/torneios/${torneioId}/calculo`, { method: 'POST' });
   const corpo = await resposta.json().catch(() => ({}));
@@ -411,10 +361,6 @@ export async function calcularPremios(torneioId: number): Promise<{ tipo: 'ok' }
   return { tipo: 'erro', mensagem: corpo.erro ?? `Não foi possível calcular (erro ${resposta.status}).` };
 }
 
-/**
- * DELETE /torneios/:id (M2): só antes do cálculo. 404 conta como removido: o torneio já não
- * existe (outra aba removeu), e é isso que a Maria queria.
- */
 export async function removerTorneio(torneioId: number): Promise<{ tipo: 'removido' } | { tipo: 'recusado' | 'erro'; mensagem: string }> {
   let resposta: Response;
   try {
@@ -430,11 +376,6 @@ export async function removerTorneio(torneioId: number): Promise<{ tipo: 'removi
 
 const SEM_SERVIDOR = 'Não foi possível falar com o servidor. Confira se o sistema está no ar e tente de novo.';
 
-/**
- * Toda chamada das telas da Maria passa por aqui (R3): leva a senha guardada no cabeçalho e, no
- * 401, liga a tela de senha. As páginas por link (lerPorLink) não passam por aqui: nunca mandam
- * a senha nem pedem.
- */
 async function chamar(caminho: string, opcoes: RequestInit = {}): Promise<Response> {
   const cabecalhos = new Headers(opcoes.headers);
   const senha = senhaGuardada();
@@ -452,11 +393,6 @@ async function chamar(caminho: string, opcoes: RequestInit = {}): Promise<Respon
   return resposta;
 }
 
-/**
- * Confere a senha digitada na tela de senha (GET /acesso: 204 = certa) e, se certa, guarda.
- * Uma senha com acento nem é enviada: o navegador não manda acento num cabeçalho, e a API não
- * aceita uma senha assim (ela não sobe com ADMIN_SENHA com acento).
- */
 export async function entrar(senha: string): Promise<{ tipo: 'ok' } | { tipo: 'incorreta' } | { tipo: 'erro'; mensagem: string }> {
   if (!/^[\x20-\x7e]+$/.test(senha)) return { tipo: 'incorreta' };
   let resposta: Response;

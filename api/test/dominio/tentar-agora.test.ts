@@ -15,7 +15,7 @@ describe('segundosParaTentarAgora: o bloqueio de 30 s entre cliques', () => {
 
   it.each([
     [0, 30],
-    [1, 30], // 29,999 s faltando: arredonda para cima, nunca mostra 0 antes da hora
+    [1, 30],
     [999, 30],
     [1_000, 29],
     [12_500, 18],

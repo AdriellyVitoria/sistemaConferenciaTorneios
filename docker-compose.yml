@@ -1,6 +1,3 @@
-# Sobe tudo com: docker compose up --build
-# Valores padrão abaixo; para trocar, crie um .env a partir do .env.example.
-
 services:
   mysql:
     image: mysql:8.4
@@ -14,8 +11,6 @@ services:
     volumes:
       - dados-mysql:/var/lib/mysql
     healthcheck:
-      # por TCP (127.0.0.1): durante a inicialização o MySQL só aceita socket local,
-      # então o ping só passa quando o banco está pronto de verdade
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
       interval: 5s
       timeout: 5s
@@ -33,10 +28,7 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE:-torneios}
       MYSQL_USER: ${MYSQL_USER:-torneios}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-torneios}
-      # senha das telas da organizadora (R3). O padrão é a senha de DEMONSTRAÇÃO do README:
-      # fora da demonstração, defina outra no .env
       ADMIN_SENHA: ${ADMIN_SENHA:-organizadora-demo}
-      # consulta ao site oficial (etapa 4); o tempo limite precisa passar da demora máxima do site
       SITE_URL: http://site-oficial:4000
       SITE_DEMORA_MAX_MS: ${SITE_DEMORA_MAX_MS:-10000}
       SITE_TEMPO_LIMITE_MS: ${SITE_TEMPO_LIMITE_MS:-15000}
@@ -57,11 +49,9 @@ services:
     environment:
       SITE_PORTA: 4000
       SITE_ARQUIVOS: /dados/site-oficial.json,/dados/site-setembro.json
-      # demora de cada consulta, como o site real (2 a 10 s); a demonstração pode encurtar no .env
       SITE_DEMORA_MIN_MS: ${SITE_DEMORA_MIN_MS:-2000}
       SITE_DEMORA_MAX_MS: ${SITE_DEMORA_MAX_MS:-10000}
     volumes:
-      # os dados do site são só lidos (:ro); o simulador não consegue alterá-los
       - ./testes/site-oficial.json:/dados/site-oficial.json:ro
       - ./api/test/fixtures/site-setembro.json:/dados/site-setembro.json:ro
     ports:

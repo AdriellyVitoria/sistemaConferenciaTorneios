@@ -1,13 +1,3 @@
-/**
- * Rotas do resultado (etapa 6c). Só o que foi gravado no cálculo: nada é recalculado.
- *
- *   GET /torneios/:id/resultado       configuração usada, data, classificação e jogadores (JSON)
- *   GET /torneios/:id/resultado.csv   o mesmo, para a Maria pagar no Excel (UTF-8 com BOM, ";")
- *   GET /torneios/:id/links           os códigos da página pública e de cada time premiado (7b)
- *
- * Antes do cálculo: 409. O filtro por nick é da tela: são poucos jogadores.
- */
-
 import { Router, type Response } from 'express';
 import type { Knex } from 'knex';
 import { z } from 'zod';
@@ -17,7 +7,6 @@ import { buscarCodigos, buscarResultado, type ResultadoGravado } from '../reposi
 import { buscarTorneio, type Torneio } from '../repositorios/torneios';
 
 const esquemaId = z.coerce.number().int().positive();
-/** A marca invisível (BOM) que diz ao Excel que o arquivo é UTF-8: sem ela, "Falcões" vira "FalcÃµes". */
 const BOM = Buffer.from([0xef, 0xbb, 0xbf]);
 
 type Leitura = { tipo: 'ok'; torneio: Torneio; resultado: ResultadoGravado } | { tipo: 'nao_encontrado' } | { tipo: 'nao_calculado' };
@@ -49,7 +38,6 @@ export function rotasResultado(bd: Knex): Router {
     res
       .status(200)
       .set('Content-Type', 'text/csv; charset=utf-8')
-      // filename: só ASCII, para qualquer navegador; filename*: o nome com acentos (RFC 6266)
       .set('Content-Disposition', `attachment; filename="${nomeDoArquivoCsv(nome)}"; filename*=UTF-8''${encodeURIComponent(nomeDoArquivoCsvComAcentos(nome))}`)
       .send(corpo);
   }));
@@ -63,7 +51,6 @@ export function rotasResultado(bd: Knex): Router {
     res.json({ torneio: { id: leitura.torneio.id, nome: leitura.torneio.nome }, ...leitura.resultado });
   }));
 
-  // os códigos dos links para a Maria copiar (7b); a tela monta o endereço com o próprio domínio
   rota.get('/torneios/:id/links', assincrono(async (req, res) => {
     const leitura = await ler(req.params.id);
     if (leitura.tipo !== 'ok') {

@@ -6,7 +6,6 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { criarApp } from '../src/app';
 import { carregarPartidas } from '../src/dados';
 
-// Os arquivos de dados são só lidos: nenhum é alterado.
 const RAIZ = path.resolve(__dirname, '../..');
 const ARQUIVOS = [
   path.join(RAIZ, 'testes/site-oficial.json'),
@@ -55,7 +54,6 @@ describe('GET /partidas/:id', () => {
 
   it('não expõe a configuração do simulador (falhas_antes_de_responder)', async () => {
     const instavel = Object.keys(SITE_OFICIAL).find((id) => 'falhas_antes_de_responder' in SITE_OFICIAL[id])!;
-    // a partida instável falha algumas vezes antes de responder (2b); consulta até responder
     let resposta = await consultar(`/partidas/${instavel.slice(1)}`);
     while (resposta.status === 503) resposta = await consultar(`/partidas/${instavel.slice(1)}`);
     const { status, corpo } = resposta;
@@ -65,7 +63,6 @@ describe('GET /partidas/:id', () => {
   });
 
   it('ID que não existe: 404 com "não encontrada", que é diferente de erro', async () => {
-    // #52214 é o ID digitado errado do cenário 02
     const { status, corpo } = await consultar('/partidas/52214');
     expect(status).toBe(404);
     expect(corpo).toEqual({ status: 'nao_encontrada', id: '#52214' });

@@ -5,7 +5,6 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { criarApp } from '../src/app';
 import { carregarPartidas } from '../src/dados';
 
-// Os arquivos de dados são só lidos: nenhum é alterado.
 const RAIZ = path.resolve(__dirname, '../..');
 const ARQUIVOS = [
   path.join(RAIZ, 'testes/site-oficial.json'),
@@ -21,7 +20,7 @@ beforeEach(async () => {
   base = `http://127.0.0.1:${(servidor.address() as AddressInfo).port}`;
 });
 afterEach(() => new Promise<void>((fechado) => {
-  servidor.closeAllConnections(); // encerra conexões penduradas pelo modo "sem resposta"
+  servidor.closeAllConnections();
   servidor.close(() => fechado());
 }));
 
@@ -44,7 +43,7 @@ describe('modo demonstração: derrubar e religar o site', () => {
     const consulta = await get('/partidas/40923');
     expect(consulta.status).toBe(503);
     expect(consulta.corpo).toEqual({ status: 'indisponivel', motivo: 'site fora do ar', id: '#40923' });
-    expect((await get('/partidas/52214')).status).toBe(503); // nem "não encontrada" ele responde
+    expect((await get('/partidas/52214')).status).toBe(503);
     expect((await get('/saude')).status).toBe(200);
     expect((await get('/demo/estado')).corpo).toEqual({ estado: 'fora_com_erro' });
   });
@@ -58,10 +57,10 @@ describe('modo demonstração: derrubar e religar o site', () => {
   it('religado: volta a responder, e as conexões que estavam penduradas são encerradas', async () => {
     await post('/demo/derrubar', { modo: 'sem_resposta' });
     const pendurada = get('/partidas/40923');
-    await new Promise((r) => setTimeout(r, 50)); // dá tempo de a consulta chegar e ficar pendurada
+    await new Promise((r) => setTimeout(r, 50));
 
     expect((await post('/demo/religar')).corpo).toEqual({ estado: 'no_ar' });
-    await expect(pendurada).rejects.toThrow(); // a conexão perdida não recebe resposta tardia
+    await expect(pendurada).rejects.toThrow();
     const consulta = await get('/partidas/40923');
     expect(consulta.status).toBe(200);
     expect(consulta.corpo.id).toBe('#40923');
@@ -78,7 +77,6 @@ describe('modo demonstração: derrubar e religar o site', () => {
     await post('/demo/derrubar', { modo: 'erro' });
     for (let i = 0; i < 3; i++) expect((await get('/partidas/62142')).status).toBe(503);
     await post('/demo/religar');
-    // #62142 continua com as 2 falhas próprias antes de responder
     expect((await get('/partidas/62142')).corpo).toEqual({ status: 'indisponivel', id: '#62142' });
     expect((await get('/partidas/62142')).status).toBe(503);
     expect((await get('/partidas/62142')).status).toBe(200);
